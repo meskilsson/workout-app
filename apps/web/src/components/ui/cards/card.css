@@ -1,0 +1,18 @@
+.card {
+    padding: 20px;
+    border-radius: 16px;
+    background: white;
+    color: black;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card--primary {
+    background: #ffffff;
+    color: #111111;
+    border-color: #e5e5e5;
+}
+
+.card--primary img {
+    border-radius: 16px;
+    max-width: 200px;
+}

@@ -10,5 +10,8 @@
     "dev:native": "npm run start --workspace=native",
     "build:web": "npm run build --workspace=web",
     "lint": "npm run lint --workspaces --if-present"
+  },
+  "dependencies": {
+    "react-router-dom": "^7.13.1"
   }
 }

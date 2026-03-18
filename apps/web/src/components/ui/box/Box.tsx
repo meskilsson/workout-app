@@ -5,6 +5,6 @@ type BoxProps = HTMLAttributes<HTMLDivElement> & {
     component?: ElementType;
 };
 
-export function Box({ component: Component = "div", style, className, ...rest }: BoxProps) {
+export default function Box({ component: Component = "div", style, className, ...rest }: BoxProps) {
     return <Component style={style} className={className} {...rest} />;
 }

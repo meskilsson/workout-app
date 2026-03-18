@@ -1,27 +1,18 @@
 
 import './App.css'
-import Button from './components/ui/Button'
-import Card from './components/ui/Card'
-import Input from './components/ui/Input'
-
+import { Routes, Route } from 'react-router-dom'
+import Homepage from './pages/homepage/Homepage'
+import Layout from './components/layouts/Layout'
 function App() {
 
 
   return (
-    <>
-      <Card
-        title="card"
-        style={{ border: "1px solid red", maxWidth: "200px" }}
-      >
-        <Input
-          label="ooga"
-          placeholder="booga"
-        />
-        <Button
-        >Start Workout</Button>
-      </Card>
-    </>
 
+    <Routes>
+      <Route path="/" element={<Layout />} />
+      <Route index element={<Homepage />} />
+      <Route path="homepage" element={<Homepage />} />
+    </Routes>
 
   )
 }

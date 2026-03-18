@@ -8,9 +8,9 @@ type CardProps = HTMLAttributes<HTMLDivElement> & {
     variant?: "primary" | "secondary";
 }
 
-export default function Card({ title, className, children, variant, ...rest }: CardProps) {
+export default function Card({ title, className, children, variant = "primary", ...rest }: CardProps) {
     return (
-        <div className={`card ${variant} ${className}`} {...rest}>
+        <div className={`card card--${variant} ${className}`} {...rest}>
             {title && <h2>{title}</h2>}
             {children}
         </div>
