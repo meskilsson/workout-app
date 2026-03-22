@@ -1,17 +1,13 @@
-
-import './App.css'
-import { Routes, Route } from 'react-router-dom'
-import Homepage from './pages/homepage/Homepage'
-import Layout from './components/layouts/Layout'
-import WorkoutSelectPage from './pages/workoutselectpage/WorkoutSelectPage';
-import ExerciseSelectPage from './pages/exerciseselectpage/ExerciseSelectPage';
-import WorkoutSummary from './pages/workoutsummarypage/WorkoutSummary';
-import WorkoutPage from './pages/workoutpage/WorkoutPage';
+import "./App.css";
+import { Routes, Route } from "react-router-dom";
+import Homepage from "./pages/homepage/Homepage";
+import Layout from "./components/layouts/Layout";
+import WorkoutSelectPage from "./pages/workoutselectpage/WorkoutSelectPage";
+import ExerciseSelectPage from "./pages/exerciseselectpage/ExerciseSelectPage";
+import WorkoutSummary from "./pages/workoutsummarypage/WorkoutSummary";
+import WorkoutPage from "./pages/workoutpage/WorkoutPage";
 function App() {
-
-
   return (
-
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<Homepage />} />
@@ -22,8 +18,7 @@ function App() {
         <Route path="workout" element={<WorkoutPage />} />
       </Route>
     </Routes>
-
-  )
+  );
 }
 
-export default App
+export default App;
