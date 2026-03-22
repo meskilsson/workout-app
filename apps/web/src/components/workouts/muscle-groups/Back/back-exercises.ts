@@ -1,13 +1,18 @@
+import type { MuscleGroup } from "../types";
 
 
-type BicepsProps = {
-    name: string;
-}
 
-export const bicepsExercises: BicepsProps[] = [
-    { name: "Barbell Row" },
-    { name: "Wide Grip Cable Row" },
-    { name: "Pull Up" },
-    { name: "Lat Pull Down" },
-    { name: "Close Grip Cable Row" },
-];
+export const backExercises: MuscleGroup = {
+    id: "back",
+    title: "Back",
+    exercises: [
+        { id: "barbell-row", name: "Barbell Row", muscleGroup: "back" },
+        { id: "wide-grip-cable-row", name: "Wide Grip Cable Row", muscleGroup: "back" },
+        { id: "pull-up", name: "Pull Up", muscleGroup: "back" },
+        { id: "lat-pull-down", name: "Lat Pull Down", muscleGroup: "back" },
+        { id: "close-grip-cable-row", name: "Close Grip Cable Row", muscleGroup: "back" },
+    ],
+};
+
+
+

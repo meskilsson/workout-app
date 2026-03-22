@@ -17,7 +17,7 @@ export default function Button({
     ...rest
 }: ButtonProps) {
     return (
-        <button className={`button button--${variant}button--${size} ${className}`} {...rest}>
+        <button className={`button button--${variant} button--${size} ${className}`} {...rest}>
             {children ?? title}
         </button>
     );

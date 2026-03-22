@@ -1,13 +1,13 @@
+import type { MuscleGroup } from "../types"
 
-
-type ShoulderProps = {
-    name: string;
-};
-
-export const shoulderExercises: ShoulderProps[] = [
-    { name: "Military Press" },
-    { name: "Dumbbell Shoulder Press" },
-    { name: "Front Delt Raise" },
-    { name: "Side Delt Raise" },
-    { name: "Face Pull" },
-]
+export const shoulderExercises: MuscleGroup = {
+    id: "shoulders",
+    title: "Shoulders",
+    exercises: [
+        { id: "military press", name: "Military Press", muscleGroup: "shoulders" },
+        { id: "dumbell shoulder press", name: "Dumbbell Shoulder Press", muscleGroup: "shoulders" },
+        { id: "front delt raise", name: "Front Delt Raise", muscleGroup: "shoulders" },
+        { id: "side delt raise", name: "Side Delt Raise", muscleGroup: "shoulders" },
+        { id: "face pull", name: "Face Pull", muscleGroup: "shoulders" },
+    ]
+}

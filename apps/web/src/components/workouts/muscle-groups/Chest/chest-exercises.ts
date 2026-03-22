@@ -1,13 +1,13 @@
+import type { MuscleGroup } from "../types"
 
-
-type ChestProps = {
-    name: string;
-};
-
-export const chestExercises: ChestProps[] = [
-    { name: "Bench Press" },
-    { name: "Incline Bench Press" },
-    { name: "Dumbbell Press" },
-    { name: "Incline Dumbbell Press" },
-    { name: "Cable Flyes" },
-]
+export const chestExercises: MuscleGroup = {
+    id: "chest",
+    title: "Chest",
+    exercises: [
+        { id: "bench press", name: "Bench Press", muscleGroup: "chest" },
+        { id: "incline bench press", name: "Incline Bench Press", muscleGroup: "chest" },
+        { id: "dumbbell press", name: "Dumbbell Press", muscleGroup: "chest" },
+        { id: "incline dumbbell press", name: "Incline Dumbbell Press", muscleGroup: "chest" },
+        { id: "cable flyes", name: "Cable Flyes", muscleGroup: "chest" },
+    ]
+}
