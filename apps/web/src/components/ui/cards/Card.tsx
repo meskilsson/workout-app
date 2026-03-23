@@ -5,7 +5,7 @@ type CardProps = HTMLAttributes<HTMLDivElement> & {
     title?: string;
     className?: string;
     children?: ReactNode;
-    variant?: "primary" | "secondary";
+    variant?: "primary" | "secondary" | "timer";
 }
 
 export default function Card({ title, className, children, variant = "primary", ...rest }: CardProps) {

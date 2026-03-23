@@ -2,7 +2,6 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
 }
 
 header {
@@ -18,4 +17,5 @@ main {
 footer {
     padding: 20px;
     background: #1e1e1e;
+    width: 100%;
 }

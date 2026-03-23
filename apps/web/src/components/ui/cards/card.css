@@ -2,7 +2,6 @@
     border-radius: 14px;
     padding: 16px;
     transition: all 0.25s ease;
-    cursor: pointer;
 }
 
 /* default */
@@ -18,21 +17,34 @@
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
 }
 
-/* primary - same vibe as button */
+/* primary */
 .card--primary {
     background: linear-gradient(135deg, #0f7a3d, #169c4f);
     color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow: 0 6px 16px rgba(15, 122, 61, 0.28);
+    cursor: pointer;
 }
 
-.card--primary:hover {
+/* .card--primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 22px rgba(15, 122, 61, 0.35);
 }
+    */
 
 .card--primary:active {
     transform: translateY(0);
+}
+
+/* timer */
+.card--timer {
+    width: 100%;
+    background: linear-gradient(135deg, #0b5d2f, #118145);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.18);
+    border-radius: 0;
+    padding: 20px 24px;
 }
 
 .card__title {

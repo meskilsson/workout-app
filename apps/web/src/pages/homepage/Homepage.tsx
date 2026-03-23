@@ -5,7 +5,7 @@ import "./Homepage.css";
 import "../../components/ui/cards/card.css";
 import dumbellImage from "../../components/ui/cards/cardimages/dumbell-chalk.webp";
 import { useNavigate } from "react-router-dom";
-import Timer from "../../components/timer/Timer";
+
 
 export default function Homepage() {
   const navigate = useNavigate();
@@ -16,11 +16,10 @@ export default function Homepage() {
         <div>
           <img src={dumbellImage} alt="Dumbbell with chalk" />
         </div>
-        <Button onClick={() => navigate("/workoutselect")}>
+        <Button onClick={() => navigate("/workout-select")}>
           Start Workout
         </Button>
       </Card>
-      <Timer />
     </Box>
   );
 }

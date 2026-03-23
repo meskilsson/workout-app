@@ -1,6 +1,13 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import Footer from '../panels/Footer';
+import Timer from '../timer/Timer';
+import '../panels/footer.css';
+import Box from '../ui/box/Box';
 
 export default function Layout() {
+
+    const { pathname } = useLocation();
+    const isWorkoutPage = pathname === "/workout";
 
 
     return (
@@ -8,8 +15,19 @@ export default function Layout() {
             <header>Navbar</header>
 
             <main><Outlet /></main>
-
-            <footer>Footer</footer>
+            {isWorkoutPage ? (
+                <Footer
+                    className="timer-footer"
+                >
+                    <Box
+                        className="timer-box"
+                    >
+                        <Timer />
+                    </Box>
+                </Footer>
+            ) :
+                <Footer>Footer</Footer>
+            }
         </div>
     );
 }

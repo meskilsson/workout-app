@@ -1,9 +1,10 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Input from "../../components/ui/input/Input";
+import Modal from "../../components/ui/modal/Modal";
 
 type SelectedExercises = {
     id: string;
@@ -24,12 +25,36 @@ type WorkoutSet = {
 
 export default function WorkoutPage() {
 
-
+    const navigate = useNavigate();
     const location = useLocation();
     const state = location.state as LocationState | null;
-    const selectedExercises = state?.selectedExercises ?? [];
 
     const [setsByExercise, setSetsByExercise] = useState<Record<string, WorkoutSet[]>>({});
+    const [openModal, setOpenModal] = useState<boolean>(false);
+
+    const EMPTY_EXERCISES: SelectedExercises[] = [];
+    const selectedExercises = state?.selectedExercises ?? EMPTY_EXERCISES;
+
+
+    useEffect(() => {
+        setSetsByExercise((prev) => {
+            const next = { ...prev };
+
+            selectedExercises.forEach((exercise) => {
+                if (!next[exercise.id] || next[exercise.id].length === 0) {
+                    next[exercise.id] = [{ weight: "", reps: "" }];
+                }
+            });
+
+            Object.keys(next).forEach((exerciseId) => {
+                const stillSelected = selectedExercises.some((exercise) => exercise.id === exerciseId);
+                if (!stillSelected) {
+                    delete next[exerciseId];
+                }
+            });
+            return next;
+        })
+    }, [selectedExercises])
 
 
     function handleAddSet(exerciseId: string) {
@@ -60,8 +85,17 @@ export default function WorkoutPage() {
         }));
     }
 
+    function handleEndSession() {
+        setOpenModal(true);
+    }
+
+    function handleCloseModal() {
+        setOpenModal(false);
+    }
+
 
     return (
+
         <Box>
             <Box>
                 <Card>
@@ -69,8 +103,9 @@ export default function WorkoutPage() {
                         const exerciseSets = setsByExercise[exercise.id] ?? [];
 
                         return (
-                            <Card key={exercise.id}>
-                                <span>{exercise.muscleGroup}</span>
+                            <Card
+                                style={{ listStyle: "none" }}
+                                key={exercise.id}>
 
                                 <li>
                                     {exercise.name}
@@ -81,28 +116,41 @@ export default function WorkoutPage() {
                                     </div>
                                 </li>
 
-                                <div>
+                                <div
+
+                                >
                                     {exerciseSets.map((set, index) => (
-                                        <div key={index}>
-                                            <input
+                                        <div key={index} className="set-row">
+                                            <Input
+                                                label={index === 0 ? "Weight" : undefined}
                                                 type="number"
-                                                placeholder="Weight"
+                                                min={0}
+                                                placeholder="0"
                                                 value={set.weight}
+                                                wrapperClassName="set-number-wrapper"
+                                                className="set-number-input"
                                                 onChange={(e) =>
                                                     handleSetChange(exercise.id, index, "weight", e.target.value)
                                                 }
                                             />
 
-                                            <input
+                                            <Input
+                                                label={index === 0 ? "Reps" : undefined}
                                                 type="number"
-                                                placeholder="Reps"
+                                                min={0}
+                                                placeholder="0"
                                                 value={set.reps}
+                                                wrapperClassName="set-number-wrapper"
+                                                className="set-number-input"
                                                 onChange={(e) =>
                                                     handleSetChange(exercise.id, index, "reps", e.target.value)
                                                 }
                                             />
 
-                                            <Button onClick={() => handleRemoveSet(exercise.id, index)}>
+                                            <Button
+                                                className="set-delete-button"
+                                                onClick={() => handleRemoveSet(exercise.id, index)}
+                                            >
                                                 X
                                             </Button>
                                         </div>
@@ -112,7 +160,38 @@ export default function WorkoutPage() {
                         );
                     })}
                 </Card>
+
+                <Box
+                    style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px" }}
+                >
+                    <Button
+                        type="button"
+                        variant="primary"
+                        onClick={handleEndSession}
+                    >End Session</Button>
+                </Box>
+
+                <Modal
+                    title="End session?"
+                    isOpen={openModal}
+                    onClose={handleCloseModal}
+                    actions={
+                        <>
+                            <Button onClick={() => navigate("/workout-result")}>
+                                End Workout
+                            </Button>
+
+                            <Button onClick={handleCloseModal}>
+                                Close
+                            </Button>
+                        </>
+                    }
+                >
+                    <p>Are you sure you want to end this workout session?</p>
+                </Modal>
             </Box>
         </Box>
+
+
     );
 }
