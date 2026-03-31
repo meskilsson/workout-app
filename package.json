@@ -12,6 +12,8 @@
     "lint": "npm run lint --workspaces --if-present"
   },
   "dependencies": {
+    "mongodb": "^7.1.1",
+    "mongoose": "^9.3.3",
     "react-router-dom": "^7.13.1"
   }
 }
