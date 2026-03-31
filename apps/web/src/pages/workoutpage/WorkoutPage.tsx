@@ -120,7 +120,7 @@ export default function WorkoutPage() {
 
                                 >
                                     {exerciseSets.map((set, index) => (
-                                        <div key={index} className="set-row">
+                                        <div key={index} className="set-row" style={{ marginBottom: "20px" }}>
                                             <Input
                                                 label={index === 0 ? "Weight" : undefined}
                                                 type="number"
