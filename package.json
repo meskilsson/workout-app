@@ -7,6 +7,8 @@
   ],
   "scripts": {
     "dev:web": "npm run dev --workspace=web",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:both": "concurrently \"npm run dev:web\" \"npm run dev:backend\"",
     "dev:native": "npm run start --workspace=native",
     "build:web": "npm run build --workspace=web",
     "lint": "npm run lint --workspaces --if-present"
@@ -15,5 +17,8 @@
     "mongodb": "^7.1.1",
     "mongoose": "^9.3.3",
     "react-router-dom": "^7.13.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
