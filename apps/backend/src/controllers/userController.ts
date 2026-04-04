@@ -1,9 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import * as userService from "../services/userService";
-
-type IdParams = {
-  id: string;
-};
+import { type IdParams } from "../types/errors";
 
 export async function createUser(
   req: Request,

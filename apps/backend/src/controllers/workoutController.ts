@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import * as workoutService from "../services/workoutService";
-import type { IdParams } from "../types";
+import type { IdParams } from "../types/errors";
 
 export async function createWorkout(
   req: Request,
