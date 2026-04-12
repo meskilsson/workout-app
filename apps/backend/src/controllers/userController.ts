@@ -8,6 +8,7 @@ export async function createUser(
   next: NextFunction,
 ): Promise<void> {
   try {
+    console.log("REQ BODY:", req.body);
     const user = await userService.createUser(req.body);
     res.status(201).json(user);
   } catch (error) {
@@ -16,7 +17,7 @@ export async function createUser(
 }
 
 export async function getAllUsers(
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> {

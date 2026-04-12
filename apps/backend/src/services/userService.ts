@@ -1,8 +1,54 @@
-import User, { IUser } from "../models/User";
+import User from "../models/User";
+import bcrypt from 'bcrypt';
 
-export async function createUser(userData: IUser) {
-  const user = await User.create(userData);
-  return user;
+interface CreateUserInput {
+  name: string;
+  email: string;
+  username: string;
+  password: string;
+  profileImage?: string | null;
+};
+
+
+export async function createUser(userData: CreateUserInput) {
+
+  if (!userData?.name || !userData?.email || !userData?.username || !userData?.password) {
+    const error = new Error("Name, email, username, and password are required") as Error & {
+      statusCode?: number;
+    };
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const email = userData.email.trim().toLowerCase();
+  const username = userData.username.trim().toLowerCase();
+
+
+  const existingUser = await User.findOne({
+    $or: [{ email }, { username }],
+  });
+
+  if (existingUser) {
+    const error = new Error("Email or username already in use") as Error & {
+      statusCode?: number;
+    };
+    error.statusCode = 409;
+    throw error;
+  }
+
+  const passwordHash = await bcrypt.hash(userData.password, 10);
+
+  const createdUser = await User.create({
+    name: userData.name,
+    email: userData.email,
+    username: userData.username,
+    passwordHash,
+    profileImage: userData.profileImage ?? null,
+  });
+
+  const safeUser = await User.findById(createdUser._id);
+
+  return safeUser;
 }
 
 export async function getAllUsers() {

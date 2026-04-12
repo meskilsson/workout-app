@@ -2,9 +2,12 @@ import { Schema, model } from "mongoose";
 
 export interface IUser {
   name: string;
-  age?: number;
-  address?: string;
-}
+  email: string;
+  username: string;
+  passwordHash: string;
+  profileImage?: string | null;
+  role: "user" | "admin";
+};
 
 const userSchema = new Schema<IUser>(
   {
@@ -12,15 +15,41 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: [true, "Name is required"],
       trim: true,
+      minlength: [2, "Name must be at least 2 characters"],
+      maxlength: [50, "Name cannot be more than 50 characters"],
     },
-    age: {
-      type: Number,
-      min: [0, "Age cannot be negative"],
-    },
-    address: {
+    email: {
       type: String,
+      required: [true, "Email is required"],
+      unique: true,
+      trim: true,
+      lowercase: true,
+      match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"],
+    },
+    username: {
+      type: String,
+      required: [true, "Username is required"],
+      unique: true,
+      trim: true,
+      lowercase: true,
+      minlength: [3, "Username must be at least 3 characters"],
+      maxlength: [20, "Username cannot be more than 20 characters"],
+    },
+    passwordHash: {
+      type: String,
+      required: [true, "Password is required"],
+      select: false,
+    },
+    profileImage: {
+      type: String,
+      default: "",
       trim: true,
     },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    }
   },
   {
     timestamps: true,
