@@ -7,6 +7,7 @@ import cors from "cors";
 import { connectDB } from "./config/db";
 import userRouter from "./routes/userRoutes";
 import workoutRouter from "./routes/workoutRoutes";
+import authRouter from "./routes/authRouter";
 import { notFound } from "./middleware/notFound";
 import { errorHandler } from "./middleware/errorHandler";
 
@@ -22,6 +23,8 @@ app.get("/", (_req, res) => {
 
 app.use("/api/users", userRouter);
 app.use("/api/workouts", workoutRouter);
+app.use("/api/auth", authRouter);
+
 
 app.use(notFound);
 app.use(errorHandler);

@@ -1,22 +1,25 @@
 import User from "../models/User";
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
 
-//Login function that finds and awaits a user email with passwordHash.
+interface LoginUserInput {
+    email: string;
+    password: string;
+}
 
-export async function loginUser(email: string, password: string) {
-    const user = await User.findOne({ email: email.toLowerCase() }).select("+passwordHash");
-
-    if (!user) {
-        const error = new Error("invalid email or password") as Error & {
+export async function loginUser(loginData: LoginUserInput) {
+    if (!loginData?.email || !loginData?.password) {
+        const error = new Error("Email and password are required") as Error & {
             statusCode?: number;
         };
-        error.statusCode = 401;
+        error.statusCode = 400;
         throw error;
     }
 
-    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    const email = loginData.email.trim().toLowerCase();
 
-    if (!isMatch) {
+    const user = await User.findOne({ email }).select("+passwordHash");
+
+    if (!user) {
         const error = new Error("Invalid email or password") as Error & {
             statusCode?: number;
         };
@@ -24,5 +27,20 @@ export async function loginUser(email: string, password: string) {
         throw error;
     }
 
-    return user;
+    const isPasswordCorrect = await bcrypt.compare(
+        loginData.password,
+        user.passwordHash,
+    );
+
+    if (!isPasswordCorrect) {
+        const error = new Error("Invalid email or password") as Error & {
+            statusCode?: number;
+        };
+        error.statusCode = 401;
+        throw error;
+    }
+
+    const safeUser = await User.findById(user._id);
+
+    return safeUser;
 }
