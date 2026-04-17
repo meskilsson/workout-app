@@ -21,6 +21,8 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }

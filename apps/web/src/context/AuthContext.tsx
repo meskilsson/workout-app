@@ -24,13 +24,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const savedUser = localStorage.getItem("user");
+        try {
+            const savedUser = localStorage.getItem("user");
 
-        if (savedUser) {
-            setUser(JSON.parse(savedUser));
+            if (savedUser) {
+                setUser(JSON.parse(savedUser));
+            }
+        } catch {
+            localStorage.removeItem("user");
+            setUser(null);
+        } finally {
+            setLoading(false);
         }
-
-        setLoading(false);
     }, []);
 
     function login(userData: User) {
