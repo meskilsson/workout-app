@@ -1,16 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import Box from "../../components/ui/box/Box";
-import Card from "../../components/ui/cards/Card";
-import Button from "../../components/ui/button/Button";
 import { loginRequest } from "../../services/authApi";
+import Box from "../../components/ui/box/Box";
+import Button from "../../components/ui/button/Button";
+import Card from "../../components/ui/cards/Card";
 
 export default function LoginPage() {
-
-    const { login } = useAuth();
-
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -23,10 +21,11 @@ export default function LoginPage() {
         setIsLoading(true);
 
         try {
-
             const user = await loginRequest({
-                email, password
+                email,
+                password,
             });
+
             login(user);
             navigate("/homepage");
         } catch (err) {
@@ -69,9 +68,6 @@ export default function LoginPage() {
                     </Button>
                 </form>
             </Card>
-            <Button
-                onClick={() => navigate("/signup")}
-            >Signup</Button>
         </Box>
     );
 }

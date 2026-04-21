@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { getMeRequest, logoutRequest } from "../services/authApi";
 
 type User = {
     _id: string;
@@ -14,7 +15,7 @@ type AuthContextType = {
     isAuthenticated: boolean;
     loading: boolean;
     login: (userData: User) => void;
-    logout: () => void;
+    logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,27 +25,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        try {
-            const savedUser = localStorage.getItem("user");
-
-            if (savedUser) {
-                setUser(JSON.parse(savedUser));
+        async function loadUser() {
+            try {
+                const currentUser = await getMeRequest();
+                setUser(currentUser);
+            } catch {
+                setUser(null);
+            } finally {
+                setLoading(false);
             }
-        } catch {
-            localStorage.removeItem("user");
-            setUser(null);
-        } finally {
-            setLoading(false);
         }
+
+        loadUser();
     }, []);
 
     function login(userData: User) {
-        localStorage.setItem("user", JSON.stringify(userData));
         setUser(userData);
     }
 
-    function logout() {
-        localStorage.removeItem("user");
+    async function logout() {
+        await logoutRequest();
         setUser(null);
     }
 

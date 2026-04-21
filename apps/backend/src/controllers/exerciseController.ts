@@ -1,24 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import * as exerciseService from "../services/exerciseService";
 
-interface AuthRequest extends Request {
-    user?: {
-        id: string;
-    };
-}
-
 export async function createExercise(
-    req: AuthRequest,
+    req: Request,
     res: Response,
     next: NextFunction,
 ): Promise<void> {
     try {
         if (!req.user?.id) {
-            const error = new Error("Unauthorized") as Error & {
-                statusCode?: number;
-            };
-            error.statusCode = 401;
-            throw error;
+            res.status(401).json({ message: "Unauthorized" });
+            return;
         }
 
         const exercise = await exerciseService.createExercise(req.body, req.user.id);

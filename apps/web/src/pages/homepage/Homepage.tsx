@@ -1,4 +1,4 @@
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
@@ -13,12 +13,7 @@ export default function Homepage() {
 
   const navigate = useNavigate();
 
-  const savedUser = localStorage.getItem("user");
-  const user = savedUser ? JSON.parse(savedUser) : null;
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
 
   const handleLogout = () => {
     logout();
@@ -34,6 +29,12 @@ export default function Homepage() {
           Start Workout
         </Button>
       </Card>
+
+      <Button
+        onClick={() => navigate("/login")}
+      >
+        Login
+      </Button>
 
       <Button
         onClick={handleLogout}
