@@ -8,38 +8,40 @@ import "../../components/ui/cards/card.css";
 import dumbellImage from "../../components/ui/cards/cardimages/dumbell-chalk.webp";
 
 export default function Homepage() {
-
   const { logout } = useAuth();
-
   const navigate = useNavigate();
-
-
 
   const handleLogout = async () => {
     await logout();
     navigate("/login");
-  }
+  };
 
   return (
     <Box className="homepage-container">
-      <Card title="Workout-Card">
-        <div>
-          <img src={dumbellImage} alt="Dumbbell with chalk" />
+      <Card
+        variant="image"
+        className="homepage-workout-card"
+        onClick={() => navigate("/workout-select")}
+      >
+        <div className="card__image-wrapper">
+          <img
+            src={dumbellImage}
+            alt="Dumbbell with chalk"
+            className="card__image"
+          />
         </div>
-        <Button onClick={() => navigate("/workout-select")}>
-          Start Workout
-        </Button>
+
+        <div className="card__content homepage-workout-card__content">
+          <h2 className="homepage-workout-card__title">Start Workout</h2>
+          <p className="homepage-workout-card__text">
+            Choose muscle groups and build your next session.
+          </p>
+        </div>
       </Card>
 
-      <Button
-        onClick={() => navigate("/login")}
-      >
-        Login
-      </Button>
+      <Button onClick={() => navigate("/login")}>Login</Button>
 
-      <Button
-        onClick={handleLogout}
-      >Logout</Button>
+      <Button onClick={handleLogout}>Logout</Button>
     </Box>
   );
 }

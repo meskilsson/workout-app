@@ -4,10 +4,9 @@ import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import { createExerciseRequest } from "../../services/exerciseApi";
-
+import styles from "./CreateExercisePage.module.css";
 
 export default function CreateExercisePage() {
-
     const navigate = useNavigate();
 
     const [name, setName] = useState("");
@@ -23,7 +22,10 @@ export default function CreateExercisePage() {
     const [isLoading, setIsLoading] = useState(false);
 
     function parseMuscleInput(value: string) {
-        return value.split(",").map((muscle) => muscle.trim()).filter(Boolean);
+        return value
+            .split(",")
+            .map((muscle) => muscle.trim())
+            .filter(Boolean);
     }
 
     async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
@@ -36,7 +38,9 @@ export default function CreateExercisePage() {
                 name,
                 description: description || undefined,
                 instructions: instructions || undefined,
-                exerciseType: exerciseType ? (exerciseType as "strength" | "cardio" | "mobility") : undefined,
+                exerciseType: exerciseType
+                    ? (exerciseType as "strength" | "cardio" | "mobility")
+                    : undefined,
                 primaryMuscles: parseMuscleInput(primaryMuscles),
                 secondaryMuscles: parseMuscleInput(secondaryMuscles),
                 equipment: equipment
@@ -48,7 +52,9 @@ export default function CreateExercisePage() {
                         | "kettlebell"
                         | "band")
                     : undefined,
-                difficulty: difficulty ? (difficulty as "beginner" | "intermediate" | "advanced") : undefined,
+                difficulty: difficulty
+                    ? (difficulty as "beginner" | "intermediate" | "advanced")
+                    : undefined,
             });
 
             navigate("/dashboard");
@@ -63,99 +69,136 @@ export default function CreateExercisePage() {
         }
     }
 
-
     return (
-        <Box>
-            <Card title="Create Custom Exercise">
-                <form onSubmit={handleSubmit}>
-                    <label htmlFor="name">Name *</label>
-                    <input
-                        id="name"
-                        type="text"
-                        placeholder="e.g. Cable Chest Fly"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
+        <Box className={styles.page}>
+            <Card variant="default" className={styles.card}>
+                <div className={styles.header}>
+                    <h1 className={styles.title}>Create Custom Exercise</h1>
+                    <p className={styles.subtitle}>
+                        Add your own movement to your exercise library.
+                    </p>
+                </div>
 
-                    <label htmlFor="description">Description</label>
-                    <input
-                        id="description"
-                        type="text"
-                        placeholder="Short description"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                    />
+                <form onSubmit={handleSubmit} className={styles.form}>
+                    <div className={styles.field}>
+                        <label htmlFor="name">Name *</label>
+                        <input
+                            id="name"
+                            type="text"
+                            placeholder="e.g. Cable Chest Fly"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                        />
+                    </div>
 
-                    <label htmlFor="instructions">Instructions</label>
-                    <input
-                        id="instructions"
-                        placeholder="How to perform the exercise"
-                        value={instructions}
-                        onChange={(e) => setInstructions(e.target.value)}
-                    />
+                    <div className={styles.field}>
+                        <label htmlFor="description">Description</label>
+                        <input
+                            id="description"
+                            type="text"
+                            placeholder="Short description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                        />
+                    </div>
 
-                    <label htmlFor="exerciseType">Exercise Type</label>
-                    <select
-                        id="exerciseType"
-                        value={exerciseType}
-                        onChange={(e) => setExerciseType(e.target.value)}
-                    >
-                        <option value="">Select type</option>
-                        <option value="strength">Strength</option>
-                        <option value="cardio">Cardio</option>
-                        <option value="mobility">Mobility</option>
-                    </select>
+                    <div className={styles.field}>
+                        <label htmlFor="instructions">Instructions</label>
+                        <textarea
+                            id="instructions"
+                            placeholder="How to perform the exercise"
+                            value={instructions}
+                            onChange={(e) => setInstructions(e.target.value)}
+                            className={styles.textarea}
+                        />
+                    </div>
 
-                    <label htmlFor="primaryMuscles">Primary Muscles</label>
-                    <input
-                        id="primaryMuscles"
-                        type="text"
-                        placeholder="e.g. chest, shoulders, back"
-                        value={primaryMuscles}
-                        onChange={(e) => setPrimaryMuscles(e.target.value)}
-                    />
+                    <div className={styles.row}>
+                        <div className={styles.field}>
+                            <label htmlFor="exerciseType">Exercise Type</label>
+                            <select
+                                id="exerciseType"
+                                value={exerciseType}
+                                onChange={(e) => setExerciseType(e.target.value)}
+                            >
+                                <option value="">Select type</option>
+                                <option value="strength">Strength</option>
+                                <option value="cardio">Cardio</option>
+                                <option value="mobility">Mobility</option>
+                            </select>
+                        </div>
 
-                    <label htmlFor="secondaryMuscles">Secondary Muscles</label>
-                    <input
-                        id="secondaryMuscles"
-                        type="text"
-                        placeholder="e.g. triceps"
-                        value={secondaryMuscles}
-                        onChange={(e) => setSecondaryMuscles(e.target.value)}
-                    />
+                        <div className={styles.field}>
+                            <label htmlFor="difficulty">Difficulty</label>
+                            <select
+                                id="difficulty"
+                                value={difficulty}
+                                onChange={(e) => setDifficulty(e.target.value)}
+                            >
+                                <option value="">Select difficulty</option>
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                    </div>
 
-                    <label htmlFor="equipment">Equipment</label>
-                    <select
-                        id="equipment"
-                        value={equipment}
-                        onChange={(e) => setEquipment(e.target.value)}
-                    >
-                        <option value="">Select Equipment</option>
-                        <option value="bodyweight">Bodyweight</option>
-                        <option value="dumbbell">Dumbbell</option>
-                        <option value="barbell">Barbell</option>
-                        <option value="machine">Machine</option>
-                        <option value="kettlebell">Kettlebell</option>
-                        <option value="band">Bamd</option>
-                    </select>
+                    <div className={styles.row}>
+                        <div className={styles.field}>
+                            <label htmlFor="equipment">Equipment</label>
+                            <select
+                                id="equipment"
+                                value={equipment}
+                                onChange={(e) => setEquipment(e.target.value)}
+                            >
+                                <option value="">Select equipment</option>
+                                <option value="bodyweight">Bodyweight</option>
+                                <option value="dumbbell">Dumbbell</option>
+                                <option value="barbell">Barbell</option>
+                                <option value="machine">Machine</option>
+                                <option value="kettlebell">Kettlebell</option>
+                                <option value="band">Band</option>
+                            </select>
+                        </div>
 
-                    <label htmlFor="difficulty">Difficulty</label>
-                    <select
-                        id="difficulty"
-                        value={difficulty}
-                        onChange={(e) => setDifficulty(e.target.value)}
-                    >
-                        <option value="">Select difficulty</option>
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="advanced">Advanced</option>
-                    </select>
+                        <div className={styles.field}>
+                            <label htmlFor="primaryMuscles">Primary Muscles</label>
+                            <input
+                                id="primaryMuscles"
+                                type="text"
+                                placeholder="e.g. chest, shoulders"
+                                value={primaryMuscles}
+                                onChange={(e) => setPrimaryMuscles(e.target.value)}
+                            />
+                        </div>
+                    </div>
 
-                    {error && <p>{error}</p>}
+                    <div className={styles.field}>
+                        <label htmlFor="secondaryMuscles">Secondary Muscles</label>
+                        <input
+                            id="secondaryMuscles"
+                            type="text"
+                            placeholder="e.g. triceps"
+                            value={secondaryMuscles}
+                            onChange={(e) => setSecondaryMuscles(e.target.value)}
+                        />
+                    </div>
 
-                    <Button type="submit" disabled={isLoading}>
-                        {isLoading ? "Creating..." : "Create Exercise"}
-                    </Button>
+                    {error && <p className={styles.error}>{error}</p>}
+
+                    <div className={styles.actions}>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => navigate("/dashboard")}
+                        >
+                            Cancel
+                        </Button>
+
+                        <Button type="submit" disabled={isLoading}>
+                            {isLoading ? "Creating..." : "Create Exercise"}
+                        </Button>
+                    </div>
                 </form>
             </Card>
         </Box>
