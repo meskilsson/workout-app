@@ -15,8 +15,9 @@ export default function Homepage() {
 
 
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
   }
 
   return (

@@ -9,12 +9,12 @@ export default function PublicRoute({
     const { isAuthenticated, loading } = useAuth();
 
     if (loading) {
-        return <p>Loading...</p>
+        return <p>Loading...</p>;
     }
 
     if (isAuthenticated) {
-        return <Navigate to="/homepage" replace />
+        return <Navigate to="/dashboard" replace />;
     }
 
-    return <>{children}</>
+    return <>{children}</>;
 }

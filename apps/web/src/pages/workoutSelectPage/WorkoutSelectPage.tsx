@@ -3,23 +3,15 @@ import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
 import "../../components/ui/button/button.css";
-
 import { useNavigate } from "react-router-dom";
 
-import { backExercises } from "../../features/workouts/data/muscleGroups/back-exercises";
-import { shoulderExercises } from "../../features/workouts/data/muscleGroups/shoulder-exercises";
-import { bicepsExercises } from "../../features/workouts/data/muscleGroups/bicep-exercises";
-import { legExercises } from "../../features/workouts/data/muscleGroups/leg-exercises";
-import { chestExercises } from "../../features/workouts/data/muscleGroups/chest-exercises";
-import { tricepExercises } from "../../features/workouts/data/muscleGroups/triceps-exercises";
-
 const muscleGroupCards = [
-  backExercises,
-  shoulderExercises,
-  bicepsExercises,
-  legExercises,
-  chestExercises,
-  tricepExercises,
+  { id: "back", title: "Back" },
+  { id: "shoulders", title: "Shoulders" },
+  { id: "biceps", title: "Biceps" },
+  { id: "legs", title: "Legs" },
+  { id: "chest", title: "Chest" },
+  { id: "triceps", title: "Triceps" },
 ];
 
 export default function WorkoutSelectPage() {
@@ -51,11 +43,10 @@ export default function WorkoutSelectPage() {
           <Card
             key={group.id}
             title={group.title}
-            className={`muscle-group-card ${
-              selectedGroups.includes(group.id)
+            className={`muscle-group-card ${selectedGroups.includes(group.id)
                 ? "muscle-group-card--selected"
                 : ""
-            }`}
+              }`}
             onClick={() => handleToggleGroup(group.id)}
           />
         ))}

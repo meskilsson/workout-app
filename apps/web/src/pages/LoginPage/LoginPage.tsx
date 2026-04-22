@@ -27,7 +27,7 @@ export default function LoginPage() {
             });
 
             login(user);
-            navigate("/homepage");
+            navigate("/dashboard");
         } catch (err) {
             if (err instanceof Error) {
                 setError(err.message);
