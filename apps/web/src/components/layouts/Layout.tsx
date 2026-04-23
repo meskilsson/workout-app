@@ -1,8 +1,8 @@
 import { Outlet, useLocation } from "react-router-dom";
 import Footer from "./Footer";
-import Timer from "../../../../packages/shared/src/timer/Timer";
 import "./footer.css";
 import Box from "../ui/box/Box";
+import Timer from "../timer/Timer";
 
 export default function Layout() {
   const { pathname } = useLocation();
@@ -15,6 +15,7 @@ export default function Layout() {
       <main>
         <Outlet />
       </main>
+
       {isWorkoutPage ? (
         <Footer className="timer-footer">
           <Box className="timer-box">

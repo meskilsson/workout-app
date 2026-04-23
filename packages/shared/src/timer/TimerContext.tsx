@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 
-type TimerState = {
+export type TimerState = {
   timeLeft: number;
   isRunning: boolean;
   startTime: number | null;
@@ -16,7 +16,7 @@ type TimerState = {
   isFinished: boolean;
 };
 
-type TimerAction =
+export type TimerAction =
   | { type: "START" }
   | { type: "PAUSE" }
   | { type: "RESET" }
@@ -45,7 +45,10 @@ function createInitialState(durationMs: number): TimerState {
   };
 }
 
-function timerReducer(state: TimerState, action: TimerAction): TimerState {
+export function timerReducer(
+  state: TimerState,
+  action: TimerAction,
+): TimerState {
   switch (action.type) {
     case "START": {
       if (state.isRunning) return state;
@@ -119,7 +122,7 @@ const TimerContext = createContext<TimerContextValue | null>(null);
 export function TimerProvider({
   children,
   durationMs,
-}: TimerProviderProps): React.JSX.Element {
+}: TimerProviderProps): JSX.Element {
   const [state, dispatch] = useReducer(
     timerReducer,
     durationMs,

@@ -4,7 +4,16 @@ import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import { createExerciseRequest } from "../../services/exerciseApi";
-import { MUSCLE_OPTIONS, type Muscle } from "../../constants/muscles";
+import {
+    MUSCLE_OPTIONS,
+    EQUIPMENT_OPTIONS,
+    DIFFICULTY_OPTIONS,
+    EXERCISE_TYPE_OPTIONS,
+    type Muscle,
+    type Equipment,
+    type Difficulty,
+    type ExerciseType,
+} from "@workout-app/shared";
 import styles from "./CreateExercisePage.module.css";
 
 export default function CreateExercisePage() {
@@ -13,18 +22,17 @@ export default function CreateExercisePage() {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [instructions, setInstructions] = useState("");
-    const [exerciseType, setExerciseType] = useState("");
+    const [exerciseType, setExerciseType] = useState<ExerciseType | "">("");
     const [primaryMuscles, setPrimaryMuscles] = useState<Muscle[]>([]);
     const [secondaryMuscles, setSecondaryMuscles] = useState<Muscle[]>([]);
-    const [equipment, setEquipment] = useState("");
-    const [difficulty, setDifficulty] = useState("");
+    const [equipment, setEquipment] = useState<Equipment | "">("");
+    const [difficulty, setDifficulty] = useState<Difficulty | "">("");
 
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
     function toggleMuscle(
         muscle: Muscle,
-        selected: Muscle[],
         setSelected: React.Dispatch<React.SetStateAction<Muscle[]>>,
     ) {
         setSelected((prev) =>
@@ -34,7 +42,7 @@ export default function CreateExercisePage() {
         );
     }
 
-    async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setError("");
         setIsLoading(true);
@@ -44,23 +52,11 @@ export default function CreateExercisePage() {
                 name,
                 description: description || undefined,
                 instructions: instructions || undefined,
-                exerciseType: exerciseType
-                    ? (exerciseType as "strength" | "cardio" | "mobility")
-                    : undefined,
+                exerciseType: exerciseType || undefined,
                 primaryMuscles,
                 secondaryMuscles,
-                equipment: equipment
-                    ? (equipment as
-                        | "bodyweight"
-                        | "dumbbell"
-                        | "barbell"
-                        | "machine"
-                        | "kettlebell"
-                        | "band")
-                    : undefined,
-                difficulty: difficulty
-                    ? (difficulty as "beginner" | "intermediate" | "advanced")
-                    : undefined,
+                equipment: equipment || undefined,
+                difficulty: difficulty || undefined,
             });
 
             navigate("/dashboard");
@@ -125,12 +121,16 @@ export default function CreateExercisePage() {
                             <select
                                 id="exerciseType"
                                 value={exerciseType}
-                                onChange={(e) => setExerciseType(e.target.value)}
+                                onChange={(e) =>
+                                    setExerciseType((e.target.value as ExerciseType | "") || "")
+                                }
                             >
                                 <option value="">Select type</option>
-                                <option value="strength">Strength</option>
-                                <option value="cardio">Cardio</option>
-                                <option value="mobility">Mobility</option>
+                                {EXERCISE_TYPE_OPTIONS.map((type) => (
+                                    <option key={type} value={type}>
+                                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
@@ -139,12 +139,16 @@ export default function CreateExercisePage() {
                             <select
                                 id="difficulty"
                                 value={difficulty}
-                                onChange={(e) => setDifficulty(e.target.value)}
+                                onChange={(e) =>
+                                    setDifficulty((e.target.value as Difficulty | "") || "")
+                                }
                             >
                                 <option value="">Select difficulty</option>
-                                <option value="beginner">Beginner</option>
-                                <option value="intermediate">Intermediate</option>
-                                <option value="advanced">Advanced</option>
+                                {DIFFICULTY_OPTIONS.map((level) => (
+                                    <option key={level} value={level}>
+                                        {level.charAt(0).toUpperCase() + level.slice(1)}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     </div>
@@ -154,15 +158,16 @@ export default function CreateExercisePage() {
                         <select
                             id="equipment"
                             value={equipment}
-                            onChange={(e) => setEquipment(e.target.value)}
+                            onChange={(e) =>
+                                setEquipment((e.target.value as Equipment | "") || "")
+                            }
                         >
                             <option value="">Select equipment</option>
-                            <option value="bodyweight">Bodyweight</option>
-                            <option value="dumbbell">Dumbbell</option>
-                            <option value="barbell">Barbell</option>
-                            <option value="machine">Machine</option>
-                            <option value="kettlebell">Kettlebell</option>
-                            <option value="band">Band</option>
+                            {EQUIPMENT_OPTIONS.map((item) => (
+                                <option key={item} value={item}>
+                                    {item.charAt(0).toUpperCase() + item.slice(1)}
+                                </option>
+                            ))}
                         </select>
                     </div>
 
@@ -174,9 +179,7 @@ export default function CreateExercisePage() {
                                     <input
                                         type="checkbox"
                                         checked={primaryMuscles.includes(muscle)}
-                                        onChange={() =>
-                                            toggleMuscle(muscle, primaryMuscles, setPrimaryMuscles)
-                                        }
+                                        onChange={() => toggleMuscle(muscle, setPrimaryMuscles)}
                                     />
                                     <span>{muscle}</span>
                                 </label>
@@ -192,9 +195,7 @@ export default function CreateExercisePage() {
                                     <input
                                         type="checkbox"
                                         checked={secondaryMuscles.includes(muscle)}
-                                        onChange={() =>
-                                            toggleMuscle(muscle, secondaryMuscles, setSecondaryMuscles)
-                                        }
+                                        onChange={() => toggleMuscle(muscle, setSecondaryMuscles)}
                                     />
                                     <span>{muscle}</span>
                                 </label>

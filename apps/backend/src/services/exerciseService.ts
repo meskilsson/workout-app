@@ -1,15 +1,20 @@
 import Exercise from "../models/Exercises";
-import type { Muscle } from "../constants/muscles";
+import type {
+    Muscle,
+    Equipment,
+    Difficulty,
+    ExerciseType,
+} from "@workout-app/shared";
 
 interface CreateExerciseInput {
     name: string;
     description?: string;
     instructions?: string;
-    exerciseType?: "strength" | "cardio" | "mobility";
+    exerciseType?: ExerciseType;
     primaryMuscles?: Muscle[];
     secondaryMuscles?: Muscle[];
-    equipment?: "bodyweight" | "dumbbell" | "barbell" | "machine" | "kettlebell" | "band";
-    difficulty?: "beginner" | "intermediate" | "advanced";
+    equipment?: Equipment;
+    difficulty?: Difficulty;
     videoUrl?: string;
     imageUrl?: string;
 }
@@ -31,17 +36,13 @@ export async function createExercise(
     }
 
     const name = exerciseData.name.trim();
-
     const description = exerciseData.description?.trim() || "";
     const instructions = exerciseData.instructions?.trim() || "";
     const videoUrl = exerciseData.videoUrl?.trim() || "";
     const imageUrl = exerciseData.imageUrl?.trim() || "";
 
-    const primaryMuscles =
-        exerciseData.primaryMuscles?.map((muscle) => muscle.trim()).filter(Boolean) ?? [];
-
-    const secondaryMuscles =
-        exerciseData.secondaryMuscles?.map((muscle) => muscle.trim()).filter(Boolean) ?? [];
+    const primaryMuscles = exerciseData.primaryMuscles ?? [];
+    const secondaryMuscles = exerciseData.secondaryMuscles ?? [];
 
     const existingExercise = await Exercise.findOne({
         createdBy: userId,
@@ -51,7 +52,9 @@ export async function createExercise(
     });
 
     if (existingExercise) {
-        const error = new Error("You already created an exercise with that name") as Error & {
+        const error = new Error(
+            "You already created an exercise with that name",
+        ) as Error & {
             statusCode?: number;
         };
         error.statusCode = 409;
@@ -74,7 +77,7 @@ export async function createExercise(
     });
 
     return exercise;
-};
+}
 
 export async function getPublicExercises() {
     const exercises = await Exercise.find({
@@ -87,15 +90,11 @@ export async function getPublicExercises() {
 
 export async function getExerciseLibrary(userId: string) {
     const exercises = await Exercise.find({
-        $or: [
-            { isCustom: false, createdBy: null },
-            { createdBy: userId },
-        ],
+        $or: [{ isCustom: false, createdBy: null }, { createdBy: userId }],
     }).sort({ name: 1 });
 
     return exercises;
 }
-
 
 export async function getExerciseById(id: string) {
     const exercise = await Exercise.findById(id);
@@ -103,8 +102,7 @@ export async function getExerciseById(id: string) {
     if (!exercise) {
         const error = new Error("Exercise not found") as Error & {
             statusCode?: number;
-        }
-
+        };
         error.statusCode = 404;
         throw error;
     }

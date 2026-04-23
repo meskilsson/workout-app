@@ -14,11 +14,11 @@ export interface IExercise {
     name: string;
     description?: string;
     instructions?: string;
-    exerciseType?: "strength" | "cardio" | "mobility";
+    exerciseType?: ExerciseType;
     primaryMuscles?: Muscle[];
     secondaryMuscles?: Muscle[];
-    equipment?: "bodyweight" | "dumbbell" | "barbell" | "machine" | "kettlebell" | "band";
-    difficulty?: "beginner" | "intermediate" | "advanced";
+    equipment?: Equipment;
+    difficulty?: Difficulty;
     videoUrl?: string;
     imageUrl?: string;
     isCustom: boolean;
@@ -46,7 +46,7 @@ const exerciseSchema = new Schema<IExercise>(
         },
         exerciseType: {
             type: String,
-            enum: ["strength", "cardio", "mobility"],
+            enum: EXERCISE_TYPE_OPTIONS,
         },
         primaryMuscles: {
             type: [{ type: String, enum: MUSCLE_OPTIONS }],
@@ -58,11 +58,11 @@ const exerciseSchema = new Schema<IExercise>(
         },
         equipment: {
             type: String,
-            enum: ["bodyweight", "dumbbell", "barbell", "machine", "kettlebell", "band"],
+            enum: EQUIPMENT_OPTIONS,
         },
         difficulty: {
             type: String,
-            enum: ["beginner", "intermediate", "advanced"],
+            enum: DIFFICULTY_OPTIONS,
         },
         videoUrl: {
             type: String,

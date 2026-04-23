@@ -1,17 +1,21 @@
-import type { Muscle } from "../constants/muscles";
+import type {
+    Equipment,
+    Difficulty,
+    ExerciseType,
+    Muscle,
+} from "@workout-app/shared";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
 
 type CreateExerciseInput = {
     name: string;
     description?: string;
     instructions?: string;
-    exerciseType?: "strength" | "cardio" | "mobility";
+    exerciseType?: ExerciseType;
     primaryMuscles?: Muscle[];
     secondaryMuscles?: Muscle[];
-    equipment?: "bodyweight" | "dumbbell" | "barbell" | "machine" | "kettlebell" | "band";
-    difficulty?: "beginner" | "intermediate" | "advanced";
+    equipment?: Equipment;
+    difficulty?: Difficulty;
 };
 
 export async function getPublicExercisesRequest() {
