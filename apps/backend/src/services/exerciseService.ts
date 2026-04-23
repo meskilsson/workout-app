@@ -1,12 +1,13 @@
 import Exercise from "../models/Exercises";
+import type { Muscle } from "../constants/muscles";
 
 interface CreateExerciseInput {
     name: string;
     description?: string;
     instructions?: string;
     exerciseType?: "strength" | "cardio" | "mobility";
-    primaryMuscles?: string[];
-    secondaryMuscles?: string[];
+    primaryMuscles?: Muscle[];
+    secondaryMuscles?: Muscle[];
     equipment?: "bodyweight" | "dumbbell" | "barbell" | "machine" | "kettlebell" | "band";
     difficulty?: "beginner" | "intermediate" | "advanced";
     videoUrl?: string;

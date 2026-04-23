@@ -1,3 +1,5 @@
+import type { Muscle } from "../constants/muscles";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 
@@ -6,8 +8,8 @@ type CreateExerciseInput = {
     description?: string;
     instructions?: string;
     exerciseType?: "strength" | "cardio" | "mobility";
-    primaryMuscles?: string[];
-    secondaryMuscles?: string[];
+    primaryMuscles?: Muscle[];
+    secondaryMuscles?: Muscle[];
     equipment?: "bodyweight" | "dumbbell" | "barbell" | "machine" | "kettlebell" | "band";
     difficulty?: "beginner" | "intermediate" | "advanced";
 };

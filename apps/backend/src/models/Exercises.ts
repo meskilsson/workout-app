@@ -1,12 +1,22 @@
 import { Schema, model, Types } from "mongoose";
+import {
+    MUSCLE_OPTIONS,
+    EQUIPMENT_OPTIONS,
+    DIFFICULTY_OPTIONS,
+    EXERCISE_TYPE_OPTIONS,
+    type Muscle,
+    type Equipment,
+    type Difficulty,
+    type ExerciseType,
+} from "@workout-app/shared";
 
 export interface IExercise {
     name: string;
     description?: string;
     instructions?: string;
     exerciseType?: "strength" | "cardio" | "mobility";
-    primaryMuscles?: string[];
-    secondaryMuscles?: string[];
+    primaryMuscles?: Muscle[];
+    secondaryMuscles?: Muscle[];
     equipment?: "bodyweight" | "dumbbell" | "barbell" | "machine" | "kettlebell" | "band";
     difficulty?: "beginner" | "intermediate" | "advanced";
     videoUrl?: string;
@@ -39,11 +49,11 @@ const exerciseSchema = new Schema<IExercise>(
             enum: ["strength", "cardio", "mobility"],
         },
         primaryMuscles: {
-            type: [String],
+            type: [{ type: String, enum: MUSCLE_OPTIONS }],
             default: [],
         },
         secondaryMuscles: {
-            type: [String],
+            type: [{ type: String, enum: MUSCLE_OPTIONS }],
             default: [],
         },
         equipment: {

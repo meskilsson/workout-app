@@ -4,6 +4,7 @@ import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import { createExerciseRequest } from "../../services/exerciseApi";
+import { MUSCLE_OPTIONS, type Muscle } from "../../constants/muscles";
 import styles from "./CreateExercisePage.module.css";
 
 export default function CreateExercisePage() {
@@ -13,19 +14,24 @@ export default function CreateExercisePage() {
     const [description, setDescription] = useState("");
     const [instructions, setInstructions] = useState("");
     const [exerciseType, setExerciseType] = useState("");
-    const [primaryMuscles, setPrimaryMuscles] = useState("");
-    const [secondaryMuscles, setSecondaryMuscles] = useState("");
+    const [primaryMuscles, setPrimaryMuscles] = useState<Muscle[]>([]);
+    const [secondaryMuscles, setSecondaryMuscles] = useState<Muscle[]>([]);
     const [equipment, setEquipment] = useState("");
     const [difficulty, setDifficulty] = useState("");
 
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    function parseMuscleInput(value: string) {
-        return value
-            .split(",")
-            .map((muscle) => muscle.trim())
-            .filter(Boolean);
+    function toggleMuscle(
+        muscle: Muscle,
+        selected: Muscle[],
+        setSelected: React.Dispatch<React.SetStateAction<Muscle[]>>,
+    ) {
+        setSelected((prev) =>
+            prev.includes(muscle)
+                ? prev.filter((item) => item !== muscle)
+                : [...prev, muscle],
+        );
     }
 
     async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
@@ -41,8 +47,8 @@ export default function CreateExercisePage() {
                 exerciseType: exerciseType
                     ? (exerciseType as "strength" | "cardio" | "mobility")
                     : undefined,
-                primaryMuscles: parseMuscleInput(primaryMuscles),
-                secondaryMuscles: parseMuscleInput(secondaryMuscles),
+                primaryMuscles,
+                secondaryMuscles,
                 equipment: equipment
                     ? (equipment as
                         | "bodyweight"
@@ -143,45 +149,57 @@ export default function CreateExercisePage() {
                         </div>
                     </div>
 
-                    <div className={styles.row}>
-                        <div className={styles.field}>
-                            <label htmlFor="equipment">Equipment</label>
-                            <select
-                                id="equipment"
-                                value={equipment}
-                                onChange={(e) => setEquipment(e.target.value)}
-                            >
-                                <option value="">Select equipment</option>
-                                <option value="bodyweight">Bodyweight</option>
-                                <option value="dumbbell">Dumbbell</option>
-                                <option value="barbell">Barbell</option>
-                                <option value="machine">Machine</option>
-                                <option value="kettlebell">Kettlebell</option>
-                                <option value="band">Band</option>
-                            </select>
-                        </div>
+                    <div className={styles.field}>
+                        <label htmlFor="equipment">Equipment</label>
+                        <select
+                            id="equipment"
+                            value={equipment}
+                            onChange={(e) => setEquipment(e.target.value)}
+                        >
+                            <option value="">Select equipment</option>
+                            <option value="bodyweight">Bodyweight</option>
+                            <option value="dumbbell">Dumbbell</option>
+                            <option value="barbell">Barbell</option>
+                            <option value="machine">Machine</option>
+                            <option value="kettlebell">Kettlebell</option>
+                            <option value="band">Band</option>
+                        </select>
+                    </div>
 
-                        <div className={styles.field}>
-                            <label htmlFor="primaryMuscles">Primary Muscles</label>
-                            <input
-                                id="primaryMuscles"
-                                type="text"
-                                placeholder="e.g. chest, shoulders"
-                                value={primaryMuscles}
-                                onChange={(e) => setPrimaryMuscles(e.target.value)}
-                            />
+                    <div className={styles.field}>
+                        <label>Primary Muscles</label>
+                        <div className={styles.checkboxGrid}>
+                            {MUSCLE_OPTIONS.map((muscle) => (
+                                <label key={muscle} className={styles.checkboxOption}>
+                                    <input
+                                        type="checkbox"
+                                        checked={primaryMuscles.includes(muscle)}
+                                        onChange={() =>
+                                            toggleMuscle(muscle, primaryMuscles, setPrimaryMuscles)
+                                        }
+                                    />
+                                    <span>{muscle}</span>
+                                </label>
+                            ))}
                         </div>
                     </div>
 
                     <div className={styles.field}>
-                        <label htmlFor="secondaryMuscles">Secondary Muscles</label>
-                        <input
-                            id="secondaryMuscles"
-                            type="text"
-                            placeholder="e.g. triceps"
-                            value={secondaryMuscles}
-                            onChange={(e) => setSecondaryMuscles(e.target.value)}
-                        />
+                        <label>Secondary Muscles</label>
+                        <div className={styles.checkboxGrid}>
+                            {MUSCLE_OPTIONS.map((muscle) => (
+                                <label key={muscle} className={styles.checkboxOption}>
+                                    <input
+                                        type="checkbox"
+                                        checked={secondaryMuscles.includes(muscle)}
+                                        onChange={() =>
+                                            toggleMuscle(muscle, secondaryMuscles, setSecondaryMuscles)
+                                        }
+                                    />
+                                    <span>{muscle}</span>
+                                </label>
+                            ))}
+                        </div>
                     </div>
 
                     {error && <p className={styles.error}>{error}</p>}
