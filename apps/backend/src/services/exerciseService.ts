@@ -5,6 +5,8 @@ import type {
     Difficulty,
     ExerciseType,
 } from "@workout-app/shared";
+import { Types } from "mongoose";
+import { createHttpError } from "../utils/createHttpError";
 
 interface CreateExerciseInput {
     name: string;
@@ -17,6 +19,19 @@ interface CreateExerciseInput {
     difficulty?: Difficulty;
     videoUrl?: string;
     imageUrl?: string;
+}
+
+interface UpdateExerciseInput {
+    name?: string;
+    description?: string;
+    instructions?: string;
+    exerciseType?: ExerciseType;
+    primaryMuscles?: Muscle[];
+    secondaryMuscles?: Muscle[];
+    equipment?: Equipment;
+    difficulty?: Difficulty;
+    videoUrl?: string;
+    imageUrl: string;
 }
 
 function escapeRegex(value: string) {
@@ -108,4 +123,120 @@ export async function getExerciseById(id: string) {
     }
 
     return exercise;
+}
+
+export async function updateExercise(
+    id: string,
+    exerciseData: UpdateExerciseInput,
+    userId: string,
+) {
+    if (!Types.ObjectId.isValid(id)) {
+        throw createHttpError("Invalid exercise id", 400);
+    }
+
+    const exercise = await Exercise.findById(id);
+
+    if (!exercise) {
+        throw createHttpError("Exercise not found", 404);
+    }
+
+    if (!exercise.isCustom || !exercise.createdBy) {
+        throw createHttpError("Public exercises cannot be updated", 403);
+    }
+
+    if (exercise.createdBy.toString() !== userId) {
+        throw createHttpError("You can only update your own exercises", 403);
+    }
+
+    if (exerciseData.name !== undefined) {
+        const trimmedName = exerciseData.name.trim();
+
+        if (!trimmedName) {
+            throw createHttpError("Name is required", 400);
+        }
+
+        const existingExercise = await Exercise.findOne({
+            _id: { $ne: exercise._id },
+            createdBy: userId,
+            name: {
+                $regex: new RegExp(`^${escapeRegex(trimmedName)}$`, "i"),
+            },
+        });
+
+        if (existingExercise) {
+            throw createHttpError(
+                "You already created an exercise with that name",
+                409,
+            );
+        }
+
+        exercise.name = trimmedName;
+    }
+
+    if (exerciseData.description !== undefined) {
+        exercise.description = exerciseData.description.trim();
+    }
+
+    if (exerciseData.instructions !== undefined) {
+        exercise.instructions = exerciseData.instructions.trim();
+    }
+
+    if (exerciseData.exerciseType !== undefined) {
+        exercise.exerciseType = exerciseData.exerciseType;
+    }
+
+    if (exerciseData.primaryMuscles !== undefined) {
+        exercise.primaryMuscles = exerciseData.primaryMuscles;
+    }
+
+    if (exerciseData.secondaryMuscles !== undefined) {
+        exercise.secondaryMuscles = exerciseData.secondaryMuscles;
+    }
+
+    if (exerciseData.equipment !== undefined) {
+        exercise.equipment = exerciseData.equipment;
+    }
+
+    if (exerciseData.difficulty !== undefined) {
+        exercise.difficulty = exerciseData.difficulty;
+    }
+
+    if (exerciseData.videoUrl !== undefined) {
+        exercise.videoUrl = exerciseData.videoUrl.trim();
+    }
+
+    if (exerciseData.imageUrl !== undefined) {
+        exercise.imageUrl = exerciseData.imageUrl.trim();
+    }
+
+    await exercise.save();
+
+    return exercise;
+}
+
+export async function deleteExercise(id: string, userId: string) {
+    if (!Types.ObjectId.isValid(id)) {
+        throw createHttpError("Invalid exercise id", 400);
+    }
+
+    const exercise = await Exercise.findById(id);
+
+    if (!exercise) {
+        throw createHttpError("Exercise not found", 404);
+    }
+
+    if (!exercise.isCustom || !exercise.createdBy) {
+        throw createHttpError("Public exercises cannot be deleted", 403);
+    }
+
+    if (exercise.createdBy.toString() !== userId) {
+        throw createHttpError("You can only delete your own exercises", 403);
+    }
+
+    await Exercise.findByIdAndDelete(id);
+
+    return {
+        message: "Exercise deleted successfully",
+        deletedExerciseId: id,
+    };
 }

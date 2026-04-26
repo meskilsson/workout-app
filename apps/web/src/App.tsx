@@ -14,9 +14,11 @@ import WorkoutResultPage from "./pages/WorkoutResultPage/WorkoutResultPage";
 import CreateExercisePage from "./pages/CreateExercisePage/CreateExercisePage";
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
 
+
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
 import RoleRoute from "./routes/RoleRoute";
+import WorkoutHistoryDetailPage from "./pages/WorkoutHistoryDetailPage/WorkoutHistoryDetailPage";
 
 function AdminPage() {
   return <div>Admin Page</div>;
@@ -132,8 +134,21 @@ function App() {
             </RoleRoute>
           }
         />
+
+        <Route
+          path="profile/workouts/:id"
+          element={
+            <ProtectedRoute>
+              <WorkoutHistoryDetailPage />
+            </ProtectedRoute>
+          }
+        />
+
+
       </Route>
-    </Routes>
+
+
+    </Routes >
   );
 }
 

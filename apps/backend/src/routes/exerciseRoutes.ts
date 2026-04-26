@@ -4,6 +4,8 @@ import {
     getExerciseById,
     getExerciseLibrary,
     getPublicExercises,
+    deleteExercise,
+    updateExercise
 
 } from "../controllers/exerciseController";
 import { requireAuth } from "../middleware/requireAuth";
@@ -17,5 +19,9 @@ exerciseRouter.get("/:id", getExerciseById);
 
 exerciseRouter.post("/", requireAuth, requireRole("user", "admin"), createExercise);
 
+
+exerciseRouter.patch("/:id", requireAuth, requireRole("admin", "user"), updateExercise);
+
+exerciseRouter.delete("/:id", requireAuth, requireRole("admin", "user"), deleteExercise);
 
 export default exerciseRouter;
