@@ -46,6 +46,20 @@ export async function getExerciseLibraryRequest() {
     return data;
 }
 
+export async function getExerciseByIdRequest(exerciseId: string) {
+    const response = await fetch(`${API_URL}/api/exercises/${exerciseId}`, {
+        credentials: "include",
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch exercise");
+    }
+
+    return data;
+}
+
 export async function createExerciseRequest(exerciseData: CreateExerciseInput) {
     const response = await fetch(`${API_URL}/api/exercises`, {
         method: "POST",
@@ -88,7 +102,7 @@ export async function updateExerciseRequest(
 }
 
 export async function deleteExerciseRequest(exerciseId: string) {
-    const response = await fetch(`${API_URL}/api/exercise/${exerciseId}`, {
+    const response = await fetch(`${API_URL}/api/exercises/${exerciseId}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",

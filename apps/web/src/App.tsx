@@ -13,6 +13,7 @@ import WorkoutPage from "./pages/WorkoutPage/WorkoutPage";
 import WorkoutResultPage from "./pages/WorkoutResultPage/WorkoutResultPage";
 import CreateExercisePage from "./pages/CreateExercisePage/CreateExercisePage";
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
+import EditExercisePage from "./pages/EditExercisePage/EditExercisePage";
 
 
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -140,6 +141,15 @@ function App() {
           element={
             <ProtectedRoute>
               <WorkoutHistoryDetailPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="edit-exercise/:id"
+          element={
+            <ProtectedRoute>
+              <EditExercisePage />
             </ProtectedRoute>
           }
         />
