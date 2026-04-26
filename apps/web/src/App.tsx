@@ -10,8 +10,9 @@ import WorkoutSelectPage from "./pages/WorkoutSelectPage/WorkoutSelectPage";
 import ExerciseSelectPage from "./pages/ExerciseSelectPage/ExerciseSelectPage";
 import WorkoutSummaryPage from "./pages/WorkoutSummaryPage/WorkoutSummaryPage";
 import WorkoutPage from "./pages/WorkoutPage/WorkoutPage";
-import WorkoutResultSummaryPage from "./pages/WorkoutResultSummaryPage/WorkoutResultSummaryPage";
+import WorkoutResultPage from "./pages/WorkoutResultPage/WorkoutResultPage";
 import CreateExercisePage from "./pages/CreateExercisePage/CreateExercisePage";
+import ProfilePage from "./pages/ProfilePage/ProfilePage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
@@ -100,7 +101,25 @@ function App() {
           path="workout-result"
           element={
             <ProtectedRoute>
-              <WorkoutResultSummaryPage />
+              <WorkoutResultPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="create-exercise"
+          element={
+            <ProtectedRoute>
+              <CreateExercisePage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />
@@ -114,15 +133,6 @@ function App() {
           }
         />
       </Route>
-
-      <Route
-        path="create-exercise"
-        element={
-          <ProtectedRoute>
-            <CreateExercisePage />
-          </ProtectedRoute>
-        }
-      />
     </Routes>
   );
 }

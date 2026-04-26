@@ -1,39 +1,55 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import Box from "../../components/ui/box/Box";
-import Card from "../../components/ui/cards/Card";
-import Button from "../../components/ui/button/Button";
-import { useState, useEffect } from "react";
-import Input from "../../components/ui/input/Input";
+import { useEffect, useState } from "react";
 import Modal from "../../components/ui/modal/Modal";
+import { createWorkoutSessionRequest } from "../../services/workoutSessionApi";
+import styles from "./WorkoutPage.module.css";
+import WorkoutDurationTimer from "../../components/timer/WorkoutDurationTimer";
+import { useWorkoutTimer } from "@workout-app/shared/timer";
 
-type SelectedExercises = {
-    id: string;
+type SelectedExercise = {
+    _id: string;
     name: string;
-    muscleGroup: string;
-}
+};
 
 type LocationState = {
-    selectedExercises: SelectedExercises[];
-}
+    selectedExercises: SelectedExercise[];
+    startedAt?: string;
+};
 
 type WorkoutSet = {
     weight: string;
     reps: string;
-}
-
-
+};
 
 export default function WorkoutPage() {
-
     const navigate = useNavigate();
     const location = useLocation();
     const state = location.state as LocationState | null;
 
+    const { start, state: workoutTimerState } = useWorkoutTimer();
+
     const [setsByExercise, setSetsByExercise] = useState<Record<string, WorkoutSet[]>>({});
     const [openModal, setOpenModal] = useState<boolean>(false);
+    const [error, setError] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
 
-    const EMPTY_EXERCISES: SelectedExercises[] = [];
+    const EMPTY_EXERCISES: SelectedExercise[] = [];
     const selectedExercises = state?.selectedExercises ?? EMPTY_EXERCISES;
+
+    useEffect(() => {
+        if (
+            selectedExercises.length > 0 &&
+            !workoutTimerState.isRunning &&
+            workoutTimerState.elapsedTime === 0
+        ) {
+            start();
+        }
+    }, [
+        selectedExercises.length,
+        workoutTimerState.isRunning,
+        workoutTimerState.elapsedTime,
+        start,
+    ]);
 
 
     useEffect(() => {
@@ -41,51 +57,63 @@ export default function WorkoutPage() {
             const next = { ...prev };
 
             selectedExercises.forEach((exercise) => {
-                if (!next[exercise.id] || next[exercise.id].length === 0) {
-                    next[exercise.id] = [{ weight: "", reps: "" }];
+                if (!next[exercise._id] || next[exercise._id].length === 0) {
+                    next[exercise._id] = [{ weight: "", reps: "" }];
                 }
             });
 
             Object.keys(next).forEach((exerciseId) => {
-                const stillSelected = selectedExercises.some((exercise) => exercise.id === exerciseId);
+                const stillSelected = selectedExercises.some(
+                    (exercise) => exercise._id === exerciseId,
+                );
+
                 if (!stillSelected) {
                     delete next[exerciseId];
                 }
             });
-            return next;
-        })
-    }, [selectedExercises])
 
+            return next;
+        });
+    }, [selectedExercises]);
 
     function handleAddSet(exerciseId: string) {
         setSetsByExercise((prev) => ({
             ...prev,
-            [exerciseId]: [...(prev[exerciseId] ?? []), { weight: '', reps: '' }],
+            [exerciseId]: [...(prev[exerciseId] ?? []), { weight: "", reps: "" }],
         }));
     }
 
     function handleSetChange(
         exerciseId: string,
         index: number,
-        field: 'weight' | 'reps',
-        value: string
+        field: "weight" | "reps",
+        value: string,
     ) {
         setSetsByExercise((prev) => ({
             ...prev,
             [exerciseId]: (prev[exerciseId] ?? []).map((set, i) =>
-                i === index ? { ...set, [field]: value } : set
+                i === index ? { ...set, [field]: value } : set,
             ),
         }));
     }
 
     function handleRemoveSet(exerciseId: string, index: number) {
-        setSetsByExercise((prev) => ({
-            ...prev,
-            [exerciseId]: (prev[exerciseId] ?? []).filter((_, i) => i !== index),
-        }));
+        setSetsByExercise((prev) => {
+            const currentSets = prev[exerciseId] ?? [];
+
+            if (currentSets.length <= 1) {
+                return prev;
+            }
+
+            return {
+                ...prev,
+                [exerciseId]: currentSets.filter((_, i) => i !== index),
+            };
+        });
     }
 
     function handleEndSession() {
+        setError("");
         setOpenModal(true);
     }
 
@@ -93,105 +121,185 @@ export default function WorkoutPage() {
         setOpenModal(false);
     }
 
+    async function handleConfirmEndWorkout() {
+        setError("");
+        setIsSaving(true);
+
+        try {
+            const payload = {
+                exercises: selectedExercises
+                    .map((exercise) => ({
+                        exerciseId: exercise._id,
+                        exerciseName: exercise.name,
+                        sets: (setsByExercise[exercise._id] ?? []).filter(
+                            (set) => set.weight !== "" && set.reps !== "",
+                        ),
+                    }))
+                    .filter((exercise) => exercise.sets.length > 0),
+                startedAt: workoutTimerState.startTime
+                    ? new Date(workoutTimerState.startTime).toISOString()
+                    : undefined,
+                endedAt: new Date().toISOString(),
+            };
+
+            if (payload.exercises.length === 0) {
+                setError("Add at least one completed set before ending the workout.");
+                setIsSaving(false);
+                return;
+            }
+
+            const savedWorkoutSession = await createWorkoutSessionRequest(payload);
+
+            navigate("/workout-result", {
+                state: { workoutSession: savedWorkoutSession },
+            });
+        } catch (err) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("Failed to save workout session.");
+            }
+        } finally {
+            setIsSaving(false);
+            setOpenModal(false);
+        }
+    }
 
     return (
-
-        <Box>
-            <Box>
-                <Card>
+        <div className={styles.page}>
+            <div className={styles.container}>
+                <WorkoutDurationTimer />
+                <div className={styles.exerciseList}>
                     {selectedExercises.map((exercise) => {
-                        const exerciseSets = setsByExercise[exercise.id] ?? [];
+                        const exerciseSets = setsByExercise[exercise._id] ?? [];
 
                         return (
-                            <Card
-                                style={{ listStyle: "none" }}
-                                key={exercise.id}>
+                            <section className={styles.exerciseCard} key={exercise._id}>
+                                <div className={styles.exerciseHeader}>
+                                    <h2 className={styles.exerciseName}>{exercise.name}</h2>
 
-                                <li>
-                                    {exercise.name}
-                                    <div style={{ display: "flex", justifyContent: "right" }}>
-                                        <Button onClick={() => handleAddSet(exercise.id)}>
-                                            Add set
-                                        </Button>
-                                    </div>
-                                </li>
+                                    <button
+                                        type="button"
+                                        className={styles.addSetButton}
+                                        onClick={() => handleAddSet(exercise._id)}
+                                    >
+                                        Add set
+                                    </button>
+                                </div>
 
-                                <div
-
-                                >
+                                <div className={styles.setsList}>
                                     {exerciseSets.map((set, index) => (
-                                        <div key={index} className="set-row" style={{ marginBottom: "20px" }}>
-                                            <Input
-                                                label={index === 0 ? "Weight" : undefined}
-                                                type="number"
-                                                min={0}
-                                                placeholder="0"
-                                                value={set.weight}
-                                                wrapperClassName="set-number-wrapper"
-                                                className="set-number-input"
-                                                onChange={(e) =>
-                                                    handleSetChange(exercise.id, index, "weight", e.target.value)
-                                                }
-                                            />
+                                        <div key={index} className={styles.setRow}>
+                                            <div className={styles.inputGroup}>
+                                                {index === 0 && (
+                                                    <label className={styles.inputLabel}>
+                                                        Weight
+                                                    </label>
+                                                )}
 
-                                            <Input
-                                                label={index === 0 ? "Reps" : undefined}
-                                                type="number"
-                                                min={0}
-                                                placeholder="0"
-                                                value={set.reps}
-                                                wrapperClassName="set-number-wrapper"
-                                                className="set-number-input"
-                                                onChange={(e) =>
-                                                    handleSetChange(exercise.id, index, "reps", e.target.value)
-                                                }
-                                            />
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={set.weight}
+                                                    className={styles.underlineInput}
+                                                    onChange={(e) =>
+                                                        handleSetChange(
+                                                            exercise._id,
+                                                            index,
+                                                            "weight",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                            </div>
 
-                                            <Button
-                                                className="set-delete-button"
-                                                onClick={() => handleRemoveSet(exercise.id, index)}
+                                            <div className={styles.inputGroup}>
+                                                {index === 0 && (
+                                                    <label className={styles.inputLabel}>
+                                                        Reps
+                                                    </label>
+                                                )}
+
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={set.reps}
+                                                    className={styles.underlineInput}
+                                                    onChange={(e) =>
+                                                        handleSetChange(
+                                                            exercise._id,
+                                                            index,
+                                                            "reps",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                className={styles.deleteButton}
+                                                onClick={() =>
+                                                    handleRemoveSet(exercise._id, index)
+                                                }
                                             >
                                                 X
-                                            </Button>
+                                            </button>
                                         </div>
                                     ))}
                                 </div>
-                            </Card>
+                            </section>
                         );
                     })}
-                </Card>
+                </div>
 
-                <Box
-                    style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "20px" }}
-                >
-                    <Button
+                {error && (
+                    <div className={styles.errorWrapper}>
+                        <p className={styles.errorText}>{error}</p>
+                    </div>
+                )}
+
+                <div className={styles.endSessionWrapper}>
+                    <button
                         type="button"
-                        variant="primary"
+                        className={styles.endSessionButton}
                         onClick={handleEndSession}
-                    >End Session</Button>
-                </Box>
+                    >
+                        End Session
+                    </button>
+                </div>
 
                 <Modal
                     title="End session?"
                     isOpen={openModal}
                     onClose={handleCloseModal}
                     actions={
-                        <>
-                            <Button onClick={() => navigate("/workout-result")}>
-                                End Workout
-                            </Button>
+                        <div className={styles.modalActions}>
+                            <button
+                                type="button"
+                                className={styles.modalPrimaryButton}
+                                onClick={handleConfirmEndWorkout}
+                                disabled={isSaving}
+                            >
+                                {isSaving ? "Saving..." : "End Workout"}
+                            </button>
 
-                            <Button onClick={handleCloseModal}>
+                            <button
+                                type="button"
+                                className={styles.modalSecondaryButton}
+                                onClick={handleCloseModal}
+                                disabled={isSaving}
+                            >
                                 Close
-                            </Button>
-                        </>
+                            </button>
+                        </div>
                     }
                 >
-                    <p>Are you sure you want to end this workout session?</p>
+                    <p className={styles.modalText}>
+                        Are you sure you want to end this workout session?
+                    </p>
                 </Modal>
-            </Box>
-        </Box>
-
-
+            </div>
+        </div>
     );
 }

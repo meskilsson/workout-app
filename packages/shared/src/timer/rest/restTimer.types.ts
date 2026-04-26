@@ -1,13 +1,11 @@
-export type TimerState = {
+export type RestTimerState = {
     timeLeft: number;
     isRunning: boolean;
-    startTime: number | null;
     endTime: number | null;
     duration: number;
-    isFinished: boolean;
 };
 
-export type TimerAction =
+export type RestTimerAction =
     | { type: "START" }
     | { type: "PAUSE" }
     | { type: "RESET" }

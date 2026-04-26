@@ -6,7 +6,8 @@
     "types": "./src/index.ts",
     "exports": {
         ".": "./src/index.ts",
-        "./timer": "./src/timer/index.ts"
+        "./timer": "./src/timer/workout/index.ts",
+        "./timer/rest": "./src/timer/rest/index.ts"
     },
     "peerDependencies": {
         "react": "^19.0.0"

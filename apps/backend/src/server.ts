@@ -9,6 +9,7 @@ import authRouter from "./routes/authRoutes";
 import userRouter from "./routes/userRoutes";
 import workoutRouter from "./routes/workoutRoutes";
 import exerciseRouter from "./routes/exerciseRoutes";
+import workoutSessionRouter from "./routes/workoutSessionRoutes";
 import { notFound } from "./middleware/notFound";
 import { errorHandler } from "./middleware/errorHandler";
 import logger from "./middleware/logger";
@@ -35,6 +36,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/workouts", workoutRouter);
 app.use("/api/exercises", exerciseRouter);
+app.use("/api/workout-sessions", workoutSessionRouter);
 
 app.use(notFound);
 app.use(errorHandler);

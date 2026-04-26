@@ -1,29 +1,34 @@
 import { Outlet, useLocation } from "react-router-dom";
 import Footer from "./Footer";
-import "./footer.css";
+import Navbar from "./Navbar";
+import RestTimer from "../timer/RestTimer";
 import Box from "../ui/box/Box";
-import Timer from "../timer/Timer";
+import styles from "./Layout.module.css";
 
 export default function Layout() {
   const { pathname } = useLocation();
   const isWorkoutPage = pathname === "/workout";
 
   return (
-    <div className="app-layout">
-      <header>Navbar</header>
+    <div className={styles.appLayout}>
+      <Navbar />
 
-      <main>
+      <main className={styles.main}>
         <Outlet />
       </main>
 
       {isWorkoutPage ? (
         <Footer className="timer-footer">
           <Box className="timer-box">
-            <Timer />
+            <RestTimer />
           </Box>
         </Footer>
       ) : (
-        <Footer>Footer</Footer>
+        <Footer>
+          <Box>
+
+          </Box>
+        </Footer>
       )}
     </div>
   );

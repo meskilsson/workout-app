@@ -1,32 +1,31 @@
-import type { TimerAction, TimerState } from "./timer.types";
-import { secondsToMilliseconds } from "./timer.utils";
+import type { RestTimerAction, RestTimerState } from "./restTimer.types";
 
-export const TIMER_DURATION_MS = secondsToMilliseconds(60);
+export function createRestTimerInitialState(durationMs: number): RestTimerState {
+    return {
+        timeLeft: durationMs,
+        isRunning: false,
+        endTime: null,
+        duration: durationMs,
+    };
+}
 
-export const initialTimerState: TimerState = {
-    timeLeft: TIMER_DURATION_MS,
-    isRunning: false,
-    startTime: null,
-    endTime: null,
-    duration: TIMER_DURATION_MS,
-    isFinished: false,
-};
-
-export function timerReducer(state: TimerState, action: TimerAction): TimerState {
+export function restTimerReducer(
+    state: RestTimerState,
+    action: RestTimerAction,
+): RestTimerState {
     switch (action.type) {
         case "START": {
             if (state.isRunning) return state;
 
             const currentTime = Date.now();
-            const remainingAmount = state.timeLeft > 0 ? state.timeLeft : state.duration;
+            const remainingAmount =
+                state.timeLeft > 0 ? state.timeLeft : state.duration;
 
             return {
                 ...state,
-                startTime: currentTime,
                 endTime: currentTime + remainingAmount,
                 timeLeft: remainingAmount,
                 isRunning: true,
-                isFinished: false,
             };
         }
 
@@ -42,14 +41,11 @@ export function timerReducer(state: TimerState, action: TimerAction): TimerState
                 timeLeft: remainingTime,
                 isRunning: false,
                 endTime: null,
-                isFinished: false,
             };
         }
 
         case "RESET": {
-            return {
-                ...initialTimerState,
-            };
+            return createRestTimerInitialState(state.duration);
         }
 
         case "TICK": {
@@ -63,8 +59,6 @@ export function timerReducer(state: TimerState, action: TimerAction): TimerState
                     ...state,
                     timeLeft: 0,
                     isRunning: false,
-                    isFinished: true,
-                    startTime: null,
                     endTime: null,
                 };
             }
@@ -73,7 +67,6 @@ export function timerReducer(state: TimerState, action: TimerAction): TimerState
                 ...state,
                 timeLeft: remainingTime,
                 isRunning: true,
-                isFinished: false,
             };
         }
 
