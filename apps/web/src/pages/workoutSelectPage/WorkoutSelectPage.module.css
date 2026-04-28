@@ -1,0 +1,118 @@
+.page {
+    width: 100%;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 3rem 1rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.header {
+    max-width: 620px;
+}
+
+.kicker {
+    margin: 0 0 0.5rem;
+    color: var(--color-primary);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.title {
+    margin: 0;
+    color: var(--color-text);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1;
+}
+
+.subtitle {
+    margin: 0.9rem 0 0;
+    color: var(--color-text-muted);
+    max-width: 34rem;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.muscleGroupCard {
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid var(--color-border) !important;
+    background: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.muscleGroupCard:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-primary-border) !important;
+    background: var(--color-surface-light) !important;
+    box-shadow: var(--shadow-md);
+}
+
+.selectedCard {
+    border-color: var(--color-primary) !important;
+    background: var(--color-primary-soft) !important;
+    box-shadow:
+        0 0 0 3px var(--color-primary-soft),
+        var(--shadow-md);
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 0.5rem;
+}
+
+.selectedCount {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-weight: 600;
+}
+
+@media (max-width: 800px) {
+    .page {
+        padding: 2rem 1rem 3rem;
+    }
+
+    .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .muscleGroupCard {
+        min-height: 110px;
+    }
+
+    .footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .footer button {
+        width: 100%;
+    }
+}

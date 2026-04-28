@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { getExerciseLibraryRequest, getPublicExercisesRequest } from "../../services/exerciseApi";
+import {
+    getExerciseLibraryRequest,
+    getPublicExercisesRequest,
+} from "../../services/exerciseApi";
 
 import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
@@ -9,6 +12,7 @@ import Button from "../../components/ui/button/Button";
 import "../../components/ui/button/button.css";
 import "../../components/ui/box/box.css";
 import "../../components/ui/cards/card.css";
+import styles from "./ExerciseSelectPage.module.css";
 
 type Exercise = {
     _id: string;
@@ -36,17 +40,13 @@ export default function ExerciseSelectPage() {
     const navigate = useNavigate();
 
     const state = location.state as LocationState | null;
-
     const selectedMuscleGroups = state?.selectedMuscleGroups ?? [];
-
-
 
     const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
-
 
     const muscleGroupMap: Record<string, string[]> = {
         chest: ["chest"],
@@ -70,11 +70,7 @@ export default function ExerciseSelectPage() {
 
                 setExercises(data);
             } catch (err) {
-                if (err instanceof Error) {
-                    setError(err.message);
-                } else {
-                    setError("Failed to load exercises");
-                }
+                setError(err instanceof Error ? err.message : "Failed to load exercises");
             } finally {
                 setIsLoading(false);
             }
@@ -87,7 +83,7 @@ export default function ExerciseSelectPage() {
         if (selectedMuscleGroups.length === 0) {
             navigate("/workout-select");
         }
-    }, [selectedMuscleGroups, navigate]);
+    }, [selectedMuscleGroups.length, navigate]);
 
     function handleToggleExercise(exerciseId: string) {
         setSelectedExercises((prev) =>
@@ -102,14 +98,20 @@ export default function ExerciseSelectPage() {
             const normalizedSearch = searchTerm.trim().toLowerCase();
 
             const targetMuscles =
-                muscleGroupMap[group.id.toLowerCase()] ?? [group.title.trim().toLowerCase()];
+                muscleGroupMap[group.id.toLowerCase()] ?? [
+                    group.title.trim().toLowerCase(),
+                ];
 
             const matchingExercises = exercises.filter((exercise) => {
                 const primary =
-                    exercise.primaryMuscles?.map((muscle) => muscle.trim().toLowerCase()) ?? [];
+                    exercise.primaryMuscles?.map((muscle) =>
+                        muscle.trim().toLowerCase(),
+                    ) ?? [];
 
                 const secondary =
-                    exercise.secondaryMuscles?.map((muscle) => muscle.trim().toLowerCase()) ?? [];
+                    exercise.secondaryMuscles?.map((muscle) =>
+                        muscle.trim().toLowerCase(),
+                    ) ?? [];
 
                 const matchesMuscleGroup = targetMuscles.some(
                     (muscle) => primary.includes(muscle) || secondary.includes(muscle),
@@ -144,65 +146,120 @@ export default function ExerciseSelectPage() {
 
     if (isLoading) {
         return (
-            <Box className="exercise-select-page">
-                <h1>Select Exercises</h1>
-                <p>Loading exercises...</p>
+            <Box className={styles.page}>
+                <div className={styles.stateCard}>
+                    <p className={styles.kicker}>Exercise library</p>
+                    <h1 className={styles.title}>Select exercises</h1>
+                    <p className={styles.stateText}>Loading exercises...</p>
+                </div>
             </Box>
         );
     }
 
     if (error) {
         return (
-            <Box className="exercise-select-page">
-                <h1>Select Exercises</h1>
-                <p>{error}</p>
+            <Box className={styles.page}>
+                <div className={styles.stateCard}>
+                    <p className={styles.kicker}>Exercise library</p>
+                    <h1 className={styles.title}>Select exercises</h1>
+                    <p className={styles.errorText}>{error}</p>
+                </div>
             </Box>
         );
     }
 
     return (
-        <Box className="exercise-select-page">
-            <h1>Select Exercises</h1>
-            <div>
+        <Box className={styles.page}>
+            <div className={styles.header}>
+                <div>
+                    <p className={styles.kicker}>Exercise library</p>
+                    <h1 className={styles.title}>Select exercises</h1>
+                    <p className={styles.subtitle}>
+                        Choose exercises for the muscle groups you selected.
+                    </p>
+                </div>
+
+                <div className={styles.selectedBadge}>
+                    {chosenExercises.length} selected
+                </div>
+            </div>
+
+            <div className={styles.searchWrapper}>
                 <input
+                    className={styles.searchInput}
                     type="text"
-                    placeholder="Search exercises..."
+                    placeholder="Search exercises, muscles, or equipment..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-
                 />
             </div>
 
-            <Box className="muscle-group-grid">
+            <Box className={styles.groupList}>
                 {groupedExercises.map((group) => (
-                    <Box key={group.id} className="exercise-group">
-                        <h2>{group.title}</h2>
+                    <section key={group.id} className={styles.exerciseGroup}>
+                        <div className={styles.groupHeader}>
+                            <h2 className={styles.groupTitle}>{group.title}</h2>
+                            <p className={styles.groupCount}>
+                                {group.exercises.length} exercises
+                            </p>
+                        </div>
 
-                        <Box className="exercise-card-grid">
+                        <Box className={styles.exerciseGrid}>
                             {group.exercises.length > 0 ? (
-                                group.exercises.map((exercise) => (
-                                    <Card
-                                        key={exercise._id}
-                                        className={`exercise-card ${selectedExercises.includes(exercise._id)
-                                            ? "muscle-group-card--selected"
-                                            : ""
-                                            }`}
-                                        onClick={() => handleToggleExercise(exercise._id)}
-                                    >
-                                        {exercise.name}
-                                    </Card>
-                                ))
+                                group.exercises.map((exercise) => {
+                                    const isSelected = selectedExercises.includes(exercise._id);
+
+                                    return (
+                                        <Card
+                                            key={exercise._id}
+                                            className={`${styles.exerciseCard} ${isSelected ? styles.selectedCard : ""
+                                                }`}
+                                            onClick={() => handleToggleExercise(exercise._id)}
+                                        >
+                                            <div className={styles.exerciseCardContent}>
+                                                <h3 className={styles.exerciseName}>
+                                                    {exercise.name}
+                                                </h3>
+
+                                                <div className={styles.exerciseMeta}>
+                                                    {exercise.equipment && (
+                                                        <span>{exercise.equipment}</span>
+                                                    )}
+
+                                                    {exercise.difficulty && (
+                                                        <span>{exercise.difficulty}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </Card>
+                                    );
+                                })
                             ) : (
-                                <p>No exercises found for this muscle group.</p>
+                                <p className={styles.emptyText}>
+                                    No exercises found for this muscle group.
+                                </p>
                             )}
                         </Box>
-                    </Box>
+                    </section>
                 ))}
             </Box>
 
-            <Button onClick={handleContinue} disabled={chosenExercises.length === 0}>
-                Continue
-            </Button>
+            <div className={styles.footer}>
+                <p className={styles.footerText}>
+                    {chosenExercises.length === 0
+                        ? "Select at least one exercise to continue."
+                        : `${chosenExercises.length} exercise${chosenExercises.length === 1 ? "" : "s"
+                        } ready.`}
+                </p>
+
+                <Button
+                    variant="primary"
+                    onClick={handleContinue}
+                    disabled={chosenExercises.length === 0}
+                >
+                    Continue
+                </Button>
+            </div>
         </Box>
     );
 }

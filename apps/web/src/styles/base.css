@@ -1,34 +1,76 @@
 :root {
-    --color-background: #0b0f14;
-    --color-surface: #121821;
-    --color-surface-light: #1b2530;
-    --color-surface-soft: rgba(255, 255, 255, 0.045);
+    --color-background: #080d12;
+    --color-background-soft: #0b1118;
+    --color-background-deep: #05080c;
 
-    --color-text: #f4f7f8;
-    --color-text-muted: #9fb0b8;
+    --color-surface: #111923;
+    --color-surface-light: #182431;
+    --color-surface-soft: rgba(255, 255, 255, 0.055);
+    --color-surface-strong: #0c131b;
 
-    --color-primary: #2dd4bf;
-    --color-primary-hover: #14b8a6;
-    --color-primary-soft: rgba(45, 212, 191, 0.14);
+    --color-text: #f5f8fa;
+    --color-text-soft: rgba(245, 248, 250, 0.82);
+    --color-text-muted: #9aabb6;
 
-    --color-border: rgba(45, 212, 191, 0.22);
+    --color-primary: #35d0ba;
+    --color-primary-hover: #22b8a5;
+    --color-primary-soft: rgba(53, 208, 186, 0.14);
+    --color-primary-border: rgba(53, 208, 186, 0.34);
+    --color-on-primary: #031513;
+
+    --color-border: #263746;
+    --color-border-soft: rgba(154, 171, 182, 0.16);
+    --color-overlay: rgba(0, 0, 0, 0.56);
 
     --color-danger: #f87171;
+    --color-danger-hover: #ef4444;
     --color-danger-soft: rgba(248, 113, 113, 0.14);
+    --color-on-danger: #ffffff;
 
     --color-success: #4ade80;
+    --color-success-hover: #22c55e;
     --color-success-soft: rgba(74, 222, 128, 0.14);
+    --color-on-success: #04210f;
 
     --radius-sm: 0.375rem;
     --radius-md: 0.625rem;
     --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-pill: 999px;
 
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
     --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.36);
+    --shadow-focus: 0 0 0 3px var(--color-primary-soft);
+
+    --gradient-background:
+        radial-gradient(circle at top, rgba(53, 208, 186, 0.08), transparent 28%),
+        linear-gradient(180deg,
+            var(--color-background-soft) 0%,
+            var(--color-background) 52%,
+            var(--color-background-deep) 100%);
+
+    --gradient-surface: linear-gradient(135deg,
+            var(--color-surface-light),
+            var(--color-surface));
+
+    --gradient-primary: linear-gradient(135deg,
+            var(--color-primary),
+            var(--color-primary-hover));
+
+    --gradient-danger: linear-gradient(135deg,
+            var(--color-danger),
+            var(--color-danger-hover));
+
+    --gradient-success: linear-gradient(135deg,
+            var(--color-success),
+            var(--color-success-hover));
 
     --max-width: 1200px;
+
     --font-family-base:
-        Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
 }
 
 *,
@@ -47,10 +89,17 @@ body,
 
 body {
     min-height: 100vh;
-    background-color: var(--color-background);
+    background: var(--gradient-background);
     color: var(--color-text);
     font-family: var(--font-family-base);
     line-height: 1.5;
+}
+
+button,
+input,
+textarea,
+select {
+    font: inherit;
 }
 
 img {

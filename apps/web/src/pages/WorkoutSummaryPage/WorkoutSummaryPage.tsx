@@ -6,7 +6,7 @@ import "../../components/ui/cards/card.css";
 import "../../components/ui/button/button.css";
 
 import { useLocation, useNavigate } from "react-router-dom";
-import { useWorkoutTimer } from "@workout-app/shared/timer";
+import styles from "./WorkoutSummaryPage.module.css";
 
 type SelectedExercise = {
   _id: string;
@@ -25,7 +25,6 @@ export default function WorkoutSummaryPage() {
   const selectedExercises = state?.selectedExercises ?? [];
 
   function handleContinue() {
-
     navigate("/workout", {
       state: {
         selectedExercises,
@@ -33,19 +32,66 @@ export default function WorkoutSummaryPage() {
     });
   }
 
-  return (
-    <Box>
-      <h2>Summary of your workout</h2>
+  function handleBack() {
+    navigate("/exercise-select", {
+      state,
+    });
+  }
 
-      <Card variant="primary">
-        {selectedExercises.map((exercise) => (
-          <li key={exercise._id}>{exercise.name}</li>
-        ))}
+  return (
+    <Box className={styles.page}>
+      <div className={styles.header}>
+        <p className={styles.kicker}>Workout builder</p>
+        <h1 className={styles.title}>Summary of your workout</h1>
+        <p className={styles.subtitle}>
+          Review your selected exercises before starting your session.
+        </p>
+      </div>
+
+      <Card className={styles.summaryCard}>
+        {selectedExercises.length > 0 ? (
+          <ul className={styles.exerciseList}>
+            {selectedExercises.map((exercise, index) => (
+              <li key={exercise._id} className={styles.exerciseItem}>
+                <span className={styles.exerciseNumber}>
+                  {index + 1}
+                </span>
+
+                <span className={styles.exerciseName}>
+                  {exercise.name}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className={styles.emptyText}>
+            No exercises selected yet.
+          </p>
+        )}
       </Card>
 
-      <Button variant="primary" onClick={handleContinue}>
-        Start Workout
-      </Button>
+      <div className={styles.footer}>
+        <p className={styles.footerText}>
+          {selectedExercises.length === 0
+            ? "Go back and choose exercises first."
+            : `${selectedExercises.length} exercise${selectedExercises.length === 1 ? "" : "s"
+            } selected.`}
+        </p>
+
+        <div className={styles.actions}>
+          <Button variant="secondary" onClick={handleBack}>
+            Back
+          </Button>
+
+          <Button
+            variant="primary"
+            onClick={handleContinue}
+            disabled={selectedExercises.length === 0}
+          >
+            Start Workout
+          </Button>
+        </div>
+      </div>
     </Box>
   );
 }

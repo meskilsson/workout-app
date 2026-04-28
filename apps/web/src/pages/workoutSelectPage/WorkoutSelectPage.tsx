@@ -3,6 +3,7 @@ import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
 import "../../components/ui/button/button.css";
+import styles from "./WorkoutSelectPage.module.css";
 import { useNavigate } from "react-router-dom";
 
 const muscleGroupCards = [
@@ -37,28 +38,42 @@ export default function WorkoutSelectPage() {
   }
 
   return (
-    <Box className="workout-select-page">
-      <Box className="muscle-group-grid">
+    <Box className={styles.page}>
+      <div className={styles.header}>
+        <p className={styles.kicker}>Workout builder</p>
+        <h1 className={styles.title}>Choose muscle groups</h1>
+        <p className={styles.subtitle}>
+          Pick one or more muscle groups to build your workout session.
+        </p>
+      </div>
+
+      <Box className={styles.grid}>
         {muscleGroupCards.map((group) => (
           <Card
             key={group.id}
             title={group.title}
-            className={`muscle-group-card ${selectedGroups.includes(group.id)
-                ? "muscle-group-card--selected"
-                : ""
+            className={`${styles.muscleGroupCard} ${selectedGroups.includes(group.id) ? styles.selectedCard : ""
               }`}
             onClick={() => handleToggleGroup(group.id)}
           />
         ))}
       </Box>
 
-      <Button
-        variant="primary"
-        onClick={handleContinue}
-        disabled={selectedGroups.length === 0}
-      >
-        Continue
-      </Button>
+      <div className={styles.footer}>
+        <p className={styles.selectedCount}>
+          {selectedGroups.length === 0
+            ? "Select at least one muscle group"
+            : `${selectedGroups.length} selected`}
+        </p>
+
+        <Button
+          variant="primary"
+          onClick={handleContinue}
+          disabled={selectedGroups.length === 0}
+        >
+          Continue
+        </Button>
+      </div>
     </Box>
   );
 }

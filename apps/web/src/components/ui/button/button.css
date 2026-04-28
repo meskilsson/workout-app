@@ -1,7 +1,7 @@
 .button {
     border: none;
     outline: none;
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     font-weight: 600;
     cursor: pointer;
     transition:
@@ -20,66 +20,70 @@
 
 /* Primary */
 .button--primary {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: #ffffff;
-    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+    background: var(--gradient-primary);
+    color: var(--color-on-primary);
+    box-shadow: 0 8px 18px var(--color-primary-soft);
 }
 
 .button--primary:hover {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    background: linear-gradient(135deg,
+            var(--color-primary-hover),
+            var(--color-primary));
     transform: translateY(-1px);
-    box-shadow: 0 12px 24px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 12px 24px var(--color-primary-soft);
 }
 
 .button--primary:active {
     transform: translateY(0);
-    box-shadow: 0 5px 10px rgba(37, 99, 235, 0.2);
+    box-shadow: var(--shadow-sm);
 }
 
 .button--primary:focus-visible {
     box-shadow:
-        0 0 0 3px rgba(255, 255, 255, 0.85),
-        0 0 0 6px rgba(96, 165, 250, 0.35);
+        0 0 0 3px color-mix(in srgb, var(--color-background) 85%, transparent),
+        0 0 0 6px var(--color-primary-soft);
 }
 
 /* Secondary */
 .button--secondary {
-    background: #ffffff;
-    color: #1d4ed8;
-    border: 2px solid #bfdbfe;
-    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.05);
+    background: var(--color-surface-light);
+    color: var(--color-text);
+    border: 2px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
 }
 
 .button--secondary:hover {
-    background: #eff6ff;
-    border-color: #93c5fd;
-    color: #1e40af;
+    background: var(--color-surface);
+    border-color: var(--color-primary-border);
+    color: var(--color-text);
     transform: translateY(-1px);
 }
 
 /* Ghost */
 .button--ghost {
     background: transparent;
-    color: #2563eb;
+    color: var(--color-primary);
     border: 1px solid transparent;
 }
 
 .button--ghost:hover {
-    background: rgba(37, 99, 235, 0.08);
-    color: #1d4ed8;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
 }
 
 /* Danger */
 .button--danger {
-    background: linear-gradient(135deg, #f87171, #ef4444);
-    color: #ffffff;
-    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.22);
+    background: var(--gradient-danger);
+    color: var(--color-on-danger);
+    box-shadow: 0 6px 16px var(--color-danger-soft);
 }
 
 .button--danger:hover {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
+    background: linear-gradient(135deg,
+            var(--color-danger-hover),
+            var(--color-danger));
     transform: translateY(-1px);
-    box-shadow: 0 10px 22px rgba(239, 68, 68, 0.28);
+    box-shadow: 0 10px 22px var(--color-danger-soft);
 }
 
 .button--danger:active {
@@ -88,15 +92,17 @@
 
 /* Success */
 .button--success {
-    background: linear-gradient(135deg, #4ade80, #22c55e);
-    color: #052e16;
-    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.2);
+    background: var(--gradient-success);
+    color: var(--color-on-success);
+    box-shadow: 0 6px 16px var(--color-success-soft);
 }
 
 .button--success:hover {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
+    background: linear-gradient(135deg,
+            var(--color-success-hover),
+            var(--color-success));
     transform: translateY(-1px);
-    box-shadow: 0 10px 22px rgba(34, 197, 94, 0.26);
+    box-shadow: 0 10px 22px var(--color-success-soft);
 }
 
 .button--success:active {
