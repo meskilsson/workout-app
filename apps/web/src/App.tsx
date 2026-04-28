@@ -1,6 +1,7 @@
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/layouts/Layout";
+import AccountLayout from "./components/layouts/AccountLayout";
 
 import LandingPage from "./pages/LandingPage/LandingPage";
 import LoginPage from "./pages/LoginPage/LoginPage";
@@ -13,13 +14,15 @@ import WorkoutPage from "./pages/WorkoutPage/WorkoutPage";
 import WorkoutResultPage from "./pages/WorkoutResultPage/WorkoutResultPage";
 import CreateExercisePage from "./pages/CreateExercisePage/CreateExercisePage";
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
+import ProfileWorkoutsPage from "./pages/ProfileWorkoutsPage/ProfileWorkoutsPage";
+import ProfileExercisesPage from "./pages/ProfileExercisesPage/ProfileExercisesPage";
+import ProfileSettingsPage from "./pages/ProfileSettingsPage/ProfileSettingsPage";
 import EditExercisePage from "./pages/EditExercisePage/EditExercisePage";
-
+import WorkoutHistoryDetailPage from "./pages/WorkoutHistoryDetailPage/WorkoutHistoryDetailPage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
 import RoleRoute from "./routes/RoleRoute";
-import WorkoutHistoryDetailPage from "./pages/WorkoutHistoryDetailPage/WorkoutHistoryDetailPage";
 
 function AdminPage() {
   return <div>Admin Page</div>;
@@ -122,10 +125,19 @@ function App() {
           path="profile"
           element={
             <ProtectedRoute>
-              <ProfilePage />
+              <AccountLayout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<ProfilePage />} />
+          <Route path="workouts" element={<ProfileWorkoutsPage />} />
+          <Route
+            path="workouts/:id"
+            element={<WorkoutHistoryDetailPage />}
+          />
+          <Route path="exercises" element={<ProfileExercisesPage />} />
+          <Route path="settings" element={<ProfileSettingsPage />} />
+        </Route>
 
         <Route
           path="admin"
@@ -137,15 +149,6 @@ function App() {
         />
 
         <Route
-          path="profile/workouts/:id"
-          element={
-            <ProtectedRoute>
-              <WorkoutHistoryDetailPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
           path="edit-exercise/:id"
           element={
             <ProtectedRoute>
@@ -153,12 +156,8 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-
       </Route>
-
-
-    </Routes >
+    </Routes>
   );
 }
 

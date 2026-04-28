@@ -1,7 +1,7 @@
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import { useAuth } from "../../context/AuthContext";
-import styles from "./ProfilePage.module.css";
+import styles from '../ProfilePage/ProfilePage.module.css';
 
 export default function ProfileSettingsPage() {
     const { logout } = useAuth();
@@ -13,23 +13,10 @@ export default function ProfileSettingsPage() {
                     <p className={styles.kicker}>Settings</p>
                     <h2 className={styles.title}>Account settings</h2>
                     <p className={styles.subtitle}>
-                        Manage your profile details, password, and account preferences.
+                        Manage your account preferences.
                     </p>
                 </div>
             </div>
-
-            <Card className={styles.settingsCard}>
-                <div>
-                    <h3 className={styles.settingsTitle}>Profile details</h3>
-                    <p className={styles.sectionText}>
-                        Update name, email, and password later.
-                    </p>
-                </div>
-
-                <Button variant="secondary" disabled>
-                    Coming soon
-                </Button>
-            </Card>
 
             <Card className={styles.settingsCard}>
                 <div>

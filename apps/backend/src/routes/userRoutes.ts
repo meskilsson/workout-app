@@ -11,7 +11,7 @@ userRouter.get("/:id", getUserById);
 userRouter.post("/", createUser);
 
 userRouter.patch("/:id", updateUser);
-userRouter.patch("/password/:id", changePassword);
+userRouter.patch("/:id/password", changePassword);
 
 userRouter.delete("/:id", deleteUser);
 
