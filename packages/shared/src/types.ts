@@ -3,6 +3,8 @@ import type { Equipment } from "./constants/equipment";
 import type { ExerciseType } from "./constants/exercise";
 import type { Difficulty } from "./constants/difficulty";
 
+export type UserRole = "user" | "admin";
+
 export type WorkoutSet = {
     weight: number;
     reps: number;
@@ -49,4 +51,23 @@ export interface UpdateExerciseInput {
     difficulty?: Difficulty;
     videoUrl?: string;
     imageUrl: string;
+}
+
+export interface ChangePasswordBody {
+    currentPassword: string;
+    newPassword: string;
+}
+
+export interface UpdateUserInput {
+    name?: string;
+    email?: string;
+    username?: string;
+    role?: UserRole;
+}
+
+export interface UpdateUserBody {
+    name?: string;
+    email?: string;
+    username?: string;
+    role?: UserRole;
 }

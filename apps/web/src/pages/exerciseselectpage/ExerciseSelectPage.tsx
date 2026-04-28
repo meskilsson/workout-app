@@ -45,6 +45,8 @@ export default function ExerciseSelectPage() {
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+
 
     const muscleGroupMap: Record<string, string[]> = {
         chest: ["chest"],
@@ -97,7 +99,10 @@ export default function ExerciseSelectPage() {
 
     const groupedExercises = useMemo(() => {
         return selectedMuscleGroups.map((group) => {
-            const targetMuscles = muscleGroupMap[group.id] ?? [];
+            const normalizedSearch = searchTerm.trim().toLowerCase();
+
+            const targetMuscles =
+                muscleGroupMap[group.id.toLowerCase()] ?? [group.title.trim().toLowerCase()];
 
             const matchingExercises = exercises.filter((exercise) => {
                 const primary =
@@ -106,9 +111,18 @@ export default function ExerciseSelectPage() {
                 const secondary =
                     exercise.secondaryMuscles?.map((muscle) => muscle.trim().toLowerCase()) ?? [];
 
-                return targetMuscles.some(
+                const matchesMuscleGroup = targetMuscles.some(
                     (muscle) => primary.includes(muscle) || secondary.includes(muscle),
                 );
+
+                const matchesSearch =
+                    normalizedSearch === "" ||
+                    exercise.name.toLowerCase().includes(normalizedSearch) ||
+                    primary.some((muscle) => muscle.includes(normalizedSearch)) ||
+                    secondary.some((muscle) => muscle.includes(normalizedSearch)) ||
+                    (exercise.equipment?.toLowerCase().includes(normalizedSearch) ?? false);
+
+                return matchesMuscleGroup && matchesSearch;
             });
 
             return {
@@ -116,7 +130,7 @@ export default function ExerciseSelectPage() {
                 exercises: matchingExercises,
             };
         });
-    }, [selectedMuscleGroups, exercises]);
+    }, [selectedMuscleGroups, exercises, searchTerm]);
 
     const chosenExercises = exercises.filter((exercise) =>
         selectedExercises.includes(exercise._id),
@@ -149,6 +163,15 @@ export default function ExerciseSelectPage() {
     return (
         <Box className="exercise-select-page">
             <h1>Select Exercises</h1>
+            <div>
+                <input
+                    type="text"
+                    placeholder="Search exercises..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+
+                />
+            </div>
 
             <Box className="muscle-group-grid">
                 {groupedExercises.map((group) => (

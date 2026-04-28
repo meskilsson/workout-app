@@ -20,13 +20,11 @@ type LocationState = {
 export default function WorkoutSummaryPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { reset } = useWorkoutTimer();
 
   const state = location.state as LocationState | null;
   const selectedExercises = state?.selectedExercises ?? [];
 
   function handleContinue() {
-    reset();
 
     navigate("/workout", {
       state: {
