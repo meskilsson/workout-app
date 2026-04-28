@@ -20,7 +20,13 @@ type Exercise = {
     primaryMuscles?: string[];
     secondaryMuscles?: string[];
     exerciseType?: "strength" | "cardio" | "mobility";
-    equipment?: "bodyweight" | "dumbbell" | "barbell" | "machine" | "kettlebell" | "band";
+    equipment?:
+    | "bodyweight"
+    | "dumbbell"
+    | "barbell"
+    | "machine"
+    | "kettlebell"
+    | "band";
     difficulty?: "beginner" | "intermediate" | "advanced";
     isCustom: boolean;
 };
@@ -113,8 +119,10 @@ export default function ExerciseSelectPage() {
                         muscle.trim().toLowerCase(),
                     ) ?? [];
 
-                const matchesMuscleGroup = targetMuscles.some(
-                    (muscle) => primary.includes(muscle) || secondary.includes(muscle),
+                // Only primary muscles decide which group the exercise appears under.
+                // Secondary muscles are only displayed inside the card.
+                const matchesMuscleGroup = targetMuscles.some((muscle) =>
+                    primary.includes(muscle),
                 );
 
                 const matchesSearch =
@@ -220,6 +228,56 @@ export default function ExerciseSelectPage() {
                                                 <h3 className={styles.exerciseName}>
                                                     {exercise.name}
                                                 </h3>
+
+                                                <div className={styles.muscleInfo}>
+                                                    {exercise.primaryMuscles &&
+                                                        exercise.primaryMuscles.length > 0 && (
+                                                            <div>
+                                                                <p className={styles.muscleLabel}>
+                                                                    Primary
+                                                                </p>
+
+                                                                <div className={styles.muscleTags}>
+                                                                    {exercise.primaryMuscles.map(
+                                                                        (muscle) => (
+                                                                            <span
+                                                                                key={muscle}
+                                                                                className={
+                                                                                    styles.primaryTag
+                                                                                }
+                                                                            >
+                                                                                {muscle}
+                                                                            </span>
+                                                                        ),
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                    {exercise.secondaryMuscles &&
+                                                        exercise.secondaryMuscles.length > 0 && (
+                                                            <div>
+                                                                <p className={styles.muscleLabel}>
+                                                                    Secondary
+                                                                </p>
+
+                                                                <div className={styles.muscleTags}>
+                                                                    {exercise.secondaryMuscles.map(
+                                                                        (muscle) => (
+                                                                            <span
+                                                                                key={muscle}
+                                                                                className={
+                                                                                    styles.secondaryTag
+                                                                                }
+                                                                            >
+                                                                                {muscle}
+                                                                            </span>
+                                                                        ),
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                </div>
 
                                                 <div className={styles.exerciseMeta}>
                                                     {exercise.equipment && (
