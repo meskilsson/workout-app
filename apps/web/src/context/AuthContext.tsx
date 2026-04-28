@@ -16,6 +16,7 @@ type AuthContextType = {
     loading: boolean;
     login: (userData: User) => void;
     logout: () => Promise<void>;
+    updateAuthUser: (userData: User) => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,6 +44,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(userData);
     }
 
+    function updateAuthUser(userData: User) {
+        setUser(userData);
+    }
+
     async function logout() {
         await logoutRequest();
         setUser(null);
@@ -56,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 loading,
                 login,
                 logout,
+                updateAuthUser,
             }}
         >
             {children}
