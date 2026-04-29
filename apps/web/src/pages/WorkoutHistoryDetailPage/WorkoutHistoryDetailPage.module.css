@@ -1,6 +1,6 @@
 .page {
     width: 100%;
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 3rem 1rem 4rem;
     display: flex;
@@ -38,6 +38,8 @@
     line-height: 1.6;
 }
 
+/* Shared layout */
+
 .section {
     display: flex;
     flex-direction: column;
@@ -64,7 +66,10 @@
     line-height: 1.5;
 }
 
+/* Shared cards */
+
 .summaryCard,
+.muscleCard,
 .exerciseCard,
 .stateCard {
     border: 1px solid var(--color-border) !important;
@@ -74,13 +79,16 @@
     box-shadow: var(--shadow-sm);
 }
 
-.summaryCard {
+.summaryCard,
+.stateCard {
     padding: 1.25rem;
 }
 
+/* Summary */
+
 .summaryGrid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 1rem;
 }
 
@@ -88,6 +96,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
+    min-width: 0;
     padding: 0.95rem 1rem;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
@@ -109,6 +118,98 @@
     line-height: 1.35;
     word-break: break-word;
 }
+
+/* Muscle profile */
+
+.muscleCard {
+    padding: 1.5rem;
+}
+
+.muscleCardContent {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 42%);
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.muscleInfo {
+    min-width: 0;
+}
+
+.muscleDummyWrap {
+    min-height: 380px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-light);
+    overflow: hidden;
+}
+
+.muscleLegend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.25rem;
+}
+
+.primaryLegend,
+.secondaryLegend {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 0.4rem 0.7rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.primaryLegend {
+    border: 1px solid var(--color-primary-border);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+}
+
+.secondaryLegend {
+    border: 1px solid var(--color-primary-border);
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+.muscleTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.primaryTag,
+.secondaryTag {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 0.4rem 0.7rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.primaryTag {
+    border: 1px solid var(--color-primary-border);
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+.secondaryTag {
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-light);
+    color: var(--color-text-muted);
+}
+
+/* Exercise breakdown */
 
 .exerciseList {
     display: flex;
@@ -160,6 +261,7 @@
 
 .setCount {
     flex-shrink: 0;
+    width: fit-content;
     padding: 0.4rem 0.7rem;
     border: 1px solid var(--color-primary-border);
     border-radius: var(--radius-pill);
@@ -196,9 +298,10 @@
     font-weight: 700;
 }
 
+/* State */
+
 .stateCard {
     max-width: 640px;
-    padding: 1.25rem;
 }
 
 .stateText {
@@ -213,18 +316,15 @@
     font-weight: 800;
 }
 
-@media (max-width: 860px) {
-    .summaryGrid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
+/* Responsive */
 
-@media (max-width: 640px) {
+@media (max-width: 760px) {
     .page {
         padding: 2rem 1rem 3rem;
     }
 
     .header,
+    .sectionHeader,
     .exerciseHeader {
         flex-direction: column;
         align-items: stretch;
@@ -234,16 +334,31 @@
         width: 100%;
     }
 
-    .summaryGrid {
+    .muscleCardContent {
         grid-template-columns: 1fr;
+    }
+
+    .muscleDummyWrap {
+        min-height: 340px;
     }
 
     .setRow {
         grid-template-columns: 1fr;
         gap: 0.35rem;
     }
+}
 
-    .setCount {
-        width: fit-content;
+@media (max-width: 460px) {
+    .summaryGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .muscleCard {
+        padding: 1.25rem;
+    }
+
+    .muscleDummyWrap {
+        min-height: 300px;
+        padding: 0.75rem;
     }
 }

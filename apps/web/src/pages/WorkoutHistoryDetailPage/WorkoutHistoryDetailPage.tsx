@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getWorkoutSessionByIdRequest } from "../../services/workoutSessionApi";
+import { getExerciseLibraryRequest } from "../../services/exerciseApi";
 import formatDuration from "../../utils/formatDuration";
 import { formatCompletedDate } from "../../utils/formatCompletedDate";
 import { formatEndTime } from "../../utils/formatEndTime";
@@ -9,6 +10,7 @@ import type { WorkoutSession } from "@workout-app/shared";
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
 import Card from "../../components/ui/cards/Card";
+import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 
 import styles from "./WorkoutHistoryDetailPage.module.css";
 
@@ -16,6 +18,12 @@ type LocationState = {
     workoutSession?: WorkoutSession;
 };
 
+type ExerciseLibraryItem = {
+    _id: string;
+    name: string;
+    primaryMuscles?: string[];
+    secondaryMuscles?: string[];
+};
 
 export default function WorkoutHistoryDetailPage() {
     const navigate = useNavigate();
@@ -27,8 +35,12 @@ export default function WorkoutHistoryDetailPage() {
     const [session, setSession] = useState<WorkoutSession | null>(
         state?.workoutSession ?? null,
     );
+
+    const [exerciseLibrary, setExerciseLibrary] = useState<ExerciseLibraryItem[]>([]);
     const [isLoading, setIsLoading] = useState(!state?.workoutSession);
+    const [isLoadingMuscles, setIsLoadingMuscles] = useState(false);
     const [error, setError] = useState("");
+    const [muscleError, setMuscleError] = useState("");
 
     useEffect(() => {
         if (session) return;
@@ -61,6 +73,77 @@ export default function WorkoutHistoryDetailPage() {
 
         loadSession();
     }, [id, session]);
+
+    useEffect(() => {
+        if (!session) return;
+
+        async function loadExerciseLibrary() {
+            setMuscleError("");
+            setIsLoadingMuscles(true);
+
+            try {
+                const data = await getExerciseLibraryRequest();
+                setExerciseLibrary(data);
+            } catch (err) {
+                setMuscleError(
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to load muscle profile.",
+                );
+            } finally {
+                setIsLoadingMuscles(false);
+            }
+        }
+
+        loadExerciseLibrary();
+    }, [session]);
+
+    const trainedMuscles = useMemo(() => {
+        if (!session) {
+            return {
+                primaryMuscles: [] as string[],
+                secondaryMuscles: [] as string[],
+            };
+        }
+
+        const primaryMuscles = new Set<string>();
+        const secondaryMuscles = new Set<string>();
+
+        for (const sessionExercise of session.exercises) {
+            const matchedExercise = exerciseLibrary.find((exercise) => {
+                const matchesId =
+                    sessionExercise.exerciseId &&
+                    exercise._id === sessionExercise.exerciseId;
+
+                const matchesName =
+                    exercise.name.trim().toLowerCase() ===
+                    sessionExercise.exerciseName.trim().toLowerCase();
+
+                return matchesId || matchesName;
+            });
+
+            if (!matchedExercise) {
+                continue;
+            }
+
+            for (const muscle of matchedExercise.primaryMuscles ?? []) {
+                primaryMuscles.add(muscle);
+            }
+
+            for (const muscle of matchedExercise.secondaryMuscles ?? []) {
+                secondaryMuscles.add(muscle);
+            }
+        }
+
+        for (const muscle of primaryMuscles) {
+            secondaryMuscles.delete(muscle);
+        }
+
+        return {
+            primaryMuscles: [...primaryMuscles],
+            secondaryMuscles: [...secondaryMuscles],
+        };
+    }, [session, exerciseLibrary]);
 
     if (isLoading) {
         return (
@@ -152,6 +235,55 @@ export default function WorkoutHistoryDetailPage() {
                     <div className={styles.summaryItem}>
                         <span className={styles.summaryLabel}>Duration</span>
                         <span className={styles.summaryValue}>{duration}</span>
+                    </div>
+                </div>
+            </Card>
+
+            <Card className={styles.muscleCard}>
+                <div className={styles.muscleCardContent}>
+                    <div className={styles.muscleInfo}>
+                        <p className={styles.kicker}>Muscle profile</p>
+                        <h2 className={styles.sectionTitle}>Muscles trained</h2>
+
+                        <p className={styles.sectionText}>
+                            This highlights the primary and secondary muscles targeted by
+                            this workout.
+                        </p>
+
+                        {isLoadingMuscles && (
+                            <p className={styles.stateText}>Loading muscle profile...</p>
+                        )}
+
+                        {muscleError && (
+                            <p className={styles.errorText}>{muscleError}</p>
+                        )}
+
+                        <div className={styles.muscleLegend}>
+                            <span className={styles.primaryLegend}>Primary</span>
+                            <span className={styles.secondaryLegend}>Secondary</span>
+                        </div>
+
+                        <div className={styles.muscleTags}>
+                            {trainedMuscles.primaryMuscles.map((muscle) => (
+                                <span key={muscle} className={styles.primaryTag}>
+                                    {muscle}
+                                </span>
+                            ))}
+
+                            {trainedMuscles.secondaryMuscles.map((muscle) => (
+                                <span key={muscle} className={styles.secondaryTag}>
+                                    {muscle}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className={styles.muscleDummyWrap}>
+                        <MuscleDummy
+                            variant="full"
+                            primaryMuscles={trainedMuscles.primaryMuscles}
+                            secondaryMuscles={trainedMuscles.secondaryMuscles}
+                        />
                     </div>
                 </div>
             </Card>

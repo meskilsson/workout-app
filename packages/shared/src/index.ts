@@ -3,4 +3,5 @@ export * from './constants/equipment';
 export * from './constants/exercise';
 export * from './constants/difficulty';
 export * from './constants/muscleRegions';
+export * from './constants/bodyModel';
 export * from './types';

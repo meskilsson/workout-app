@@ -2,12 +2,15 @@ import BodyHighlighter, {
     type ExtendedBodyPart,
     type Slug,
 } from "@mjcdev/react-body-highlighter";
+import type { BodyModelGender } from "@workout-app/shared";
+import { useBodyModel } from "../../context/BodyModelContext";
 import styles from "./MuscleDummy.module.css";
 
 type MuscleDummyProps = {
     primaryMuscles?: string[];
     secondaryMuscles?: string[];
     variant?: "full" | "mini";
+    gender?: BodyModelGender;
 };
 
 const muscleToBodyPartSlugs: Record<string, Slug[]> = {
@@ -62,7 +65,12 @@ export default function MuscleDummy({
     primaryMuscles = [],
     secondaryMuscles = [],
     variant = "full",
+    gender,
 }: MuscleDummyProps) {
+    const { gender: selectedGender } = useBodyModel();
+
+    const bodyGender = gender ?? selectedGender;
+
     const data = mapMusclesToBodyHighlighterData(
         primaryMuscles,
         secondaryMuscles,
@@ -73,7 +81,27 @@ export default function MuscleDummy({
             className={`${styles.wrapper} ${variant === "mini" ? styles.mini : styles.full
                 }`}
         >
-            <BodyHighlighter data={data} />
+            <div className={styles.bodyViews}>
+                <div className={styles.bodyView}>
+                    <span className={styles.bodyLabel}>Front</span>
+
+                    <BodyHighlighter
+                        data={data}
+                        side="front"
+                        gender={bodyGender}
+                    />
+                </div>
+
+                <div className={styles.bodyView}>
+                    <span className={styles.bodyLabel}>Back</span>
+
+                    <BodyHighlighter
+                        data={data}
+                        side="back"
+                        gender={bodyGender}
+                    />
+                </div>
+            </div>
         </div>
     );
 }

@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import ChangePasswordForm from "../../components/forms/ChangePasswordForm";
 import UpdateAccountForm from "../../components/forms/UpdateAccountForm";
 import styles from "./ProfileSettingsPage.module.css";
+import BodyModelSelect from "../../components/bodyModel/BodyModelSelect";
 
 export default function ProfileSettingsPage() {
     const { user, logout } = useAuth();
@@ -47,6 +48,28 @@ export default function ProfileSettingsPage() {
 
                 <Card className={`${styles.settingsCard} ${styles.formCard}`}>
                     <ChangePasswordForm />
+                </Card>
+            </section>
+
+            <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                    <div>
+                        <h3 className={styles.sectionTitle}>Body model</h3>
+                        <p className={styles.sectionText}>
+                            Choose which body model is used for muscle previews.
+                        </p>
+                    </div>
+                </div>
+
+                <Card className={styles.settingsCard}>
+                    <div>
+                        <h3 className={styles.settingsTitle}>Muscle preview model</h3>
+                        <p className={styles.sectionText}>
+                            This changes the body model used on exercise cards and workout results.
+                        </p>
+                    </div>
+
+                    <BodyModelSelect />
                 </Card>
             </section>
 
