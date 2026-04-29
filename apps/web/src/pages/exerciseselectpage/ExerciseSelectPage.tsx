@@ -14,6 +14,9 @@ import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 import "../../components/ui/button/button.css";
 import "../../components/ui/box/box.css";
 import "../../components/ui/cards/card.css";
+
+import { muscleSearchAliases } from "@workout-app/shared";
+
 import styles from "./ExerciseSelectPage.module.css";
 
 
@@ -63,8 +66,8 @@ export default function ExerciseSelectPage() {
         shoulders: ["shoulders"],
         biceps: ["biceps"],
         triceps: ["triceps"],
-        legs: ["quads", "hamstrings", "glutes", "calves"],
         core: ["core"],
+        ...muscleSearchAliases,
     };
 
     useEffect(() => {
@@ -111,6 +114,9 @@ export default function ExerciseSelectPage() {
                     group.title.trim().toLowerCase(),
                 ];
 
+            const searchAliasMuscles =
+                muscleSearchAliases[normalizedSearch] ?? [];
+
             const matchingExercises = exercises.filter((exercise) => {
                 const primary =
                     exercise.primaryMuscles?.map((muscle) =>
@@ -126,12 +132,22 @@ export default function ExerciseSelectPage() {
                     primary.includes(muscle),
                 );
 
+                const matchesSearchAlias =
+                    searchAliasMuscles.length > 0 &&
+                    searchAliasMuscles.some(
+                        (muscle) =>
+                            primary.includes(muscle) || secondary.includes(muscle),
+                    );
+
                 const matchesSearch =
                     normalizedSearch === "" ||
                     exercise.name.toLowerCase().includes(normalizedSearch) ||
                     primary.some((muscle) => muscle.includes(normalizedSearch)) ||
                     secondary.some((muscle) => muscle.includes(normalizedSearch)) ||
-                    (exercise.equipment?.toLowerCase().includes(normalizedSearch) ?? false);
+                    matchesSearchAlias ||
+                    (exercise.equipment?.toLowerCase().includes(normalizedSearch) ?? false) ||
+                    (exercise.difficulty?.toLowerCase().includes(normalizedSearch) ?? false) ||
+                    (exercise.exerciseType?.toLowerCase().includes(normalizedSearch) ?? false);
 
                 return matchesMuscleGroup && matchesSearch;
             });

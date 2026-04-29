@@ -10,6 +10,8 @@ import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 
+import { muscleSearchAliases } from "@workout-app/shared";
+
 import styles from "./LibraryPage.module.css";
 
 type Exercise = {
@@ -65,21 +67,29 @@ export default function LibraryPage() {
             return exercises;
         }
 
+        const muscleAliases = muscleSearchAliases[normalizedSearch] ?? [];
+
         return exercises.filter((exercise) => {
-            const primaryMuscles = exercise.primaryMuscles ?? [];
-            const secondaryMuscles = exercise.secondaryMuscles ?? [];
+            const primaryMuscles =
+                exercise.primaryMuscles?.map((muscle) => muscle.toLowerCase()) ?? [];
+
+            const secondaryMuscles =
+                exercise.secondaryMuscles?.map((muscle) => muscle.toLowerCase()) ?? [];
+
+            const allMuscles = [...primaryMuscles, ...secondaryMuscles];
+
+            const matchesAlias =
+                muscleAliases.length > 0 &&
+                muscleAliases.some((muscle) => allMuscles.includes(muscle));
 
             return (
                 exercise.name.toLowerCase().includes(normalizedSearch) ||
                 exercise.exerciseType?.toLowerCase().includes(normalizedSearch) ||
                 exercise.equipment?.toLowerCase().includes(normalizedSearch) ||
                 exercise.difficulty?.toLowerCase().includes(normalizedSearch) ||
-                primaryMuscles.some((muscle) =>
-                    muscle.toLowerCase().includes(normalizedSearch),
-                ) ||
-                secondaryMuscles.some((muscle) =>
-                    muscle.toLowerCase().includes(normalizedSearch),
-                )
+                primaryMuscles.some((muscle) => muscle.includes(normalizedSearch)) ||
+                secondaryMuscles.some((muscle) => muscle.includes(normalizedSearch)) ||
+                matchesAlias
             );
         });
     }, [exercises, searchTerm]);

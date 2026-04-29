@@ -97,3 +97,11 @@ export type UpdateUserData = {
     password?: string;
     role?: UserRoles;
 };
+
+
+export const muscleSearchAliases: Record<string, string[]> = {
+    legs: ["quads", "hamstrings", "glutes", "calves"],
+    arms: ["biceps", "triceps", "forearms"],
+    push: ["chest", "shoulders", "triceps"],
+    pull: ["back", "biceps"],
+};
