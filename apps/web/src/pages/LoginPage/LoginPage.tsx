@@ -46,25 +46,16 @@ export default function LoginPage() {
 
     return (
         <Box className={styles.page}>
-            <section className={styles.authShell}>
-                <div className={styles.intro}>
-                    <p className={styles.eyebrow}>Welcome back</p>
+            <div className={styles.authWrap}>
+                <div className={styles.topText}>
+                    <p className={styles.brand}>Workout App</p>
 
-                    <h1 className={styles.title}>
-                        Log in and start building your next workout.
-                    </h1>
+                    <h1>Log in</h1>
 
-                    <p className={styles.subtitle}>
-                        Save templates, manage exercises, and keep your training organized.
-                    </p>
+                    <p>Continue building and saving your workouts.</p>
                 </div>
 
-                <Card className={styles.loginCard}>
-                    <div className={styles.cardHeader}>
-                        <h2>Login</h2>
-                        <p>Enter your details to continue.</p>
-                    </div>
-
+                <Card className={styles.card}>
                     <form className={styles.form} onSubmit={handleSubmit}>
                         <div className={styles.field}>
                             <label htmlFor="email">Email</label>
@@ -100,25 +91,19 @@ export default function LoginPage() {
                             </p>
                         )}
 
-                        <div className={styles.submitRow}>
-                            <Button type="submit" disabled={isLoading}>
-                                {isLoading ? "Logging in..." : "Login"}
-                            </Button>
-                        </div>
-
-                        <p className={styles.signupText}>
-                            Don&apos;t have an account?{" "}
-                            <button
-                                type="button"
-                                className={styles.textButton}
-                                onClick={() => navigate("/signup")}
-                            >
-                                Sign up
-                            </button>
-                        </p>
+                        <Button type="submit" disabled={isLoading}>
+                            {isLoading ? "Logging in..." : "Log in"}
+                        </Button>
                     </form>
                 </Card>
-            </section>
+
+                <p className={styles.bottomText}>
+                    Don&apos;t have an account?{" "}
+                    <button type="button" onClick={() => navigate("/signup")}>
+                        Create one
+                    </button>
+                </p>
+            </div>
         </Box>
     );
 }

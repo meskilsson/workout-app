@@ -47,30 +47,17 @@ export default function SignupPage() {
 
     return (
         <Box className={styles.page}>
-            <section className={styles.authShell}>
-                <div className={styles.intro}>
-                    <p className={styles.eyebrow}>Start training</p>
-
-                    <h1 className={styles.title}>
-                        Create your account and build better workouts.
-                    </h1>
-
-                    <p className={styles.subtitle}>
-                        Save your exercises, build workout templates, and keep your
-                        training organized from one place.
-                    </p>
+            <div className={styles.authWrap}>
+                <div className={styles.topText}>
+                    <p className={styles.brand}>Workout App</p>
+                    <h1>Create account</h1>
+                    <p>Set up your account and start saving workouts.</p>
                 </div>
 
-                <Card className={styles.signupCard}>
-                    <div className={styles.cardHeader}>
-                        <h2>Sign up</h2>
-                        <p>Create an account to get started.</p>
-                    </div>
-
+                <Card className={styles.card}>
                     <form className={styles.form} onSubmit={handleSubmit}>
                         <div className={styles.field}>
                             <label htmlFor="name">Name</label>
-
                             <input
                                 id="name"
                                 type="text"
@@ -84,11 +71,10 @@ export default function SignupPage() {
 
                         <div className={styles.field}>
                             <label htmlFor="email">Email</label>
-
                             <input
                                 id="email"
                                 type="email"
-                                placeholder="123@example.com"
+                                placeholder="example@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 autoComplete="email"
@@ -98,11 +84,10 @@ export default function SignupPage() {
 
                         <div className={styles.field}>
                             <label htmlFor="username">Username</label>
-
                             <input
                                 id="username"
                                 type="text"
-                                placeholder="Jane Doe"
+                                placeholder="JaneDoe"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 autoComplete="username"
@@ -112,7 +97,6 @@ export default function SignupPage() {
 
                         <div className={styles.field}>
                             <label htmlFor="password">Password</label>
-
                             <input
                                 id="password"
                                 type="password"
@@ -130,25 +114,19 @@ export default function SignupPage() {
                             </p>
                         )}
 
-                        <div className={styles.submitRow}>
-                            <Button type="submit" disabled={isLoading}>
-                                {isLoading ? "Creating account..." : "Sign up"}
-                            </Button>
-                        </div>
-
-                        <p className={styles.loginText}>
-                            Already have an account?{" "}
-                            <button
-                                type="button"
-                                className={styles.textButton}
-                                onClick={() => navigate("/login")}
-                            >
-                                Login
-                            </button>
-                        </p>
+                        <Button type="submit" disabled={isLoading}>
+                            {isLoading ? "Creating account..." : "Create account"}
+                        </Button>
                     </form>
                 </Card>
-            </section>
+
+                <p className={styles.bottomText}>
+                    Already have an account?{" "}
+                    <button type="button" onClick={() => navigate("/login")}>
+                        Log in
+                    </button>
+                </p>
+            </div>
         </Box>
     );
 }
