@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Modal from "../../components/ui/modal/Modal";
+import Button from "../../components/ui/button/Button";
 import { createWorkoutSessionRequest } from "../../services/workoutSessionApi";
 import styles from "./WorkoutPage.module.css";
 import WorkoutDurationTimer from "../../components/timer/WorkoutDurationTimer";
@@ -22,6 +23,8 @@ type WorkoutSet = {
     reps: string;
 };
 
+const EMPTY_EXERCISES: SelectedExercise[] = [];
+
 export default function WorkoutPage() {
     const navigate = useNavigate();
     const location = useLocation();
@@ -35,7 +38,6 @@ export default function WorkoutPage() {
     const [error, setError] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
-    const EMPTY_EXERCISES: SelectedExercise[] = [];
     const selectedExercises = state?.selectedExercises ?? EMPTY_EXERCISES;
 
     useEffect(() => {
@@ -195,13 +197,15 @@ export default function WorkoutPage() {
                                 <div className={styles.exerciseHeader}>
                                     <h2 className={styles.exerciseName}>{exercise.name}</h2>
 
-                                    <button
+                                    <Button
                                         type="button"
+                                        variant="primary"
+                                        size="small"
                                         className={styles.addSetButton}
                                         onClick={() => handleAddSet(exercise._id)}
                                     >
                                         Add set
-                                    </button>
+                                    </Button>
                                 </div>
 
                                 <div className={styles.setsList}>
@@ -253,8 +257,10 @@ export default function WorkoutPage() {
                                                 />
                                             </div>
 
-                                            <button
+                                            <Button
                                                 type="button"
+                                                variant="ghost"
+                                                size="small"
                                                 className={styles.completeSetButton}
                                                 onClick={() =>
                                                     handleCompleteSet(exercise._id, index)
@@ -262,17 +268,20 @@ export default function WorkoutPage() {
                                                 aria-label="Complete set and start rest timer"
                                             >
                                                 ✓
-                                            </button>
+                                            </Button>
 
-                                            <button
+                                            <Button
                                                 type="button"
+                                                variant="ghost"
+                                                size="small"
                                                 className={styles.deleteButton}
                                                 onClick={() =>
                                                     handleRemoveSet(exercise._id, index)
                                                 }
+                                                aria-label="Remove set"
                                             >
                                                 X
-                                            </button>
+                                            </Button>
                                         </div>
                                     ))}
                                 </div>
@@ -288,13 +297,15 @@ export default function WorkoutPage() {
                 )}
 
                 <div className={styles.endSessionWrapper}>
-                    <button
+                    <Button
                         type="button"
+                        variant="danger"
+                        size="medium"
                         className={styles.endSessionButton}
                         onClick={handleEndSession}
                     >
                         End Session
-                    </button>
+                    </Button>
                 </div>
 
                 <Modal
@@ -303,23 +314,27 @@ export default function WorkoutPage() {
                     onClose={handleCloseModal}
                     actions={
                         <div className={styles.modalActions}>
-                            <button
+                            <Button
                                 type="button"
+                                variant="danger"
+                                size="medium"
                                 className={styles.modalPrimaryButton}
                                 onClick={handleConfirmEndWorkout}
                                 disabled={isSaving}
                             >
                                 {isSaving ? "Saving..." : "End Workout"}
-                            </button>
+                            </Button>
 
-                            <button
+                            <Button
                                 type="button"
+                                variant="secondary"
+                                size="medium"
                                 className={styles.modalSecondaryButton}
                                 onClick={handleCloseModal}
                                 disabled={isSaving}
                             >
                                 Close
-                            </button>
+                            </Button>
                         </div>
                     }
                 >
