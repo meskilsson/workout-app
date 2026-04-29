@@ -1,13 +1,16 @@
+import { useState } from "react";
+import type { FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+
 import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
 
-import { useState } from "react";
-import { useNavigate } from "react-router";
 import { signupRequest } from "../../services/authApi";
 
-export default function SignupPage() {
+import styles from "./SignupPage.module.css";
 
+export default function SignupPage() {
     const navigate = useNavigate();
 
     const [name, setName] = useState("");
@@ -17,8 +20,7 @@ export default function SignupPage() {
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-
-    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setError("");
         setIsLoading(true);
@@ -28,7 +30,7 @@ export default function SignupPage() {
                 name,
                 email,
                 username,
-                password
+                password,
             });
 
             navigate("/login");
@@ -43,55 +45,110 @@ export default function SignupPage() {
         }
     }
 
-
     return (
-        <Box>
-            <Card
-                title="Sign up"
-            >
-                <form
-                    onSubmit={handleSubmit}
-                >
-                    <label htmlFor="name">Name</label>
-                    <input
-                        id="name"
-                        type="text"
-                        placeholder="name..."
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
-                    <label htmlFor="email">Email</label>
-                    <input
-                        id="email"
-                        type="email"
-                        placeholder="123@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                    <label htmlFor="username">Username</label>
-                    <input
-                        id="username"
-                        type="text"
-                        placeholder="oogabooga"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                    />
-                    <label htmlFor="password">Password</label>
-                    <input
-                        id="password"
-                        type="password"
-                        placeholder="*******"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                    {error && <p>{error}</p>}
+        <Box className={styles.page}>
+            <section className={styles.authShell}>
+                <div className={styles.intro}>
+                    <p className={styles.eyebrow}>Start training</p>
 
-                    <Button
-                        type="submit"
-                        disabled={isLoading}
-                    >{isLoading ? "Creating account..." : "Sign up"}</Button>
-                </form>
-            </Card>
+                    <h1 className={styles.title}>
+                        Create your account and build better workouts.
+                    </h1>
+
+                    <p className={styles.subtitle}>
+                        Save your exercises, build workout templates, and keep your
+                        training organized from one place.
+                    </p>
+                </div>
+
+                <Card className={styles.signupCard}>
+                    <div className={styles.cardHeader}>
+                        <h2>Sign up</h2>
+                        <p>Create an account to get started.</p>
+                    </div>
+
+                    <form className={styles.form} onSubmit={handleSubmit}>
+                        <div className={styles.field}>
+                            <label htmlFor="name">Name</label>
+
+                            <input
+                                id="name"
+                                type="text"
+                                placeholder="Your name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                autoComplete="name"
+                                required
+                            />
+                        </div>
+
+                        <div className={styles.field}>
+                            <label htmlFor="email">Email</label>
+
+                            <input
+                                id="email"
+                                type="email"
+                                placeholder="123@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                autoComplete="email"
+                                required
+                            />
+                        </div>
+
+                        <div className={styles.field}>
+                            <label htmlFor="username">Username</label>
+
+                            <input
+                                id="username"
+                                type="text"
+                                placeholder="Jane Doe"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                autoComplete="username"
+                                required
+                            />
+                        </div>
+
+                        <div className={styles.field}>
+                            <label htmlFor="password">Password</label>
+
+                            <input
+                                id="password"
+                                type="password"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                autoComplete="new-password"
+                                required
+                            />
+                        </div>
+
+                        {error && (
+                            <p className={styles.error} role="alert">
+                                {error}
+                            </p>
+                        )}
+
+                        <div className={styles.submitRow}>
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? "Creating account..." : "Sign up"}
+                            </Button>
+                        </div>
+
+                        <p className={styles.loginText}>
+                            Already have an account?{" "}
+                            <button
+                                type="button"
+                                className={styles.textButton}
+                                onClick={() => navigate("/login")}
+                            >
+                                Login
+                            </button>
+                        </p>
+                    </form>
+                </Card>
+            </section>
         </Box>
     );
 }

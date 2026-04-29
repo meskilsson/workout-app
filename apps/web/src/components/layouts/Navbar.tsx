@@ -19,14 +19,14 @@ export default function Navbar() {
                 <button
                     className={styles.brand}
                     type="button"
-                    onClick={() => navigate(isAuthenticated ? "/dashboard" : "/")}
+                    onClick={() => navigate(isAuthenticated ? "/" : "/")}
                 >
                     Workout App
                 </button>
 
                 <div className={styles.links}>
                     <NavLink
-                        to={isAuthenticated ? "/dashboard" : "/"}
+                        to={isAuthenticated ? "/" : "/"}
                         className={({ isActive }) =>
                             `${styles.link} ${isActive ? styles.linkActive : ""}`.trim()
                         }

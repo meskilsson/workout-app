@@ -137,7 +137,7 @@ export default function WorkoutResultPage() {
                     </p>
 
                     <div className={styles.actions}>
-                        <Button onClick={() => navigate("/dashboard")}>
+                        <Button onClick={() => navigate("/")}>
                             Back to dashboard
                         </Button>
                     </div>
@@ -297,7 +297,7 @@ export default function WorkoutResultPage() {
             </section>
 
             <div className={styles.actions}>
-                <Button variant="secondary" onClick={() => navigate("/dashboard")}>
+                <Button variant="secondary" onClick={() => navigate("/")}>
                     Back to dashboard
                 </Button>
 

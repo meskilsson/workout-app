@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Layout from "./components/layouts/Layout";
 import AccountLayout from "./components/layouts/AccountLayout";
 
-import LandingPage from "./pages/LandingPage/LandingPage";
+
 import LoginPage from "./pages/LoginPage/LoginPage";
 import SignupPage from "./pages/SignupPage/SignupPage";
 import Homepage from "./pages/HomePage/Homepage";
@@ -36,7 +36,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        <Route index element={<LandingPage />} />
+        <Route index element={<Homepage />} />
 
         <Route
           path="login"
@@ -59,11 +59,11 @@ function App() {
         <Route path="templates" element={<TemplatesPage />} />
 
         <Route
-          path="dashboard"
+          path="homepage"
           element={
-            <ProtectedRoute>
+            <PublicRoute>
               <Homepage />
-            </ProtectedRoute>
+            </PublicRoute>
           }
         />
 
