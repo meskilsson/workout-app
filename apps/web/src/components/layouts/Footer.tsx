@@ -2,9 +2,9 @@ import type { ComponentPropsWithoutRef } from "react";
 
 type FooterProps = ComponentPropsWithoutRef<"footer">;
 
-export default function Footer({ children, ...rest }: FooterProps) {
+export default function Footer({ children, className = "", ...rest }: FooterProps) {
     return (
-        <footer {...rest}>
+        <footer className={className} {...rest}>
             {children}
         </footer>
     );

@@ -1,27 +1,36 @@
+import Button from "../ui/button/Button";
+import styles from "./RestTimer.module.css";
 import {
-    useRestTimer,
-    secondsToMilliseconds,
     formatCountdownMilliseconds,
+    useRestTimerControls,
 } from "@workout-app/shared/timer/rest";
 
-
 export default function RestTimer() {
-    const { state, start, pause, reset } = useRestTimer(
-        secondsToMilliseconds(60),
-    );
+    const { state, start, pause, reset } = useRestTimerControls();
 
     return (
-        <div>
-            <span>Rest Timer</span>
-            <span>
-                {formatCountdownMilliseconds(state.timeLeft)}
-            </span>
+        <section className={styles.timer}>
+            <div className={styles.info}>
+                <span className={styles.label}>Rest timer</span>
 
-            <div>
-                <button type="button" onClick={start}>Start</button>
-                <button type="button" onClick={pause}>Pause</button>
-                <button type="button" onClick={reset}>Reset</button>
+                <strong className={styles.time}>
+                    {formatCountdownMilliseconds(state.timeLeft)}
+                </strong>
             </div>
-        </div>
+
+            <div className={styles.actions}>
+                <Button type="button" variant="primary" onClick={start}>
+                    Start
+                </Button>
+
+                <Button type="button" variant="secondary" onClick={pause}>
+                    Pause
+                </Button>
+
+                <Button type="button" variant="ghost" onClick={reset}>
+                    Reset
+                </Button>
+            </div>
+        </section>
     );
 }

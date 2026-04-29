@@ -1,12 +1,19 @@
-import { useWorkoutTimer, formatElapsedMilliseconds } from "@workout-app/shared/timer";
+import {
+    useWorkoutTimer,
+    formatElapsedMilliseconds,
+} from "@workout-app/shared/timer";
+import styles from "./WorkoutDurationTimer.module.css";
 
 export default function WorkoutDurationTimer() {
     const { state } = useWorkoutTimer();
 
     return (
-        <div>
-            <p>Workout Duration</p>
-            <p>{formatElapsedMilliseconds(state.elapsedTime)}</p>
-        </div>
+        <section className={styles.timerCard}>
+            <p className={styles.kicker}>Workout duration</p>
+
+            <strong className={styles.time}>
+                {formatElapsedMilliseconds(state.elapsedTime)}
+            </strong>
+        </section>
     );
 }

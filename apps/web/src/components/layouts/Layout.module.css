@@ -8,3 +8,40 @@
     flex: 1;
     width: 100%;
 }
+
+.footer {
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+
+.footerBox {
+    width: 100%;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.footerText {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.timerFooter {
+    position: sticky;
+    bottom: 0;
+    z-index: 50;
+    width: 100%;
+    border-top: 1px solid var(--color-primary-border);
+    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(14px);
+}
+
+.timerBox {
+    width: 100%;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0.9rem 1rem;
+}

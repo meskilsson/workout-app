@@ -5,6 +5,7 @@ import { createWorkoutSessionRequest } from "../../services/workoutSessionApi";
 import styles from "./WorkoutPage.module.css";
 import WorkoutDurationTimer from "../../components/timer/WorkoutDurationTimer";
 import { useWorkoutTimer } from "@workout-app/shared/timer";
+import { useRestTimerControls } from "@workout-app/shared/timer/rest";
 
 type SelectedExercise = {
     _id: string;
@@ -26,7 +27,8 @@ export default function WorkoutPage() {
     const location = useLocation();
     const state = location.state as LocationState | null;
 
-    const { start, state: workoutTimerState } = useWorkoutTimer();
+    const { start: startWorkoutTimer, state: workoutTimerState } = useWorkoutTimer();
+    const { start: startRestTimer } = useRestTimerControls();
 
     const [setsByExercise, setSetsByExercise] = useState<Record<string, WorkoutSet[]>>({});
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -42,15 +44,14 @@ export default function WorkoutPage() {
             !workoutTimerState.isRunning &&
             workoutTimerState.elapsedTime === 0
         ) {
-            start();
+            startWorkoutTimer();
         }
     }, [
         selectedExercises.length,
         workoutTimerState.isRunning,
         workoutTimerState.elapsedTime,
-        start,
+        startWorkoutTimer,
     ]);
-
 
     useEffect(() => {
         setSetsByExercise((prev) => {
@@ -112,13 +113,27 @@ export default function WorkoutPage() {
         });
     }
 
+    function handleCompleteSet(exerciseId: string, index: number) {
+        const set = setsByExercise[exerciseId]?.[index];
+
+        if (!set || set.weight === "" || set.reps === "") {
+            setError("Add weight and reps before completing the set.");
+            return;
+        }
+
+        setError("");
+        startRestTimer();
+    }
+
     function handleEndSession() {
         setError("");
         setOpenModal(true);
     }
 
     function handleCloseModal() {
-        setOpenModal(false);
+        if (!isSaving) {
+            setOpenModal(false);
+        }
     }
 
     async function handleConfirmEndWorkout() {
@@ -150,6 +165,8 @@ export default function WorkoutPage() {
 
             const savedWorkoutSession = await createWorkoutSessionRequest(payload);
 
+            setOpenModal(false);
+
             navigate("/workout-result", {
                 state: { workoutSession: savedWorkoutSession },
             });
@@ -161,7 +178,6 @@ export default function WorkoutPage() {
             }
         } finally {
             setIsSaving(false);
-            setOpenModal(false);
         }
     }
 
@@ -169,6 +185,7 @@ export default function WorkoutPage() {
         <div className={styles.page}>
             <div className={styles.container}>
                 <WorkoutDurationTimer />
+
                 <div className={styles.exerciseList}>
                     {selectedExercises.map((exercise) => {
                         const exerciseSets = setsByExercise[exercise._id] ?? [];
@@ -235,6 +252,17 @@ export default function WorkoutPage() {
                                                     }
                                                 />
                                             </div>
+
+                                            <button
+                                                type="button"
+                                                className={styles.completeSetButton}
+                                                onClick={() =>
+                                                    handleCompleteSet(exercise._id, index)
+                                                }
+                                                aria-label="Complete set and start rest timer"
+                                            >
+                                                ✓
+                                            </button>
 
                                             <button
                                                 type="button"

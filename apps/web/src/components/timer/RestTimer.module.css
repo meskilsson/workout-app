@@ -1,0 +1,58 @@
+.timer {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.label {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.time {
+    color: var(--color-text);
+    font-size: clamp(1.6rem, 4vw, 2.25rem);
+    line-height: 1;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+    .timer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .info {
+        align-items: center;
+        text-align: center;
+    }
+
+    .actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        width: 100%;
+    }
+
+    .actions button {
+        width: 100%;
+    }
+}
