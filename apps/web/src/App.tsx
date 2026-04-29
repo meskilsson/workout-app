@@ -59,7 +59,7 @@ function App() {
 
         <Route path="templates" element={<TemplatesPage />} />
 
-        <Route path="/library" element={<PublicRoute><LibraryPage /></PublicRoute>} />
+        <Route path="/library" element={<LibraryPage />} />
 
         <Route
           path="homepage"

@@ -59,7 +59,7 @@ export default function CreateExercisePage() {
                 difficulty: difficulty || undefined,
             });
 
-            navigate("/dashboard");
+            navigate("/");
         } catch (err) {
             if (err instanceof Error) {
                 setError(err.message);
@@ -209,7 +209,7 @@ export default function CreateExercisePage() {
                         <Button
                             type="button"
                             variant="ghost"
-                            onClick={() => navigate("/dashboard")}
+                            onClick={() => navigate("/")}
                         >
                             Cancel
                         </Button>
