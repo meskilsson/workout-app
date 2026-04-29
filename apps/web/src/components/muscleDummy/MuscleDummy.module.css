@@ -1,101 +1,31 @@
 .wrapper {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(120px, 1fr));
-    gap: 1rem;
-    align-items: start;
-}
-
-.figureBlock {
+    width: 100%;
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: 0.65rem;
 }
 
-.label {
-    margin: 0;
-    color: var(--color-text-muted);
-    font-size: 0.78rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+.full {
+    max-width: 320px;
+    min-height: 320px;
 }
 
-.dummy {
+.mini {
+    max-width: 120px;
+    min-height: 120px;
+}
+
+.wrapper svg {
     width: 100%;
-    max-width: 180px;
     height: auto;
-    overflow: visible;
+    max-height: 100%;
+    display: block;
 }
 
-.baseBody {
-    fill: var(--color-surface-light);
-    stroke: var(--color-border);
-    stroke-width: 1.5;
+.mini svg {
+    max-height: 120px;
 }
 
-.region {
-    fill: transparent;
-    stroke: var(--color-border);
-    stroke-width: 1.5;
-    opacity: 0.7;
-    transition:
-        fill 0.2s ease,
-        stroke 0.2s ease,
-        opacity 0.2s ease,
-        filter 0.2s ease;
-}
-
-.primaryActive {
-    fill: var(--color-primary);
-    stroke: var(--color-primary);
-    opacity: 0.95;
-    filter: drop-shadow(0 0 8px var(--color-primary-soft));
-}
-
-.secondaryActive {
-    fill: var(--color-primary-soft);
-    stroke: var(--color-primary-border);
-    opacity: 0.9;
-}
-
-.miniWrapper {
-    grid-template-columns: repeat(2, minmax(48px, 1fr));
-    gap: 0.35rem;
-    width: 100%;
-}
-
-.miniWrapper .figureBlock {
-    gap: 0.25rem;
-}
-
-.miniWrapper .label {
-    font-size: 0.58rem;
-    letter-spacing: 0.06em;
-}
-
-.miniWrapper .dummy {
-    max-width: 72px;
-}
-
-.miniWrapper .baseBody {
-    stroke-width: 2;
-}
-
-.miniWrapper .region {
-    stroke-width: 2;
-}
-
-.miniWrapper .primaryActive {
-    filter: none;
-}
-
-@media (max-width: 640px) {
-    .wrapper {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .dummy {
-        max-width: 150px;
-    }
+.full svg {
+    max-height: 320px;
 }

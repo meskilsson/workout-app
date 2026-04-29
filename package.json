@@ -14,6 +14,7 @@
     "lint": "npm run lint --workspaces --if-present"
   },
   "dependencies": {
+    "@mjcdev/react-body-highlighter": "^0.0.4",
     "bcrypt": "^6.0.0",
     "mongodb": "^7.1.1",
     "mongoose": "^9.3.3",
