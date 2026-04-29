@@ -43,6 +43,15 @@ export default function Navbar() {
                         Templates
                     </NavLink>
 
+                    <NavLink
+                        to="/library"
+                        className={({ isActive }) =>
+                            `${styles.link} ${isActive ? styles.linkActive : ""}`.trim()
+                        }
+                    >
+                        Library
+                    </NavLink>
+
                     {isAuthenticated && (
                         <>
                             <NavLink

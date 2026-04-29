@@ -19,6 +19,7 @@ import ProfileExercisesPage from "./pages/ProfileExercisesPage/ProfileExercisesP
 import ProfileSettingsPage from "./pages/ProfileSettingsPage/ProfileSettingsPage";
 import EditExercisePage from "./pages/EditExercisePage/EditExercisePage";
 import WorkoutHistoryDetailPage from "./pages/WorkoutHistoryDetailPage/WorkoutHistoryDetailPage";
+import LibraryPage from "./pages/LibraryPage/LibraryPage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
@@ -57,6 +58,8 @@ function App() {
         />
 
         <Route path="templates" element={<TemplatesPage />} />
+
+        <Route path="/library" element={<PublicRoute><LibraryPage /></PublicRoute>} />
 
         <Route
           path="homepage"
