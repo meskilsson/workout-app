@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import styles from "./ProfilePage.module.css";
 import ChangePasswordForm from "../../components/forms/ChangePasswordForm";
 import UpdateAccountForm from "../../components/forms/UpdateAccountForm";
+import ThemeSelect from "../../components/theme/ThemeSelect";
 
 export default function ProfileSettingsPage() {
     const { logout } = useAuth();
@@ -26,6 +27,17 @@ export default function ProfileSettingsPage() {
 
             <Card className={`${styles.settingsCard} ${styles.formCard}`}>
                 <ChangePasswordForm />
+            </Card>
+
+            <Card className={styles.settingsCard}>
+                <div>
+                    <h3 className={styles.settingsTitle}>Appearance</h3>
+                    <p className={styles.sectionText}>
+                        Choose the color theme for your app.
+                    </p>
+                </div>
+
+                <ThemeSelect />
             </Card>
 
             <Card className={styles.settingsCard}>

@@ -4,8 +4,6 @@ import type { UpdateUserData } from "@workout-app/shared";
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api/v1";
 
 
-
-
 export async function getAllUsersRequest() {
     const response = await fetch(`${API_URL}/users`);
 

@@ -1,4 +1,5 @@
-:root {
+:root,
+:root[data-theme="charcoal"] {
     --color-background: #080d12;
     --color-background-soft: #0b1118;
     --color-background-deep: #05080c;
@@ -32,17 +33,6 @@
     --color-success-soft: rgba(74, 222, 128, 0.14);
     --color-on-success: #04210f;
 
-    --radius-sm: 0.375rem;
-    --radius-md: 0.625rem;
-    --radius-lg: 1rem;
-    --radius-xl: 1.25rem;
-    --radius-pill: 999px;
-
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.36);
-    --shadow-focus: 0 0 0 3px var(--color-primary-soft);
-
     --gradient-background:
         radial-gradient(circle at top, rgba(53, 208, 186, 0.08), transparent 28%),
         linear-gradient(180deg,
@@ -66,12 +56,288 @@
             var(--color-success),
             var(--color-success-hover));
 
+    --radius-sm: 0.375rem;
+    --radius-md: 0.625rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-pill: 999px;
+
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.36);
+    --shadow-focus: 0 0 0 3px var(--color-primary-soft);
+
     --max-width: 1200px;
 
     --font-family-base:
         Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
         sans-serif;
 }
+
+/* Neutral dark theme */
+:root[data-theme="dark"] {
+    --color-background: #0a0a0a;
+    --color-background-soft: #111111;
+    --color-background-deep: #050505;
+
+    --color-surface: #171717;
+    --color-surface-light: #242424;
+    --color-surface-soft: rgba(255, 255, 255, 0.055);
+    --color-surface-strong: #0f0f0f;
+
+    --color-text: #f5f5f5;
+    --color-text-soft: rgba(245, 245, 245, 0.82);
+    --color-text-muted: #a3a3a3;
+
+    --color-primary: #e5e5e5;
+    --color-primary-hover: #ffffff;
+    --color-primary-soft: rgba(255, 255, 255, 0.1);
+    --color-primary-border: rgba(255, 255, 255, 0.24);
+    --color-on-primary: #111111;
+
+    --color-border: #333333;
+    --color-border-soft: rgba(255, 255, 255, 0.12);
+    --color-overlay: rgba(0, 0, 0, 0.66);
+
+    --color-danger: #ef4444;
+    --color-danger-hover: #dc2626;
+    --color-danger-soft: rgba(239, 68, 68, 0.14);
+    --color-on-danger: #ffffff;
+
+    --color-success: #22c55e;
+    --color-success-hover: #16a34a;
+    --color-success-soft: rgba(34, 197, 94, 0.14);
+    --color-on-success: #ffffff;
+
+    --gradient-background:
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.045), transparent 30%),
+        linear-gradient(180deg,
+            var(--color-background-soft) 0%,
+            var(--color-background) 55%,
+            var(--color-background-deep) 100%);
+
+    --gradient-surface: linear-gradient(135deg,
+            var(--color-surface-light),
+            var(--color-surface));
+
+    --gradient-primary: linear-gradient(135deg,
+            var(--color-primary),
+            var(--color-primary-hover));
+
+    --gradient-danger: linear-gradient(135deg,
+            var(--color-danger),
+            var(--color-danger-hover));
+
+    --gradient-success: linear-gradient(135deg,
+            var(--color-success),
+            var(--color-success-hover));
+
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.28);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.38);
+    --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.48);
+    --shadow-focus: 0 0 0 3px var(--color-primary-soft);
+}
+
+/* Light theme */
+:root[data-theme="light"] {
+    --color-background: #f4f7f6;
+    --color-background-soft: #ffffff;
+    --color-background-deep: #e5ebe9;
+
+    --color-surface: #ffffff;
+    --color-surface-light: #f1f5f4;
+    --color-surface-soft: rgba(15, 23, 42, 0.04);
+    --color-surface-strong: #e8efed;
+
+    --color-text: #101827;
+    --color-text-soft: rgba(16, 24, 39, 0.82);
+    --color-text-muted: #64748b;
+
+    --color-primary: #0f766e;
+    --color-primary-hover: #115e59;
+    --color-primary-soft: rgba(15, 118, 110, 0.12);
+    --color-primary-border: rgba(15, 118, 110, 0.3);
+    --color-on-primary: #ffffff;
+
+    --color-border: #d7e1df;
+    --color-border-soft: rgba(15, 23, 42, 0.12);
+    --color-overlay: rgba(15, 23, 42, 0.42);
+
+    --color-danger: #dc2626;
+    --color-danger-hover: #b91c1c;
+    --color-danger-soft: rgba(220, 38, 38, 0.12);
+    --color-on-danger: #ffffff;
+
+    --color-success: #16a34a;
+    --color-success-hover: #15803d;
+    --color-success-soft: rgba(22, 163, 74, 0.12);
+    --color-on-success: #ffffff;
+
+    --gradient-background:
+        radial-gradient(circle at top, rgba(15, 118, 110, 0.08), transparent 30%),
+        linear-gradient(180deg,
+            var(--color-background-soft) 0%,
+            var(--color-background) 58%,
+            var(--color-background-deep) 100%);
+
+    --gradient-surface: linear-gradient(135deg,
+            var(--color-surface),
+            var(--color-surface-light));
+
+    --gradient-primary: linear-gradient(135deg,
+            var(--color-primary),
+            var(--color-primary-hover));
+
+    --gradient-danger: linear-gradient(135deg,
+            var(--color-danger),
+            var(--color-danger-hover));
+
+    --gradient-success: linear-gradient(135deg,
+            var(--color-success),
+            var(--color-success-hover));
+
+    --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.08);
+    --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.12);
+    --shadow-lg: 0 18px 44px rgba(15, 23, 42, 0.16);
+    --shadow-focus: 0 0 0 3px var(--color-primary-soft);
+}
+
+/* Light Pink theme */
+:root[data-theme="pink"] {
+    --color-background: #fff5fa;
+    --color-background-soft: #ffffff;
+    --color-background-deep: #fde7f1;
+
+    --color-surface: #ffffff;
+    --color-surface-light: #fff0f7;
+    --color-surface-soft: rgba(190, 24, 93, 0.045);
+    --color-surface-strong: #fde2ef;
+
+    --color-text: #2a111d;
+    --color-text-soft: rgba(42, 17, 29, 0.82);
+    --color-text-muted: #8b5f72;
+
+    --color-primary: #db2777;
+    --color-primary-hover: #be185d;
+    --color-primary-soft: rgba(219, 39, 119, 0.12);
+    --color-primary-border: rgba(219, 39, 119, 0.28);
+    --color-on-primary: #ffffff;
+
+    --color-border: #f3c4d8;
+    --color-border-soft: rgba(190, 24, 93, 0.14);
+    --color-overlay: rgba(42, 17, 29, 0.38);
+
+    --color-danger: #dc2626;
+    --color-danger-hover: #b91c1c;
+    --color-danger-soft: rgba(220, 38, 38, 0.12);
+    --color-on-danger: #ffffff;
+
+    --color-success: #16a34a;
+    --color-success-hover: #15803d;
+    --color-success-soft: rgba(22, 163, 74, 0.12);
+    --color-on-success: #ffffff;
+
+    --gradient-background:
+        radial-gradient(circle at top, rgba(219, 39, 119, 0.1), transparent 32%),
+        linear-gradient(180deg,
+            var(--color-background-soft) 0%,
+            var(--color-background) 55%,
+            var(--color-background-deep) 100%);
+
+    --gradient-surface: linear-gradient(135deg,
+            var(--color-surface),
+            var(--color-surface-light));
+
+    --gradient-primary: linear-gradient(135deg,
+            var(--color-primary),
+            var(--color-primary-hover));
+
+    --gradient-danger: linear-gradient(135deg,
+            var(--color-danger),
+            var(--color-danger-hover));
+
+    --gradient-success: linear-gradient(135deg,
+            var(--color-success),
+            var(--color-success-hover));
+
+    --shadow-sm: 0 2px 8px rgba(190, 24, 93, 0.08);
+    --shadow-md: 0 8px 24px rgba(190, 24, 93, 0.12);
+    --shadow-lg: 0 18px 44px rgba(190, 24, 93, 0.16);
+    --shadow-focus: 0 0 0 3px var(--color-primary-soft);
+}
+
+:root[data-theme="neon"] {
+    --color-background: #12081f;
+    --color-background-soft: #1b1030;
+    --color-background-deep: #05010d;
+
+    --color-surface: #1a0f2e;
+    --color-surface-light: #261542;
+    --color-surface-soft: rgba(255, 255, 255, 0.065);
+    --color-surface-strong: #0d0618;
+
+    --color-text: #fff7ff;
+    --color-text-soft: rgba(255, 247, 255, 0.84);
+    --color-text-muted: #c7a7dc;
+
+    --color-primary: #ff4ecd;
+    --color-primary-hover: #ff2fbf;
+    --color-primary-soft: rgba(255, 78, 205, 0.16);
+    --color-primary-border: rgba(255, 78, 205, 0.42);
+    --color-on-primary: #230018;
+
+    --color-border: #4f2b72;
+    --color-border-soft: rgba(255, 78, 205, 0.18);
+    --color-overlay: rgba(5, 1, 13, 0.68);
+
+    --color-danger: #ff3864;
+    --color-danger-hover: #ff174c;
+    --color-danger-soft: rgba(255, 56, 100, 0.16);
+    --color-on-danger: #ffffff;
+
+    --color-success: #00f5d4;
+    --color-success-hover: #00d8bd;
+    --color-success-soft: rgba(0, 245, 212, 0.16);
+    --color-on-success: #001f1b;
+
+    --gradient-background:
+        radial-gradient(circle at 18% 12%, rgba(255, 78, 205, 0.22), transparent 28%),
+        radial-gradient(circle at 82% 18%, rgba(0, 245, 212, 0.16), transparent 26%),
+        radial-gradient(circle at 50% 95%, rgba(255, 190, 11, 0.12), transparent 32%),
+        linear-gradient(180deg,
+            #1b1030 0%,
+            #12081f 48%,
+            #05010d 100%);
+
+    --gradient-surface: linear-gradient(135deg,
+            var(--color-surface-light),
+            var(--color-surface));
+
+    --gradient-primary: linear-gradient(135deg,
+            #ff4ecd 0%,
+            #ff8a00 48%,
+            #00f5d4 100%);
+
+    --gradient-danger: linear-gradient(135deg,
+            var(--color-danger),
+            var(--color-danger-hover));
+
+    --gradient-success: linear-gradient(135deg,
+            var(--color-success),
+            var(--color-success-hover));
+
+    --shadow-sm: 0 2px 10px rgba(255, 78, 205, 0.12);
+    --shadow-md:
+        0 10px 28px rgba(255, 78, 205, 0.14),
+        0 0 24px rgba(0, 245, 212, 0.06);
+    --shadow-lg:
+        0 18px 48px rgba(255, 78, 205, 0.2),
+        0 0 36px rgba(0, 245, 212, 0.1);
+
+    --shadow-focus: 0 0 0 3px var(--color-primary-soft);
+}
+
+/* Global reset */
 
 *,
 *::before,
@@ -102,7 +368,31 @@ select {
     font: inherit;
 }
 
+input,
+textarea,
+select {
+    color: var(--color-text);
+}
+
+select option {
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+button {
+    color: inherit;
+}
+
+a {
+    color: inherit;
+}
+
 img {
     display: block;
     max-width: 100%;
+}
+
+::selection {
+    background: var(--color-primary-soft);
+    color: var(--color-text);
 }

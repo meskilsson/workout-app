@@ -17,10 +17,11 @@ async function seedExercises() {
         const insertedExercises = await Exercise.insertMany(seededExercises);
 
         console.log(`Seeded ${insertedExercises.length} exercises successfully.`);
-        process.exit(0);
     } catch (error) {
         console.error("Failed to seed exercises", error);
-        process.exit(1);
+        process.exitCode = 1;
+    } finally {
+        await mongoose.disconnect();
     }
 }
 
