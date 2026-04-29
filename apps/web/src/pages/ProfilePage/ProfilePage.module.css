@@ -1,7 +1,7 @@
 .page {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 2rem;
 }
 
 .header {
@@ -13,23 +13,25 @@
 
 .kicker {
     margin: 0;
+    color: var(--color-primary);
     font-size: 0.78rem;
     font-weight: 800;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--color-text-muted);
 }
 
 .title {
-    margin: 0;
-    font-size: clamp(1.6rem, 3vw, 2.25rem);
-    line-height: 1.1;
+    margin: 0.35rem 0 0;
     color: var(--color-text);
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    line-height: 1.05;
 }
 
 .subtitle {
-    margin: 0.5rem 0 0;
+    max-width: 42rem;
+    margin: 0.75rem 0 0;
     color: var(--color-text-muted);
+    line-height: 1.6;
 }
 
 .section {
@@ -47,41 +49,48 @@
 
 .sectionTitle {
     margin: 0;
-    font-size: 1.25rem;
     color: var(--color-text);
+    font-size: 1.25rem;
+    line-height: 1.2;
 }
 
 .sectionText {
     margin: 0.35rem 0 0;
     color: var(--color-text-muted);
+    line-height: 1.5;
 }
 
-.stateCard,
-.statCard,
-.previewCard,
-.sessionCard,
-.exerciseCard,
-.settingsCard {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.infoGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
-    padding: 1.25rem;
 }
 
-.stateCard {
+.infoCard {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
     padding: 1.25rem;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    box-shadow: var(--shadow-sm);
 }
 
-.stateText {
-    margin: 0;
+.infoLabel {
     color: var(--color-text-muted);
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
-.errorText {
-    margin: 0;
-    color: var(--color-danger);
-    font-weight: 700;
+.infoValue {
+    color: var(--color-text);
+    font-size: 1.1rem;
+    font-weight: 800;
+    word-break: break-word;
 }
 
 .statsGrid {
@@ -95,237 +104,52 @@
     flex-direction: column;
     gap: 0.4rem;
     padding: 1.25rem;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    box-shadow: var(--shadow-sm);
 }
 
 .statLabel {
     color: var(--color-text-muted);
-    font-size: 0.9rem;
-    font-weight: 700;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .statValue {
     color: var(--color-text);
-    font-size: 2rem;
-    line-height: 1;
-}
-
-.previewList,
-.sessionList,
-.exerciseList {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.previewCard {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-}
-
-.previewTitle,
-.sessionTitle,
-.exerciseName,
-.settingsTitle {
-    margin: 0;
-    color: var(--color-text);
-}
-
-.previewText,
-.sessionDate,
-.exerciseDescription {
-    margin: 0.35rem 0 0;
-    color: var(--color-text-muted);
-}
-
-.sessionCard,
-.exerciseCard {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.sessionTopRow,
-.exerciseTopRow {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem;
-}
-
-.summaryGrid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(120px, 160px));
-    gap: 1rem;
-}
-
-.summaryItem {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-}
-
-.summaryLabel {
-    font-size: 0.9rem;
-    color: var(--color-text-muted);
-}
-
-.summaryValue {
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: var(--color-text);
-}
-
-.exercisePreview,
-.muscleTags,
-.exerciseMeta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.exerciseTag,
-.exerciseMetaItem {
-    padding: 0.45rem 0.75rem;
-    border-radius: 999px;
-    background: var(--color-surface-light);
-    border: 1px solid var(--color-border);
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-}
-
-.moreText {
-    align-self: center;
-    font-size: 0.9rem;
-    color: var(--color-text-muted);
-}
-
-.exerciseActions {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-}
-
-.modalText {
-    margin: 0;
-}
-
-/* Settings */
-
-.settingsCard {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.25rem;
-}
-
-.formCard {
-    align-items: stretch;
-}
-
-.formCard section {
-    width: 100%;
-}
-
-.formCard section h2 {
-    margin: 0;
     font-size: 1.25rem;
-    color: var(--color-text);
+    font-weight: 800;
 }
 
-.formCard section>p {
-    margin: 0.35rem 0 1.25rem;
+.stateCard {
+    padding: 1.25rem;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    box-shadow: var(--shadow-sm);
+}
+
+.stateText {
+    margin: 0;
     color: var(--color-text-muted);
     line-height: 1.5;
 }
 
-.formCard form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.formCard label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-    color: var(--color-text);
-    font-size: 0.95rem;
-    font-weight: 700;
-}
-
-.formCard input {
-    width: 100%;
-    min-height: 2.75rem;
-    padding: 0 0.85rem;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-surface-light);
-    color: var(--color-text);
-    font: inherit;
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        background-color 0.2s ease;
-}
-
-.formCard input::placeholder {
-    color: var(--color-text-muted);
-}
-
-.formCard input:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    background: var(--color-surface-light);
-    box-shadow: var(--shadow-focus);
-}
-
-.formCard button {
-    align-self: flex-start;
-    margin-top: 0.25rem;
-}
-
-.formCard form p {
-    margin: 0;
-    padding: 0.75rem 0.85rem;
-    border-radius: var(--radius-md);
-    font-size: 0.9rem;
-    font-weight: 700;
-}
-
-.formCard form p:first-of-type {
-    background: var(--color-danger-soft);
-    color: var(--color-danger);
-}
-
-.formCard form p:last-of-type {
-    background: var(--color-primary-soft);
-    color: var(--color-primary);
-}
-
 @media (max-width: 760px) {
-    .statsGrid {
-        grid-template-columns: 1fr;
-    }
 
     .header,
-    .sectionHeader,
-    .previewCard,
-    .sessionTopRow,
-    .exerciseTopRow,
-    .settingsCard {
+    .sectionHeader {
         flex-direction: column;
         align-items: stretch;
     }
 
-    .formCard button,
-    .settingsCard button {
-        width: 100%;
-    }
-
-    .summaryGrid {
-        grid-template-columns: 1fr 1fr;
+    .infoGrid,
+    .statsGrid {
+        grid-template-columns: 1fr;
     }
 }

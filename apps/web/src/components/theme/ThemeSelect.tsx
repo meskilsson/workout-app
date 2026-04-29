@@ -1,4 +1,5 @@
 import { useTheme, type ColorTheme } from "../../context/ThemeContext";
+import styles from "./ThemeSelect.module.css";
 
 const themeOptions: { value: ColorTheme; label: string }[] = [
     { value: "charcoal", label: "Charcoal" },
@@ -12,9 +13,11 @@ export default function ThemeSelect() {
     const { theme, setTheme } = useTheme();
 
     return (
-        <label>
-            Theme
+        <label className={styles.wrapper}>
+            <span className={styles.label}>Theme</span>
+
             <select
+                className={styles.select}
                 value={theme}
                 onChange={(event) => setTheme(event.target.value as ColorTheme)}
             >

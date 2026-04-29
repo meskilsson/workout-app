@@ -21,9 +21,9 @@ export default function AccountLayout() {
 
             <div className={styles.accountLayout}>
                 <aside className={styles.sideNav}>
-                    <h3 className={styles.header}>Account</h3>
+                    <h3 className={styles.header}>Profile</h3>
 
-                    <nav className={styles.links} aria-label="Account navigation">
+                    <nav className={styles.links} aria-label="Profile navigation">
                         <NavLink
                             to="/profile"
                             end
@@ -33,7 +33,7 @@ export default function AccountLayout() {
                                     : styles.link
                             }
                         >
-                            Overview
+                            Profile
                         </NavLink>
 
                         <NavLink

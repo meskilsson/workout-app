@@ -65,6 +65,7 @@
     align-items: center;
     justify-content: flex-end;
     gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .userText {
@@ -86,5 +87,6 @@
     .actions {
         justify-content: flex-start;
         flex-wrap: wrap;
+        width: 100%;
     }
 }

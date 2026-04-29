@@ -10,7 +10,7 @@ import {
     getExerciseLibraryRequest,
 } from "../../services/exerciseApi";
 
-import styles from '../ProfilePage/ProfilePage.module.css';
+import styles from "./ProfileExercisesPage.module.css";
 
 type Exercise = {
     _id: string;
@@ -164,7 +164,7 @@ export default function ProfileExercisesPage() {
                                     </Button>
 
                                     <Button
-                                        variant="secondary"
+                                        variant="danger"
                                         onClick={() => setExerciseToDelete(exercise)}
                                     >
                                         Delete
@@ -214,7 +214,11 @@ export default function ProfileExercisesPage() {
                             Cancel
                         </Button>
 
-                        <Button onClick={handleConfirmDeleteExercise} disabled={isDeleting}>
+                        <Button
+                            variant="danger"
+                            onClick={handleConfirmDeleteExercise}
+                            disabled={isDeleting}
+                        >
                             {isDeleting ? "Deleting..." : "Delete"}
                         </Button>
                     </>

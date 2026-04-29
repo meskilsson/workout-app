@@ -1,19 +1,17 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import Button from "../ui/button/Button";
 import { useAuth } from "../../context/AuthContext";
-import styles from './Navbar.module.css';
+import ThemeSelect from "../theme/ThemeSelect";
+import styles from "./Navbar.module.css";
 
 export default function Navbar() {
     const navigate = useNavigate();
     const { user, isAuthenticated, logout } = useAuth();
 
-
     async function handleLogout() {
         await logout();
         navigate("/login");
-    };
-
-
+    }
 
     return (
         <nav className={styles.navbar}>
@@ -32,7 +30,8 @@ export default function Navbar() {
                         className={({ isActive }) =>
                             `${styles.link} ${isActive ? styles.linkActive : ""}`.trim()
                         }
-                    >Home
+                    >
+                        Home
                     </NavLink>
 
                     <NavLink
@@ -68,6 +67,8 @@ export default function Navbar() {
                 </div>
 
                 <div className={styles.actions}>
+                    <ThemeSelect />
+
                     {isAuthenticated ? (
                         <>
                             <span className={styles.userText}>
@@ -84,7 +85,9 @@ export default function Navbar() {
                                 Login
                             </Button>
 
-                            <Button onClick={() => navigate("/signup")}>Sign up</Button>
+                            <Button onClick={() => navigate("/signup")}>
+                                Sign up
+                            </Button>
                         </>
                     )}
                 </div>

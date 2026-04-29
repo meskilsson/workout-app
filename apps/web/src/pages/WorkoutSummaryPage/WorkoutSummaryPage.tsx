@@ -1,9 +1,6 @@
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
-import "../../components/ui/box/box.css";
-import "../../components/ui/cards/card.css";
-import "../../components/ui/button/button.css";
 
 import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./WorkoutSummaryPage.module.css";
@@ -24,6 +21,8 @@ export default function WorkoutSummaryPage() {
   const state = location.state as LocationState | null;
   const selectedExercises = state?.selectedExercises ?? [];
 
+  const totalExercises = selectedExercises.length;
+
   function handleContinue() {
     navigate("/workout", {
       state: {
@@ -33,62 +32,102 @@ export default function WorkoutSummaryPage() {
   }
 
   function handleBack() {
-    navigate("/exercise-select", {
-      state,
-    });
+    navigate(-1);
   }
 
   return (
     <Box className={styles.page}>
       <div className={styles.header}>
-        <p className={styles.kicker}>Workout builder</p>
-        <h1 className={styles.title}>Summary of your workout</h1>
-        <p className={styles.subtitle}>
-          Review your selected exercises before starting your session.
-        </p>
+        <div>
+          <p className={styles.kicker}>Workout builder</p>
+          <h1 className={styles.title}>Workout summary</h1>
+          <p className={styles.subtitle}>
+            Review your selected exercises before starting your session.
+          </p>
+        </div>
+
+        <Button type="button" variant="secondary" onClick={handleBack}>
+          Back
+        </Button>
       </div>
 
       <Card className={styles.summaryCard}>
-        {selectedExercises.length > 0 ? (
-          <ul className={styles.exerciseList}>
-            {selectedExercises.map((exercise, index) => (
-              <li key={exercise._id} className={styles.exerciseItem}>
-                <span className={styles.exerciseNumber}>
-                  {index + 1}
-                </span>
+        <div className={styles.summaryGrid}>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Exercises</span>
+            <span className={styles.summaryValue}>{totalExercises}</span>
+          </div>
 
-                <span className={styles.exerciseName}>
-                  {exercise.name}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className={styles.emptyText}>
-            No exercises selected yet.
-          </p>
-        )}
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Status</span>
+            <span className={styles.summaryValue}>
+              {totalExercises > 0 ? "Ready" : "Incomplete"}
+            </span>
+          </div>
+        </div>
       </Card>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <h2 className={styles.sectionTitle}>Selected exercises</h2>
+            <p className={styles.sectionText}>
+              These exercises will be included in your workout session.
+            </p>
+          </div>
+        </div>
+
+        {selectedExercises.length > 0 ? (
+          <div className={styles.exerciseList}>
+            {selectedExercises.map((exercise, index) => (
+              <Card key={exercise._id} className={styles.exerciseCard}>
+                <div className={styles.exerciseHeader}>
+                  <div>
+                    <p className={styles.exerciseNumber}>
+                      Exercise {index + 1}
+                    </p>
+
+                    <h3 className={styles.exerciseTitle}>
+                      {exercise.name}
+                    </h3>
+                  </div>
+
+                  <span className={styles.exerciseBadge}>
+                    Selected
+                  </span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className={styles.stateCard}>
+            <p className={styles.stateText}>
+              No exercises selected yet. Go back and choose at least one exercise.
+            </p>
+          </Card>
+        )}
+      </section>
 
       <div className={styles.footer}>
         <p className={styles.footerText}>
           {selectedExercises.length === 0
-            ? "Go back and choose exercises first."
+            ? "Choose exercises before starting."
             : `${selectedExercises.length} exercise${selectedExercises.length === 1 ? "" : "s"
-            } selected.`}
+            } ready.`}
         </p>
 
         <div className={styles.actions}>
-          <Button variant="secondary" onClick={handleBack}>
+          <Button type="button" variant="secondary" onClick={handleBack}>
             Back
           </Button>
 
           <Button
+            type="button"
             variant="primary"
             onClick={handleContinue}
             disabled={selectedExercises.length === 0}
           >
-            Start Workout
+            Start workout
           </Button>
         </div>
       </div>

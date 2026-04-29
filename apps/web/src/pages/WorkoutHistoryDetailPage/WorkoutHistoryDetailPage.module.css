@@ -1,11 +1,11 @@
 .page {
-    padding: 2rem 1rem 4rem;
-}
-
-.container {
     width: 100%;
     max-width: 900px;
     margin: 0 auto;
+    padding: 3rem 1rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
 }
 
 .header {
@@ -13,42 +13,74 @@
     justify-content: space-between;
     align-items: flex-start;
     gap: 1rem;
-    margin-bottom: 1.5rem;
+}
+
+.kicker {
+    margin: 0;
+    color: var(--color-primary);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
 }
 
 .title {
-    margin: 0;
-    font-size: clamp(2rem, 4vw, 2.4rem);
-    font-weight: 700;
+    margin: 0.35rem 0 0;
+    color: var(--color-text);
+    font-size: clamp(1.9rem, 4vw, 2.6rem);
+    line-height: 1.05;
 }
 
 .subtitle {
-    margin: 0.5rem 0 0;
-    opacity: 0.75;
+    max-width: 42rem;
+    margin: 0.75rem 0 0;
+    color: var(--color-text-muted);
+    line-height: 1.6;
 }
 
-.stateText {
-    margin: 1rem 0 0;
-    opacity: 0.8;
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
-.errorText {
-    margin: 1rem 0 1rem;
-    color: #ef4444;
-    font-weight: 500;
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.sectionTitle {
+    margin: 0;
+    color: var(--color-text);
+    font-size: 1.25rem;
+    line-height: 1.2;
+}
+
+.sectionText {
+    margin: 0.35rem 0 0;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+}
+
+.summaryCard,
+.exerciseCard,
+.stateCard {
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    box-shadow: var(--shadow-sm);
 }
 
 .summaryCard {
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
     padding: 1.25rem;
-    background: rgba(255, 255, 255, 0.03);
-    margin-bottom: 1.5rem;
 }
 
 .summaryGrid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(180px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1rem;
 }
 
@@ -56,16 +88,26 @@
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
+    padding: 0.95rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-light);
 }
 
 .summaryLabel {
-    font-size: 0.9rem;
-    opacity: 0.7;
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .summaryValue {
-    font-size: 1.05rem;
-    font-weight: 700;
+    color: var(--color-text);
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.35;
+    word-break: break-word;
 }
 
 .exerciseList {
@@ -75,16 +117,56 @@
 }
 
 .exerciseCard {
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
     padding: 1.25rem;
-    background: rgba(255, 255, 255, 0.03);
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.exerciseCard:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-primary-border) !important;
+    background: var(--color-surface-light) !important;
+    box-shadow: var(--shadow-md);
+}
+
+.exerciseHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.exerciseNumber {
+    margin: 0 0 0.35rem;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .exerciseTitle {
-    margin: 0 0 1rem;
+    margin: 0;
+    color: var(--color-text);
     font-size: 1.15rem;
-    font-weight: 600;
+    line-height: 1.25;
+}
+
+.setCount {
+    flex-shrink: 0;
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--color-primary-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+    font-size: 0.82rem;
+    font-weight: 800;
 }
 
 .setsList {
@@ -97,35 +179,59 @@
     display: grid;
     grid-template-columns: 120px 1fr 1fr;
     gap: 1rem;
-    padding: 0.85rem 1rem;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.04);
     align-items: center;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-light);
 }
 
 .setIndex {
-    font-weight: 600;
-    opacity: 0.9;
+    color: var(--color-text);
+    font-weight: 800;
 }
 
 .setValue {
-    opacity: 0.85;
+    color: var(--color-text-muted);
+    font-weight: 700;
 }
 
-.secondaryButton {
-    border: none;
-    border-radius: 10px;
-    padding: 0.7rem 1rem;
-    font: inherit;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
+.stateCard {
+    max-width: 640px;
+    padding: 1.25rem;
+}
+
+.stateText {
+    margin: 0.85rem 0 0;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+}
+
+.errorText {
+    margin: 0.85rem 0 1rem;
+    color: var(--color-danger);
+    font-weight: 800;
+}
+
+@media (max-width: 860px) {
+    .summaryGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 640px) {
-    .header {
+    .page {
+        padding: 2rem 1rem 3rem;
+    }
+
+    .header,
+    .exerciseHeader {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .header button {
+        width: 100%;
     }
 
     .summaryGrid {
@@ -135,5 +241,9 @@
     .setRow {
         grid-template-columns: 1fr;
         gap: 0.35rem;
+    }
+
+    .setCount {
+        width: fit-content;
     }
 }

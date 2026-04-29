@@ -1,57 +1,92 @@
 import Card from "../../components/ui/cards/Card";
-import Button from "../../components/ui/button/Button";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./ProfilePage.module.css";
-import ChangePasswordForm from "../../components/forms/ChangePasswordForm";
-import UpdateAccountForm from "../../components/forms/UpdateAccountForm";
-import ThemeSelect from "../../components/theme/ThemeSelect";
 
-export default function ProfileSettingsPage() {
-    const { logout } = useAuth();
+export default function ProfilePage() {
+    const { user } = useAuth();
+
+    if (!user) {
+        return (
+            <div className={styles.page}>
+                <Card className={styles.stateCard}>
+                    <p className={styles.stateText}>No user found.</p>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className={styles.page}>
             <div className={styles.header}>
                 <div>
-                    <p className={styles.kicker}>Settings</p>
-                    <h2 className={styles.title}>Account settings</h2>
+                    <p className={styles.kicker}>Profile</p>
+                    <h2 className={styles.title}>Your profile</h2>
                     <p className={styles.subtitle}>
-                        Manage your profile details, password, and account preferences.
+                        View your account information. Training stats can be added here later.
                     </p>
                 </div>
             </div>
 
-            <Card className={`${styles.settingsCard} ${styles.formCard}`}>
-                <UpdateAccountForm />
-            </Card>
-
-            <Card className={`${styles.settingsCard} ${styles.formCard}`}>
-                <ChangePasswordForm />
-            </Card>
-
-            <Card className={styles.settingsCard}>
-                <div>
-                    <h3 className={styles.settingsTitle}>Appearance</h3>
-                    <p className={styles.sectionText}>
-                        Choose the color theme for your app.
-                    </p>
+            <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                    <div>
+                        <h3 className={styles.sectionTitle}>Account information</h3>
+                        <p className={styles.sectionText}>
+                            Your basic account details.
+                        </p>
+                    </div>
                 </div>
 
-                <ThemeSelect />
-            </Card>
+                <div className={styles.infoGrid}>
+                    <Card className={styles.infoCard}>
+                        <span className={styles.infoLabel}>Name</span>
+                        <strong className={styles.infoValue}>{user.name}</strong>
+                    </Card>
 
-            <Card className={styles.settingsCard}>
-                <div>
-                    <h3 className={styles.settingsTitle}>Session</h3>
-                    <p className={styles.sectionText}>
-                        Log out from your current account.
-                    </p>
+                    <Card className={styles.infoCard}>
+                        <span className={styles.infoLabel}>Username</span>
+                        <strong className={styles.infoValue}>@{user.username}</strong>
+                    </Card>
+
+                    <Card className={styles.infoCard}>
+                        <span className={styles.infoLabel}>Email</span>
+                        <strong className={styles.infoValue}>{user.email}</strong>
+                    </Card>
+
+                    <Card className={styles.infoCard}>
+                        <span className={styles.infoLabel}>Role</span>
+                        <strong className={styles.infoValue}>{user.role}</strong>
+                    </Card>
+                </div>
+            </section>
+
+            <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                    <div>
+                        <h3 className={styles.sectionTitle}>Training stats</h3>
+                        <p className={styles.sectionText}>
+                            Coming soon: workout count, streaks, total volume, favorite exercises, and personal records.
+                        </p>
+                    </div>
                 </div>
 
-                <Button variant="secondary" onClick={logout}>
-                    Log out
-                </Button>
-            </Card>
+                <div className={styles.statsGrid}>
+                    <Card className={styles.statCard}>
+                        <span className={styles.statLabel}>Workouts</span>
+                        <strong className={styles.statValue}>Soon</strong>
+                    </Card>
+
+                    <Card className={styles.statCard}>
+                        <span className={styles.statLabel}>Total volume</span>
+                        <strong className={styles.statValue}>Soon</strong>
+                    </Card>
+
+                    <Card className={styles.statCard}>
+                        <span className={styles.statLabel}>Streak</span>
+                        <strong className={styles.statValue}>Soon</strong>
+                    </Card>
+                </div>
+            </section>
         </div>
     );
 }

@@ -114,12 +114,12 @@
 
 .exerciseGrid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 1rem;
 }
 
 .exerciseCard {
-    min-height: 180px;
+    min-height: 240px;
     cursor: pointer;
     border: 1px solid var(--color-border) !important;
     background: var(--color-surface) !important;
@@ -155,6 +155,31 @@
     flex-direction: column;
     justify-content: space-between;
     gap: 1rem;
+}
+
+.exerciseCardTop {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 130px;
+    gap: 0.9rem;
+    align-items: start;
+}
+
+.exerciseMainInfo {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.cardDummy {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 128px;
+    padding: 0.65rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-light);
 }
 
 .exerciseName {
@@ -290,12 +315,6 @@
     font-weight: 700;
 }
 
-@media (max-width: 900px) {
-    .exerciseGrid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
 @media (max-width: 640px) {
     .page {
         padding: 2rem 1rem 3rem;
@@ -315,6 +334,14 @@
 
     .exerciseCard {
         min-height: auto;
+    }
+
+    .exerciseCardTop {
+        grid-template-columns: 1fr;
+    }
+
+    .cardDummy {
+        max-width: 190px;
     }
 
     .footer {

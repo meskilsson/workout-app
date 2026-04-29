@@ -5,8 +5,10 @@ import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 
 import { getMyWorkoutSessionsRequest } from "../../services/workoutSessionApi";
+import { formatCompletedDate } from "../../utils/formatCompletedDate";
+import { formatEndTime } from "../../utils/formatEndTime";
 import type { WorkoutSession } from "@workout-app/shared";
-import styles from "../ProfilePage/ProfilePage.module.css";
+import styles from "./ProfileWorkoutsPage.module.css";
 
 export default function ProfileWorkoutsPage() {
     const navigate = useNavigate();
@@ -79,7 +81,8 @@ export default function ProfileWorkoutsPage() {
                             0,
                         );
 
-                        const completedAt = new Date(session.endedAt).toLocaleString();
+                        const completedDate = formatCompletedDate(session.endedAt);
+                        const endTime = formatEndTime(session.endedAt);
 
                         return (
                             <Card key={session._id} className={styles.sessionCard}>
@@ -88,7 +91,10 @@ export default function ProfileWorkoutsPage() {
                                         <h3 className={styles.sessionTitle}>
                                             Workout Session
                                         </h3>
-                                        <p className={styles.sessionDate}>{completedAt}</p>
+
+                                        <p className={styles.sessionDate}>
+                                            {completedDate} at {endTime}
+                                        </p>
                                     </div>
 
                                     <Button
@@ -108,6 +114,7 @@ export default function ProfileWorkoutsPage() {
                                         <span className={styles.summaryLabel}>
                                             Exercises
                                         </span>
+
                                         <span className={styles.summaryValue}>
                                             {session.exercises.length}
                                         </span>
@@ -117,8 +124,19 @@ export default function ProfileWorkoutsPage() {
                                         <span className={styles.summaryLabel}>
                                             Total Sets
                                         </span>
+
                                         <span className={styles.summaryValue}>
                                             {totalSets}
+                                        </span>
+                                    </div>
+
+                                    <div className={styles.summaryItem}>
+                                        <span className={styles.summaryLabel}>
+                                            End Time
+                                        </span>
+
+                                        <span className={styles.summaryValue}>
+                                            {endTime}
                                         </span>
                                     </div>
                                 </div>
