@@ -53,10 +53,6 @@ export default function ProfilePage() {
                         <strong className={styles.infoValue}>{user.email}</strong>
                     </Card>
 
-                    <Card className={styles.infoCard}>
-                        <span className={styles.infoLabel}>Role</span>
-                        <strong className={styles.infoValue}>{user.role}</strong>
-                    </Card>
                 </div>
             </section>
 
