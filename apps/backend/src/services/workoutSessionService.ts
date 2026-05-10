@@ -68,7 +68,7 @@ export async function createWorkoutSession(
     const startedAt =
         workoutData.startedAt && !Number.isNaN(new Date(workoutData.startedAt).getTime())
             ? new Date(workoutData.startedAt)
-            : null;
+            : undefined;
 
     const endedAt =
         workoutData.endedAt && !Number.isNaN(new Date(workoutData.endedAt).getTime())

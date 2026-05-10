@@ -7,6 +7,7 @@ import dumbellImage from "../../components/ui/cards/cardimages/dumbell-chalk.web
 
 import styles from "./Homepage.module.css";
 
+
 export default function Homepage() {
   const navigate = useNavigate();
 

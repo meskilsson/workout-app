@@ -34,3 +34,31 @@ export const createUserSchema = z.strictObject({
     role: z.enum(["user"]).default("user"),
 });
 
+
+
+export const loginSchema = z.strictObject({
+    email: emailSchema,
+    password: z.string().min(1, "Password is required"),
+});
+
+export const updateUserSchema = z.strictObject({
+    name: nameSchema.optional(),
+    email: emailSchema.optional(),
+    username: usernameSchema.optional(),
+})
+    .refine((data) => Object.keys(data).length > 0, {
+        message: "Send at least one field to update",
+    });
+
+export const changePasswordSchema = z.strictObject({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: passwordSchema,
+});
+
+export type UserIdParams = z.infer<typeof userIdParamsSchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+

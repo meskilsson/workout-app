@@ -4,7 +4,6 @@ export interface IWorkout {
   name: string;
   duration: number;
   difficulty?: "beginner" | "intermediate" | "advanced";
-  completed?: boolean;
 }
 
 const workoutSchema = new Schema<IWorkout>(

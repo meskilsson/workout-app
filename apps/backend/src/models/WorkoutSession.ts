@@ -14,7 +14,7 @@ interface WorkoutSessionExercise {
 export interface IWorkoutSession {
     userId: Types.ObjectId;
     exercises: WorkoutSessionExercise[];
-    startedAt?: Date | null;
+    startedAt: Date;
     endedAt: Date;
 };
 
@@ -75,7 +75,7 @@ const workoutSessionSchema = new Schema<IWorkoutSession>(
         },
         startedAt: {
             type: Date,
-            default: null,
+            required: [true, "Workout start time is required"],
         },
         endedAt: {
             type: Date,
