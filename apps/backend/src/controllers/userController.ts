@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import * as userService from "../services/userService";
 import type { IdParams } from "../types/errors";
-import { createHttpError } from "../utils/createHttpError";
+
 import type { ChangePasswordBody, UpdateUserBody } from "@workout-app/shared";
+import { NotFoundError } from "../errors/AppError";
 
 export async function createUser(
   req: Request,
@@ -10,7 +11,6 @@ export async function createUser(
   next: NextFunction,
 ): Promise<void> {
   try {
-    console.log("REQ BODY:", req.body);
     const user = await userService.createUser(req.body);
     res.status(201).json(user);
   } catch (error) {
@@ -82,10 +82,7 @@ export async function changePassword(
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
-      throw createHttpError(
-        "Current password and new password are required",
-        400
-      );
+      throw new NotFoundError("Current password and new password are required");
     }
 
     const result = await userService.changePasswordService(

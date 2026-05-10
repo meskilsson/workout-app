@@ -6,7 +6,7 @@ import type {
     ExerciseType,
 } from "@workout-app/shared";
 import { Types } from "mongoose";
-import { createHttpError } from "../utils/createHttpError";
+import { ConflictError, ValidationError, NotFoundError, ForbiddenError } from "../errors/AppError";
 
 interface CreateExerciseInput {
     name: string;
@@ -43,11 +43,7 @@ export async function createExercise(
     userId: string,
 ) {
     if (!exerciseData?.name?.trim()) {
-        const error = new Error("Name is required") as Error & {
-            statusCode?: number;
-        };
-        error.statusCode = 400;
-        throw error;
+        throw new ValidationError("Name is required");
     }
 
     const name = exerciseData.name.trim();
@@ -67,13 +63,7 @@ export async function createExercise(
     });
 
     if (existingExercise) {
-        const error = new Error(
-            "You already created an exercise with that name",
-        ) as Error & {
-            statusCode?: number;
-        };
-        error.statusCode = 409;
-        throw error;
+        throw new ConflictError("You already created an exercise with that name");
     }
 
     const exercise = await Exercise.create({
@@ -131,28 +121,28 @@ export async function updateExercise(
     userId: string,
 ) {
     if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError("Invalid exercise id", 400);
+        throw new ValidationError("Invalid exercise id");
     }
 
     const exercise = await Exercise.findById(id);
 
     if (!exercise) {
-        throw createHttpError("Exercise not found", 404);
+        throw new NotFoundError("Exercise not found");
     }
 
     if (!exercise.isCustom || !exercise.createdBy) {
-        throw createHttpError("Public exercises cannot be updated", 403);
+        throw new ForbiddenError("Public exercises cannot be updated");
     }
 
     if (exercise.createdBy.toString() !== userId) {
-        throw createHttpError("You can only update your own exercises", 403);
+        throw new ForbiddenError("You can only update your own exercises");
     }
 
     if (exerciseData.name !== undefined) {
         const trimmedName = exerciseData.name.trim();
 
         if (!trimmedName) {
-            throw createHttpError("Name is required", 400);
+            throw new ValidationError("Name is required");
         }
 
         const existingExercise = await Exercise.findOne({
@@ -164,10 +154,7 @@ export async function updateExercise(
         });
 
         if (existingExercise) {
-            throw createHttpError(
-                "You already created an exercise with that name",
-                409,
-            );
+            throw new ConflictError("You already created an exercise with that name");
         }
 
         exercise.name = trimmedName;
@@ -216,21 +203,21 @@ export async function updateExercise(
 
 export async function deleteExercise(id: string, userId: string) {
     if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError("Invalid exercise id", 400);
+        throw new ValidationError("Invalid exercise id");
     }
 
     const exercise = await Exercise.findById(id);
 
     if (!exercise) {
-        throw createHttpError("Exercise not found", 404);
+        throw new NotFoundError("Exercise not found");
     }
 
     if (!exercise.isCustom || !exercise.createdBy) {
-        throw createHttpError("Public exercises cannot be deleted", 403);
+        throw new ForbiddenError("Public exercises cannot be deleted");
     }
 
     if (exercise.createdBy.toString() !== userId) {
-        throw createHttpError("You can only delete your own exercises", 403);
+        throw new ForbiddenError("You can only delete your own exercises");
     }
 
     await Exercise.findByIdAndDelete(id);

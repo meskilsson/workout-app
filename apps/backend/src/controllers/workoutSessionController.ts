@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import * as workoutSessionService from '../services/workoutSessionService';
+import { UnauthorizedError } from "../errors/AppError";
 
 export async function createWorkoutSession(
     req: Request,
@@ -8,8 +9,7 @@ export async function createWorkoutSession(
 ): Promise<void> {
     try {
         if (!req.user?.id) {
-            res.status(401).json({ message: "Unauthorized" });
-            return;
+            throw new UnauthorizedError("Unauthorized");
         }
 
         const workoutSession = await workoutSessionService.createWorkoutSession(
@@ -30,8 +30,7 @@ export async function getMyWorkoutSessions(
 ): Promise<void> {
     try {
         if (!req.user?.id) {
-            res.status(401).json({ message: "Unauthorized" });
-            return;
+            throw new UnauthorizedError("Unauthorized");
         }
 
         const session = await workoutSessionService.getMyWorkoutSessions(
@@ -51,8 +50,7 @@ export async function getWorkoutSessionById(
 ): Promise<void> {
     try {
         if (!req.user?.id) {
-            res.status(401).json({ message: "Unauthorized" });
-            return;
+            throw new UnauthorizedError("Unauthorized");
         }
 
         const session = await workoutSessionService.getWorkoutSessionById(

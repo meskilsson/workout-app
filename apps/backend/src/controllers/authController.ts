@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import * as authService from "../services/authService";
 import { signAccessToken } from "../utils/jwt";
 import User from "../models/User";
+import { UnauthorizedError } from "../errors/AppError";
 
 export async function loginUser(
     req: Request,
@@ -12,11 +13,7 @@ export async function loginUser(
         const user = await authService.loginUser(req.body);
 
         if (!user) {
-            const error = new Error("Invalid email or password") as Error & {
-                statusCode?: number;
-            };
-            error.statusCode = 401;
-            throw error;
+            throw new UnauthorizedError("Invalid email or password");
         }
 
         const token = signAccessToken({
@@ -45,15 +42,13 @@ export async function getMe(
 ): Promise<void> {
     try {
         if (!req.user?.id) {
-            res.status(401).json({ message: "Unauthorized" });
-            return;
+            throw new UnauthorizedError("Unauthorized");
         }
 
         const user = await User.findById(req.user.id);
 
         if (!user) {
-            res.status(401).json({ message: "Unauthorized" });
-            return;
+            throw new UnauthorizedError("Unauthorized");
         }
 
         res.status(200).json({ user });

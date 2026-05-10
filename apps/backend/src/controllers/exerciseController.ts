@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import * as exerciseService from "../services/exerciseService";
+import { UnauthorizedError } from "../errors/AppError";
 
 export async function createExercise(
     req: Request,
@@ -8,8 +9,7 @@ export async function createExercise(
 ): Promise<void> {
     try {
         if (!req.user?.id) {
-            res.status(401).json({ message: "Unauthorized" });
-            return;
+            throw new UnauthorizedError("Unauthorized");
         }
 
         const exercise = await exerciseService.createExercise(req.body, req.user.id);
@@ -39,8 +39,7 @@ export async function getExerciseLibrary(
 ): Promise<void> {
     try {
         if (!req.user?.id) {
-            res.status(401).json({ message: "Unauthorized" });
-            return;
+            throw new UnauthorizedError("Unauthorized");
         }
 
         const exercises = await exerciseService.getExerciseLibrary(req.user.id);
@@ -70,8 +69,7 @@ export async function updateExercise(
 ): Promise<void> {
     try {
         if (!req.user?.id) {
-            res.status(401).json({ message: "Unauthorized" });
-            return;
+            throw new UnauthorizedError("Unauthorized");
         }
 
         const exercise = await exerciseService.updateExercise(
@@ -93,8 +91,7 @@ export async function deleteExercise(
 ): Promise<void> {
     try {
         if (!req.user?.id) {
-            res.status(401).json({ message: "Unauthorized" });
-            return;
+            throw new UnauthorizedError("Unauthorized");
         }
 
         const result = await exerciseService.deleteExercise(

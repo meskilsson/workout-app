@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import WorkoutSession from "../models/WorkoutSession";
+import { NotFoundError, ValidationError } from "../errors/AppError";
 
 interface CreateWorkoutSessionInput {
     exercises: {
@@ -14,32 +15,27 @@ interface CreateWorkoutSessionInput {
     endedAt?: string;
 }
 
-function createHttpError(message: string, statusCode: number) {
-    const error = new Error(message) as Error & { statusCode?: number };
-    error.statusCode = statusCode;
-    return error;
-}
 
 export async function createWorkoutSession(
     workoutData: CreateWorkoutSessionInput,
     userId: string,
 ) {
     if (!workoutData.exercises || workoutData.exercises.length === 0) {
-        throw createHttpError("At least one exercise is required", 400);
+        throw new ValidationError("At least one exercise is required");
     }
 
     const normalizedExercises = workoutData.exercises.map((exercise) => {
         const exerciseName = exercise.exerciseName?.trim();
 
         if (!exerciseName) {
-            throw createHttpError("Exercise name is required", 400);
+            throw new ValidationError("Exercise name is required");
         }
 
         let normalizedExerciseId: Types.ObjectId | null = null;
 
         if (exercise.exerciseId) {
             if (!Types.ObjectId.isValid(exercise.exerciseId)) {
-                throw createHttpError("Invalid exercise id", 400);
+                throw new ValidationError("Invalid exercise id");
             }
 
             normalizedExerciseId = new Types.ObjectId(exercise.exerciseId);
@@ -59,10 +55,7 @@ export async function createWorkoutSession(
             );
 
         if (normalizedSets.length === 0) {
-            throw createHttpError(
-                `At least one valid set is required for ${exerciseName}`,
-                400,
-            );
+            throw new ValidationError(`At least one valid set is required for ${exerciseName}`);
         }
 
         return {
@@ -98,7 +91,7 @@ export async function getMyWorkoutSessions(userId: string) {
 
 export async function getWorkoutSessionById(sessionId: string, userId: string) {
     if (!Types.ObjectId.isValid(sessionId)) {
-        throw createHttpError("Invalid workout session id", 400);
+        throw new ValidationError("Invalid workout session id");
     }
 
     const workoutSession = await WorkoutSession.findOne({
@@ -107,7 +100,7 @@ export async function getWorkoutSessionById(sessionId: string, userId: string) {
     });
 
     if (!workoutSession) {
-        throw createHttpError("Workout session not found", 404);
+        throw new NotFoundError("Workout session not found");
     }
 
     return workoutSession;

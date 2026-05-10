@@ -77,6 +77,9 @@
         --font-family-base:
                 Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
                 sans-serif;
+
+        --color-dummy-muscle-secondary: #2f8f83;
+        --color-dummy-muscle-primary: #35d0ba;
 }
 
 /* Neutral dark theme */
@@ -146,6 +149,8 @@
         --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.38);
         --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.48);
         --shadow-focus: 0 0 0 3px var(--color-primary-soft);
+        --color-dummy-muscle-secondary: #737373;
+        --color-dummy-muscle-primary: #f5f5f5;
 }
 
 /* Light theme */
@@ -215,6 +220,8 @@
         --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.12);
         --shadow-lg: 0 18px 44px rgba(15, 23, 42, 0.16);
         --shadow-focus: 0 0 0 3px var(--color-primary-soft);
+        --color-dummy-muscle-secondary: #5eead4;
+        --color-dummy-muscle-primary: #0f766e;
 }
 
 /* Light Pink theme */
@@ -285,6 +292,8 @@
         --shadow-md: 0 8px 24px rgba(213, 116, 145, 0.12);
         --shadow-lg: 0 18px 44px rgba(213, 116, 145, 0.15);
         --shadow-focus: 0 0 0 3px var(--color-primary-soft);
+        --color-dummy-muscle-secondary: #f3a6ba;
+        --color-dummy-muscle-primary: #dc7f9e;
 }
 
 :root[data-theme="neon"] {
@@ -375,6 +384,8 @@
                 0 0 0 3px rgba(255, 0, 200, 0.22),
                 0 0 16px rgba(255, 0, 200, 0.32),
                 0 0 28px rgba(0, 255, 225, 0.18);
+        --color-dummy-muscle-secondary: #00ffe1;
+        --color-dummy-muscle-primary: #ff00c8;
 
 }
 

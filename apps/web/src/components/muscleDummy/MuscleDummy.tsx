@@ -13,6 +13,8 @@ type MuscleDummyProps = {
     gender?: BodyModelGender;
 };
 
+
+
 const muscleToBodyPartSlugs: Record<string, Slug[]> = {
     chest: ["chest"],
     back: ["upper-back", "lower-back"],
@@ -76,6 +78,11 @@ export default function MuscleDummy({
         secondaryMuscles,
     );
 
+    const highlightColors = [
+        "var(--color-dummy-muscle-secondary)",
+        "var(--color-dummy-muscle-primary)",
+    ];
+
     return (
         <div
             className={`${styles.wrapper} ${variant === "mini" ? styles.mini : styles.full
@@ -89,6 +96,7 @@ export default function MuscleDummy({
                         data={data}
                         side="front"
                         gender={bodyGender}
+                        colors={highlightColors}
                     />
                 </div>
 
@@ -99,6 +107,7 @@ export default function MuscleDummy({
                         data={data}
                         side="back"
                         gender={bodyGender}
+                        colors={highlightColors}
                     />
                 </div>
             </div>

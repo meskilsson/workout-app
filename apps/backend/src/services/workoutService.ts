@@ -1,3 +1,4 @@
+import { NotFoundError } from "../errors/AppError";
 import Workout, { IWorkout } from "../models/Workout";
 
 export async function createWorkout(workoutData: IWorkout) {
@@ -14,11 +15,7 @@ export async function getWorkoutById(id: string) {
   const workout = await Workout.findById(id);
 
   if (!workout) {
-    const error = new Error("Workout not found") as Error & {
-      statusCode?: number;
-    };
-    error.statusCode = 404;
-    throw error;
+    throw new NotFoundError("Workout not found");
   }
 
   return workout;
