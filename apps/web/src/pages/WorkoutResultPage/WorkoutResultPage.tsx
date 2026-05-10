@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
@@ -7,6 +7,7 @@ import Button from "../../components/ui/button/Button";
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 
 import { getExerciseLibraryRequest } from "../../services/exerciseApi";
+import { getWorkoutSessionByIdRequest } from "../../services/workoutSessionApi";
 import { formatCompletedDate } from "../../utils/formatCompletedDate";
 import { formatEndTime } from "../../utils/formatEndTime";
 
@@ -40,23 +41,56 @@ type ExerciseLibraryItem = {
     secondaryMuscles?: string[];
 };
 
-type LocationState = {
-    workoutSession: WorkoutSession;
-};
-
 export default function WorkoutResultPage() {
     const navigate = useNavigate();
-    const location = useLocation();
-    const state = location.state as LocationState | null;
+    const { sessionId } = useParams();
 
-    const workoutSession = state?.workoutSession;
+    const [workoutSession, setWorkoutSession] = useState<WorkoutSession | null>(
+        null,
+    );
+    const [exerciseLibrary, setExerciseLibrary] = useState<ExerciseLibraryItem[]>(
+        [],
+    );
 
-    const [exerciseLibrary, setExerciseLibrary] = useState<ExerciseLibraryItem[]>([]);
+    const [isLoadingSession, setIsLoadingSession] = useState(true);
     const [isLoadingMuscles, setIsLoadingMuscles] = useState(false);
+
+    const [sessionError, setSessionError] = useState("");
     const [muscleError, setMuscleError] = useState("");
 
     useEffect(() => {
-        if (!workoutSession) return;
+        async function loadWorkoutSession() {
+            if (!sessionId) {
+                navigate("/");
+                return;
+            }
+
+            setSessionError("");
+            setIsLoadingSession(true);
+
+            try {
+                const data: WorkoutSession =
+                    await getWorkoutSessionByIdRequest(sessionId);
+
+                setWorkoutSession(data);
+            } catch (error) {
+                setSessionError(
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to load workout result.",
+                );
+            } finally {
+                setIsLoadingSession(false);
+            }
+        }
+
+        loadWorkoutSession();
+    }, [sessionId, navigate]);
+
+    useEffect(() => {
+        if (!workoutSession) {
+            return;
+        }
 
         async function loadExerciseLibrary() {
             setMuscleError("");
@@ -126,14 +160,28 @@ export default function WorkoutResultPage() {
         };
     }, [workoutSession, exerciseLibrary]);
 
-    if (!workoutSession) {
+    if (isLoadingSession) {
+        return (
+            <Box className={styles.page}>
+                <Card className={styles.stateCard}>
+                    <p className={styles.kicker}>Workout result</p>
+                    <h1 className={styles.title}>Loading workout result...</h1>
+                    <p className={styles.stateText}>
+                        Getting your saved workout session.
+                    </p>
+                </Card>
+            </Box>
+        );
+    }
+
+    if (sessionError || !workoutSession) {
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>
                     <p className={styles.kicker}>Workout result</p>
                     <h1 className={styles.title}>No workout result found</h1>
                     <p className={styles.stateText}>
-                        This page needs saved workout data.
+                        {sessionError || "This workout result could not be loaded."}
                     </p>
 
                     <div className={styles.actions}>
@@ -204,7 +252,9 @@ export default function WorkoutResultPage() {
                         </p>
 
                         {isLoadingMuscles && (
-                            <p className={styles.stateText}>Loading muscle profile...</p>
+                            <p className={styles.stateText}>
+                                Loading muscle profile...
+                            </p>
                         )}
 
                         {muscleError && (

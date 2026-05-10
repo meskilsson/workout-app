@@ -1,38 +1,128 @@
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 
-import { useLocation, useNavigate } from "react-router-dom";
+import {
+  getWorkoutDraftByIdRequest,
+  startWorkoutDraftRequest,
+} from "../../services/workoutDraftApi";
+
 import styles from "./WorkoutSummaryPage.module.css";
 
-type SelectedExercise = {
-  _id: string;
-  name: string;
+type DraftExercise = {
+  exerciseId: string;
+  exerciseName: string;
+  sets: {
+    weight: number | null;
+    reps: number | null;
+  }[];
 };
 
-type LocationState = {
-  selectedExercises: SelectedExercise[];
+type WorkoutDraft = {
+  _id: string;
+  status: "building" | "active" | "completed" | "abandoned";
+  selectedMuscleGroups: string[];
+  exercises: DraftExercise[];
 };
 
 export default function WorkoutSummaryPage() {
-  const location = useLocation();
+  const { draftId } = useParams();
   const navigate = useNavigate();
 
-  const state = location.state as LocationState | null;
-  const selectedExercises = state?.selectedExercises ?? [];
+  const [draft, setDraft] = useState<WorkoutDraft | null>(null);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(true);
+  const [isStartingWorkout, setIsStartingWorkout] = useState(false);
+  const [error, setError] = useState("");
 
+  const selectedExercises = draft?.exercises ?? [];
   const totalExercises = selectedExercises.length;
 
-  function handleContinue() {
-    navigate("/workout", {
-      state: {
-        selectedExercises,
-      },
-    });
+  useEffect(() => {
+    async function loadDraft() {
+      if (!draftId) {
+        navigate("/workout-select");
+        return;
+      }
+
+      try {
+        setError("");
+        setIsLoadingDraft(true);
+
+        const data: WorkoutDraft = await getWorkoutDraftByIdRequest(draftId);
+
+        setDraft(data);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load workout draft",
+        );
+      } finally {
+        setIsLoadingDraft(false);
+      }
+    }
+
+    loadDraft();
+  }, [draftId, navigate]);
+
+  async function handleContinue() {
+    if (!draftId) {
+      navigate("/workout-select");
+      return;
+    }
+
+    try {
+      setError("");
+      setIsStartingWorkout(true);
+
+      await startWorkoutDraftRequest(draftId);
+
+      navigate(`/workout/${draftId}`);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to start workout",
+      );
+    } finally {
+      setIsStartingWorkout(false);
+    }
   }
 
   function handleBack() {
-    navigate(-1);
+    if (draftId) {
+      navigate(`/exercise-select/${draftId}`);
+      return;
+    }
+
+    navigate("/workout-select");
+  }
+
+  if (isLoadingDraft) {
+    return (
+      <Box className={styles.page}>
+        <Card className={styles.stateCard}>
+          <p className={styles.kicker}>Workout builder</p>
+          <h1 className={styles.title}>Workout summary</h1>
+          <p className={styles.stateText}>Loading workout summary...</p>
+        </Card>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box className={styles.page}>
+        <Card className={styles.stateCard}>
+          <p className={styles.kicker}>Workout builder</p>
+          <h1 className={styles.title}>Workout summary</h1>
+          <p className={styles.stateText}>{error}</p>
+
+          <Button type="button" variant="secondary" onClick={handleBack}>
+            Go back
+          </Button>
+        </Card>
+      </Box>
+    );
   }
 
   return (
@@ -80,7 +170,7 @@ export default function WorkoutSummaryPage() {
         {selectedExercises.length > 0 ? (
           <div className={styles.exerciseList}>
             {selectedExercises.map((exercise, index) => (
-              <Card key={exercise._id} className={styles.exerciseCard}>
+              <Card key={exercise.exerciseId} className={styles.exerciseCard}>
                 <div className={styles.exerciseHeader}>
                   <div>
                     <p className={styles.exerciseNumber}>
@@ -88,13 +178,11 @@ export default function WorkoutSummaryPage() {
                     </p>
 
                     <h3 className={styles.exerciseTitle}>
-                      {exercise.name}
+                      {exercise.exerciseName}
                     </h3>
                   </div>
 
-                  <span className={styles.exerciseBadge}>
-                    Selected
-                  </span>
+                  <span className={styles.exerciseBadge}>Selected</span>
                 </div>
               </Card>
             ))}
@@ -102,7 +190,8 @@ export default function WorkoutSummaryPage() {
         ) : (
           <Card className={styles.stateCard}>
             <p className={styles.stateText}>
-              No exercises selected yet. Go back and choose at least one exercise.
+              No exercises selected yet. Go back and choose at least one
+              exercise.
             </p>
           </Card>
         )}
@@ -125,9 +214,9 @@ export default function WorkoutSummaryPage() {
             type="button"
             variant="primary"
             onClick={handleContinue}
-            disabled={selectedExercises.length === 0}
+            disabled={selectedExercises.length === 0 || isStartingWorkout}
           >
-            Start workout
+            {isStartingWorkout ? "Starting..." : "Start workout"}
           </Button>
         </div>
       </div>

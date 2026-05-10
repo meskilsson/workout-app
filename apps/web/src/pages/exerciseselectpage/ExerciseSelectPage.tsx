@@ -1,10 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { muscleSearchAliases } from "@workout-app/shared";
+
 import { useAuth } from "../../context/AuthContext";
 import {
     getExerciseLibraryRequest,
     getPublicExercisesRequest,
 } from "../../services/exerciseApi";
+import {
+    getWorkoutDraftByIdRequest,
+    updateWorkoutDraftExercisesRequest,
+} from "../../services/workoutDraftApi";
 
 import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
@@ -15,10 +21,7 @@ import "../../components/ui/button/button.css";
 import "../../components/ui/box/box.css";
 import "../../components/ui/cards/card.css";
 
-import { muscleSearchAliases } from "@workout-app/shared";
-
 import styles from "./ExerciseSelectPage.module.css";
-
 
 type Exercise = {
     _id: string;
@@ -42,38 +45,66 @@ type SelectedMuscleGroup = {
     title: string;
 };
 
-type LocationState = {
-    selectedMuscleGroups: SelectedMuscleGroup[];
+type WorkoutDraft = {
+    _id: string;
+    status: "building" | "active" | "completed" | "abandoned";
+    selectedMuscleGroups: string[];
+    exercises: {
+        exerciseId: string;
+        exerciseName: string;
+        sets: {
+            weight: number | null;
+            reps: number | null;
+        }[];
+    }[];
 };
+
+const muscleGroupMap: Record<string, string[]> = {
+    chest: ["chest"],
+    back: ["back"],
+    shoulders: ["shoulders"],
+    biceps: ["biceps"],
+    triceps: ["triceps"],
+    core: ["core"],
+    quads: ["quads"],
+    hamstrings: ["hamstrings"],
+    glutes: ["glutes"],
+    calves: ["calves"],
+    ...muscleSearchAliases,
+};
+
+function formatMuscleTitle(muscle: string) {
+    return muscle.charAt(0).toUpperCase() + muscle.slice(1);
+}
 
 export default function ExerciseSelectPage() {
     const { isAuthenticated } = useAuth();
-    const location = useLocation();
+    const { draftId } = useParams();
     const navigate = useNavigate();
 
-    const state = location.state as LocationState | null;
-    const selectedMuscleGroups = state?.selectedMuscleGroups ?? [];
-
+    const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<
+        SelectedMuscleGroup[]
+    >([]);
     const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
     const [exercises, setExercises] = useState<Exercise[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState("");
+
+    const [isLoadingExercises, setIsLoadingExercises] = useState(true);
+    const [isLoadingDraft, setIsLoadingDraft] = useState(true);
+    const [isSavingExercises, setIsSavingExercises] = useState(false);
+
+    const [exerciseError, setExerciseError] = useState("");
+    const [draftError, setDraftError] = useState("");
+    const [actionError, setActionError] = useState("");
+
     const [searchTerm, setSearchTerm] = useState("");
 
-    const muscleGroupMap: Record<string, string[]> = {
-        chest: ["chest"],
-        back: ["back"],
-        shoulders: ["shoulders"],
-        biceps: ["biceps"],
-        triceps: ["triceps"],
-        core: ["core"],
-        ...muscleSearchAliases,
-    };
+    const isLoading = isLoadingExercises || isLoadingDraft;
+    const error = draftError || exerciseError || actionError;
 
     useEffect(() => {
         async function loadExercises() {
-            setError("");
-            setIsLoading(true);
+            setExerciseError("");
+            setIsLoadingExercises(true);
 
             try {
                 const data = isAuthenticated
@@ -82,9 +113,11 @@ export default function ExerciseSelectPage() {
 
                 setExercises(data);
             } catch (err) {
-                setError(err instanceof Error ? err.message : "Failed to load exercises");
+                setExerciseError(
+                    err instanceof Error ? err.message : "Failed to load exercises",
+                );
             } finally {
-                setIsLoading(false);
+                setIsLoadingExercises(false);
             }
         }
 
@@ -92,12 +125,47 @@ export default function ExerciseSelectPage() {
     }, [isAuthenticated]);
 
     useEffect(() => {
-        if (selectedMuscleGroups.length === 0) {
-            navigate("/workout-select");
+        async function loadDraft() {
+            if (!draftId) {
+                navigate("/workout-select");
+                return;
+            }
+
+            setDraftError("");
+            setIsLoadingDraft(true);
+
+            try {
+                const data: WorkoutDraft = await getWorkoutDraftByIdRequest(draftId);
+
+                setSelectedMuscleGroups(
+                    data.selectedMuscleGroups.map((muscle) => ({
+                        id: muscle,
+                        title: formatMuscleTitle(muscle),
+                    })),
+                );
+
+                setSelectedExercises(
+                    data.exercises.map((exercise) => exercise.exerciseId),
+                );
+            } catch (err) {
+                setDraftError(
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to load workout draft",
+                );
+            } finally {
+                setIsLoadingDraft(false);
+            }
         }
-    }, [selectedMuscleGroups.length, navigate]);
+
+        loadDraft();
+    }, [draftId, navigate]);
 
     function handleToggleExercise(exerciseId: string) {
+        if (isSavingExercises) {
+            return;
+        }
+
         setSelectedExercises((prev) =>
             prev.includes(exerciseId)
                 ? prev.filter((id) => id !== exerciseId)
@@ -145,9 +213,18 @@ export default function ExerciseSelectPage() {
                     primary.some((muscle) => muscle.includes(normalizedSearch)) ||
                     secondary.some((muscle) => muscle.includes(normalizedSearch)) ||
                     matchesSearchAlias ||
-                    (exercise.equipment?.toLowerCase().includes(normalizedSearch) ?? false) ||
-                    (exercise.difficulty?.toLowerCase().includes(normalizedSearch) ?? false) ||
-                    (exercise.exerciseType?.toLowerCase().includes(normalizedSearch) ?? false);
+                    (exercise.equipment
+                        ?.toLowerCase()
+                        .includes(normalizedSearch) ??
+                        false) ||
+                    (exercise.difficulty
+                        ?.toLowerCase()
+                        .includes(normalizedSearch) ??
+                        false) ||
+                    (exercise.exerciseType
+                        ?.toLowerCase()
+                        .includes(normalizedSearch) ??
+                        false);
 
                 return matchesMuscleGroup && matchesSearch;
             });
@@ -163,10 +240,30 @@ export default function ExerciseSelectPage() {
         selectedExercises.includes(exercise._id),
     );
 
-    function handleContinue() {
-        navigate("/workout-summary", {
-            state: { selectedExercises: chosenExercises },
-        });
+    async function handleContinue() {
+        if (!draftId) {
+            navigate("/workout-select");
+            return;
+        }
+
+        setActionError("");
+        setIsSavingExercises(true);
+
+        try {
+            await updateWorkoutDraftExercisesRequest(draftId, {
+                exerciseIds: selectedExercises,
+            });
+
+            navigate(`/workout-summary/${draftId}`);
+        } catch (err) {
+            setActionError(
+                err instanceof Error
+                    ? err.message
+                    : "Failed to save selected exercises",
+            );
+        } finally {
+            setIsSavingExercises(false);
+        }
     }
 
     if (isLoading) {
@@ -175,13 +272,13 @@ export default function ExerciseSelectPage() {
                 <div className={styles.stateCard}>
                     <p className={styles.kicker}>Exercise library</p>
                     <h1 className={styles.title}>Select exercises</h1>
-                    <p className={styles.stateText}>Loading exercises...</p>
+                    <p className={styles.stateText}>Loading workout draft...</p>
                 </div>
             </Box>
         );
     }
 
-    if (error) {
+    if (draftError || exerciseError) {
         return (
             <Box className={styles.page}>
                 <div className={styles.stateCard}>
@@ -215,10 +312,11 @@ export default function ExerciseSelectPage() {
                     type="text"
                     placeholder="Search exercises, muscles, or equipment..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(event) => setSearchTerm(event.target.value)}
                 />
             </div>
 
+            {actionError && <p className={styles.errorText}>{actionError}</p>}
 
             <Box className={styles.groupList}>
                 {groupedExercises.map((group) => (
@@ -233,14 +331,18 @@ export default function ExerciseSelectPage() {
                         <Box className={styles.exerciseGrid}>
                             {group.exercises.length > 0 ? (
                                 group.exercises.map((exercise) => {
-                                    const isSelected = selectedExercises.includes(exercise._id);
+                                    const isSelected = selectedExercises.includes(
+                                        exercise._id,
+                                    );
 
                                     return (
                                         <Card
                                             key={exercise._id}
                                             className={`${styles.exerciseCard} ${isSelected ? styles.selectedCard : ""
                                                 }`}
-                                            onClick={() => handleToggleExercise(exercise._id)}
+                                            onClick={() =>
+                                                handleToggleExercise(exercise._id)
+                                            }
                                         >
                                             <div className={styles.exerciseCardContent}>
                                                 <div className={styles.exerciseCardTop}>
@@ -251,11 +353,15 @@ export default function ExerciseSelectPage() {
 
                                                         <div className={styles.exerciseMeta}>
                                                             {exercise.equipment && (
-                                                                <span>{exercise.equipment}</span>
+                                                                <span>
+                                                                    {exercise.equipment}
+                                                                </span>
                                                             )}
 
                                                             {exercise.difficulty && (
-                                                                <span>{exercise.difficulty}</span>
+                                                                <span>
+                                                                    {exercise.difficulty}
+                                                                </span>
                                                             )}
                                                         </div>
                                                     </div>
@@ -264,10 +370,12 @@ export default function ExerciseSelectPage() {
                                                         <MuscleDummy
                                                             variant="mini"
                                                             primaryMuscles={
-                                                                exercise.primaryMuscles ?? []
+                                                                exercise.primaryMuscles ??
+                                                                []
                                                             }
                                                             secondaryMuscles={
-                                                                exercise.secondaryMuscles ?? []
+                                                                exercise.secondaryMuscles ??
+                                                                []
                                                             }
                                                         />
                                                     </div>
@@ -275,13 +383,22 @@ export default function ExerciseSelectPage() {
 
                                                 <div className={styles.muscleInfo}>
                                                     {exercise.primaryMuscles &&
-                                                        exercise.primaryMuscles.length > 0 && (
+                                                        exercise.primaryMuscles.length >
+                                                        0 && (
                                                             <div>
-                                                                <p className={styles.muscleLabel}>
+                                                                <p
+                                                                    className={
+                                                                        styles.muscleLabel
+                                                                    }
+                                                                >
                                                                     Primary
                                                                 </p>
 
-                                                                <div className={styles.muscleTags}>
+                                                                <div
+                                                                    className={
+                                                                        styles.muscleTags
+                                                                    }
+                                                                >
                                                                     {exercise.primaryMuscles.map(
                                                                         (muscle) => (
                                                                             <span
@@ -299,13 +416,22 @@ export default function ExerciseSelectPage() {
                                                         )}
 
                                                     {exercise.secondaryMuscles &&
-                                                        exercise.secondaryMuscles.length > 0 && (
+                                                        exercise.secondaryMuscles
+                                                            .length > 0 && (
                                                             <div>
-                                                                <p className={styles.muscleLabel}>
+                                                                <p
+                                                                    className={
+                                                                        styles.muscleLabel
+                                                                    }
+                                                                >
                                                                     Secondary
                                                                 </p>
 
-                                                                <div className={styles.muscleTags}>
+                                                                <div
+                                                                    className={
+                                                                        styles.muscleTags
+                                                                    }
+                                                                >
                                                                     {exercise.secondaryMuscles.map(
                                                                         (muscle) => (
                                                                             <span
@@ -347,9 +473,9 @@ export default function ExerciseSelectPage() {
                 <Button
                     variant="primary"
                     onClick={handleContinue}
-                    disabled={chosenExercises.length === 0}
+                    disabled={chosenExercises.length === 0 || isSavingExercises}
                 >
-                    Continue
+                    {isSavingExercises ? "Saving..." : "Continue"}
                 </Button>
             </div>
         </Box>

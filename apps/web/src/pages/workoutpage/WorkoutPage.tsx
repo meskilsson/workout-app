@@ -1,21 +1,24 @@
-import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+
 import Modal from "../../components/ui/modal/Modal";
 import Button from "../../components/ui/button/Button";
-import { createWorkoutSessionRequest } from "../../services/workoutSessionApi";
-import styles from "./WorkoutPage.module.css";
 import WorkoutDurationTimer from "../../components/timer/WorkoutDurationTimer";
+
+import {
+    completeWorkoutDraftRequest,
+    getWorkoutDraftByIdRequest,
+    updateWorkoutDraftSetsRequest,
+} from "../../services/workoutDraftApi";
+
 import { useWorkoutTimer } from "@workout-app/shared/timer";
 import { useRestTimerControls } from "@workout-app/shared/timer/rest";
+
+import styles from "./WorkoutPage.module.css";
 
 type SelectedExercise = {
     _id: string;
     name: string;
-};
-
-type LocationState = {
-    selectedExercises: SelectedExercise[];
-    startedAt?: string;
 };
 
 type WorkoutSet = {
@@ -23,22 +26,117 @@ type WorkoutSet = {
     reps: string;
 };
 
-const EMPTY_EXERCISES: SelectedExercise[] = [];
+type DraftSet = {
+    weight: number | null;
+    reps: number | null;
+};
+
+type DraftExercise = {
+    exerciseId: string;
+    exerciseName: string;
+    sets: DraftSet[];
+};
+
+type WorkoutDraft = {
+    _id: string;
+    status: "building" | "active" | "completed" | "abandoned";
+    selectedMuscleGroups: string[];
+    exercises: DraftExercise[];
+    startedAt?: string | null;
+    completedSessionId?: string | null;
+};
+
+function draftSetToInputSet(set: DraftSet): WorkoutSet {
+    return {
+        weight: set.weight === null ? "" : String(set.weight),
+        reps: set.reps === null ? "" : String(set.reps),
+    };
+}
+
+function hasCompletedSet(sets: WorkoutSet[]) {
+    return sets.some((set) => set.weight !== "" && set.reps !== "");
+}
 
 export default function WorkoutPage() {
+    const { draftId } = useParams();
     const navigate = useNavigate();
-    const location = useLocation();
-    const state = location.state as LocationState | null;
 
-    const { start: startWorkoutTimer, state: workoutTimerState } = useWorkoutTimer();
+    const { start: startWorkoutTimer, state: workoutTimerState } =
+        useWorkoutTimer();
     const { start: startRestTimer } = useRestTimerControls();
 
-    const [setsByExercise, setSetsByExercise] = useState<Record<string, WorkoutSet[]>>({});
-    const [openModal, setOpenModal] = useState<boolean>(false);
+    const [selectedExercises, setSelectedExercises] = useState<SelectedExercise[]>(
+        [],
+    );
+    const [setsByExercise, setSetsByExercise] = useState<
+        Record<string, WorkoutSet[]>
+    >({});
+
+    const [isLoadingDraft, setIsLoadingDraft] = useState(true);
+    const [isSavingDraft, setIsSavingDraft] = useState(false);
+    const [hasUserEditedSets, setHasUserEditedSets] = useState(false);
+
+    const [openModal, setOpenModal] = useState(false);
     const [error, setError] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
-    const selectedExercises = state?.selectedExercises ?? EMPTY_EXERCISES;
+    useEffect(() => {
+        async function loadDraft() {
+            if (!draftId) {
+                navigate("/workout-select");
+                return;
+            }
+
+            try {
+                setError("");
+                setIsLoadingDraft(true);
+
+                const draft: WorkoutDraft = await getWorkoutDraftByIdRequest(draftId);
+
+                if (draft.status === "building") {
+                    navigate(`/workout-summary/${draftId}`);
+                    return;
+                }
+
+                if (draft.status === "completed" && draft.completedSessionId) {
+                    navigate(`/workout-result/${draft.completedSessionId}`);
+                    return;
+                }
+
+                if (draft.status === "abandoned") {
+                    setError("This workout draft has been abandoned.");
+                    return;
+                }
+
+                const exercises = draft.exercises.map((exercise) => ({
+                    _id: exercise.exerciseId,
+                    name: exercise.exerciseName,
+                }));
+
+                const initialSetsByExercise = draft.exercises.reduce<
+                    Record<string, WorkoutSet[]>
+                >((acc, exercise) => {
+                    acc[exercise.exerciseId] =
+                        exercise.sets.length > 0
+                            ? exercise.sets.map(draftSetToInputSet)
+                            : [{ weight: "", reps: "" }];
+
+                    return acc;
+                }, {});
+
+                setSelectedExercises(exercises);
+                setSetsByExercise(initialSetsByExercise);
+            } catch (err) {
+                setError(
+                    err instanceof Error ? err.message : "Failed to load workout draft.",
+                );
+            } finally {
+                setIsLoadingDraft(false);
+            }
+        }
+
+        loadDraft();
+    }, [draftId, navigate]);
 
     useEffect(() => {
         if (
@@ -56,30 +154,77 @@ export default function WorkoutPage() {
     ]);
 
     useEffect(() => {
-        setSetsByExercise((prev) => {
-            const next = { ...prev };
+        if (!draftId || !hasUserEditedSets || selectedExercises.length === 0) {
+            return;
+        }
 
-            selectedExercises.forEach((exercise) => {
-                if (!next[exercise._id] || next[exercise._id].length === 0) {
-                    next[exercise._id] = [{ weight: "", reps: "" }];
-                }
-            });
+        const timeoutId = window.setTimeout(async () => {
+            try {
+                setIsSavingDraft(true);
 
-            Object.keys(next).forEach((exerciseId) => {
-                const stillSelected = selectedExercises.some(
-                    (exercise) => exercise._id === exerciseId,
+                await Promise.all(
+                    selectedExercises.map((exercise) =>
+                        updateWorkoutDraftSetsRequest(draftId, {
+                            exerciseId: exercise._id,
+                            sets: setsByExercise[exercise._id] ?? [],
+                        }),
+                    ),
                 );
+            } catch (err) {
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to save workout progress.",
+                );
+            } finally {
+                setIsSavingDraft(false);
+            }
+        }, 700);
 
-                if (!stillSelected) {
-                    delete next[exerciseId];
-                }
+        return () => window.clearTimeout(timeoutId);
+    }, [draftId, hasUserEditedSets, selectedExercises, setsByExercise]);
+
+    async function saveExerciseSets(exerciseId: string) {
+        if (!draftId) {
+            return;
+        }
+
+        setIsSavingDraft(true);
+
+        try {
+            await updateWorkoutDraftSetsRequest(draftId, {
+                exerciseId,
+                sets: setsByExercise[exerciseId] ?? [],
             });
+        } finally {
+            setIsSavingDraft(false);
+        }
+    }
 
-            return next;
-        });
-    }, [selectedExercises]);
+    async function saveAllExerciseSets() {
+        if (!draftId) {
+            return;
+        }
+
+        setIsSavingDraft(true);
+
+        try {
+            await Promise.all(
+                selectedExercises.map((exercise) =>
+                    updateWorkoutDraftSetsRequest(draftId, {
+                        exerciseId: exercise._id,
+                        sets: setsByExercise[exercise._id] ?? [],
+                    }),
+                ),
+            );
+        } finally {
+            setIsSavingDraft(false);
+        }
+    }
 
     function handleAddSet(exerciseId: string) {
+        setHasUserEditedSets(true);
+
         setSetsByExercise((prev) => ({
             ...prev,
             [exerciseId]: [...(prev[exerciseId] ?? []), { weight: "", reps: "" }],
@@ -92,6 +237,8 @@ export default function WorkoutPage() {
         field: "weight" | "reps",
         value: string,
     ) {
+        setHasUserEditedSets(true);
+
         setSetsByExercise((prev) => ({
             ...prev,
             [exerciseId]: (prev[exerciseId] ?? []).map((set, i) =>
@@ -101,21 +248,21 @@ export default function WorkoutPage() {
     }
 
     function handleRemoveSet(exerciseId: string, index: number) {
-        setSetsByExercise((prev) => {
-            const currentSets = prev[exerciseId] ?? [];
+        const currentSets = setsByExercise[exerciseId] ?? [];
 
-            if (currentSets.length <= 1) {
-                return prev;
-            }
+        if (currentSets.length <= 1) {
+            return;
+        }
 
-            return {
-                ...prev,
-                [exerciseId]: currentSets.filter((_, i) => i !== index),
-            };
-        });
+        setHasUserEditedSets(true);
+
+        setSetsByExercise((prev) => ({
+            ...prev,
+            [exerciseId]: currentSets.filter((_, i) => i !== index),
+        }));
     }
 
-    function handleCompleteSet(exerciseId: string, index: number) {
+    async function handleCompleteSet(exerciseId: string, index: number) {
         const set = setsByExercise[exerciseId]?.[index];
 
         if (!set || set.weight === "" || set.reps === "") {
@@ -123,8 +270,15 @@ export default function WorkoutPage() {
             return;
         }
 
-        setError("");
-        startRestTimer();
+        try {
+            setError("");
+            await saveExerciseSets(exerciseId);
+            startRestTimer();
+        } catch (err) {
+            setError(
+                err instanceof Error ? err.message : "Failed to save completed set.",
+            );
+        }
     }
 
     function handleEndSession() {
@@ -139,48 +293,51 @@ export default function WorkoutPage() {
     }
 
     async function handleConfirmEndWorkout() {
+        if (!draftId) {
+            navigate("/workout-select");
+            return;
+        }
+
         setError("");
         setIsSaving(true);
 
         try {
-            const payload = {
-                exercises: selectedExercises
-                    .map((exercise) => ({
-                        exerciseId: exercise._id,
-                        exerciseName: exercise.name,
-                        sets: (setsByExercise[exercise._id] ?? []).filter(
-                            (set) => set.weight !== "" && set.reps !== "",
-                        ),
-                    }))
-                    .filter((exercise) => exercise.sets.length > 0),
-                startedAt: workoutTimerState.startTime
-                    ? new Date(workoutTimerState.startTime).toISOString()
-                    : undefined,
-                endedAt: new Date().toISOString(),
-            };
+            const incompleteExercise = selectedExercises.find(
+                (exercise) => !hasCompletedSet(setsByExercise[exercise._id] ?? []),
+            );
 
-            if (payload.exercises.length === 0) {
-                setError("Add at least one completed set before ending the workout.");
+            if (incompleteExercise) {
+                setError(
+                    `Add at least one completed set for ${incompleteExercise.name}.`,
+                );
                 setIsSaving(false);
                 return;
             }
 
-            const savedWorkoutSession = await createWorkoutSessionRequest(payload);
+            await saveAllExerciseSets();
+
+            const savedWorkoutSession = await completeWorkoutDraftRequest(draftId);
 
             setOpenModal(false);
 
-            navigate("/workout-result", {
-                state: { workoutSession: savedWorkoutSession },
-            });
+            navigate(`/workout-result/${savedWorkoutSession._id}`);
         } catch (err) {
-            if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError("Failed to save workout session.");
-            }
+            setError(
+                err instanceof Error ? err.message : "Failed to save workout session.",
+            );
         } finally {
             setIsSaving(false);
         }
+    }
+
+    if (isLoadingDraft) {
+        return (
+            <div className={styles.page}>
+                <div className={styles.container}>
+                    <p className={styles.errorText}>Loading workout...</p>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -223,12 +380,12 @@ export default function WorkoutPage() {
                                                     min={0}
                                                     value={set.weight}
                                                     className={styles.underlineInput}
-                                                    onChange={(e) =>
+                                                    onChange={(event) =>
                                                         handleSetChange(
                                                             exercise._id,
                                                             index,
                                                             "weight",
-                                                            e.target.value,
+                                                            event.target.value,
                                                         )
                                                     }
                                                 />
@@ -246,12 +403,12 @@ export default function WorkoutPage() {
                                                     min={0}
                                                     value={set.reps}
                                                     className={styles.underlineInput}
-                                                    onChange={(e) =>
+                                                    onChange={(event) =>
                                                         handleSetChange(
                                                             exercise._id,
                                                             index,
                                                             "reps",
-                                                            e.target.value,
+                                                            event.target.value,
                                                         )
                                                     }
                                                 />
@@ -303,6 +460,7 @@ export default function WorkoutPage() {
                         size="medium"
                         className={styles.endSessionButton}
                         onClick={handleEndSession}
+                        disabled={selectedExercises.length === 0}
                     >
                         End Session
                     </Button>

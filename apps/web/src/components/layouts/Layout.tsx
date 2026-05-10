@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useParams } from "react-router-dom";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
 import RestTimer from "../timer/RestTimer";
@@ -8,7 +8,8 @@ import { RestTimerProvider } from "@workout-app/shared/timer/rest";
 
 export default function Layout() {
   const { pathname } = useLocation();
-  const isWorkoutPage = pathname === "/workout";
+  const { draftId } = useParams();
+  const isWorkoutPage = pathname === `/workout/${draftId}`;
 
   return (
     <RestTimerProvider>

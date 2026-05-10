@@ -344,9 +344,7 @@ export async function updateWorkoutDraftSets(
     setData: UpdateExerciseSetsInput,
     userId: string,
 ) {
-    const draft = await getOwnedDraft(draftId, userId);
-
-    ensureDraftIsActive(draft.status);
+    const draftObjectId = normalizeObjectId(draftId, "workout draft id");
 
     const exerciseObjectId = normalizeObjectId(
         setData.exerciseId,
@@ -355,20 +353,49 @@ export async function updateWorkoutDraftSets(
 
     const normalizedSets = normalizeDraftSets(setData.sets);
 
-    const exercise = draft.exercises.find(
+    const updatedDraft = await WorkoutDraft.findOneAndUpdate(
+        {
+            _id: draftObjectId,
+            userId,
+            status: "active",
+            "exercises.exerciseId": exerciseObjectId,
+        },
+        {
+            $set: {
+                "exercises.$.sets": normalizedSets,
+            },
+        },
+        {
+            returnDocument: "after",
+            runValidators: true,
+        },
+    );
+
+    if (updatedDraft) {
+        return updatedDraft;
+    }
+
+    const draft = await WorkoutDraft.findOne({
+        _id: draftObjectId,
+        userId,
+    });
+
+    if (!draft) {
+        throw new NotFoundError("Workout draft not found");
+    }
+
+    ensureDraftIsActive(draft.status);
+
+    const exerciseExists = draft.exercises.some(
         (draftExercise) =>
             draftExercise.exerciseId.toString() === exerciseObjectId.toString(),
     );
 
-    if (!exercise) {
+    if (!exerciseExists) {
         throw new NotFoundError("Exercise is not part of this draft");
     }
 
-    exercise.sets = normalizedSets;
-
-    await draft.save();
-
-    return draft;
+    throw new ValidationError("Failed to update workout draft sets");
 }
 
 export async function completeWorkoutDraft(draftId: string, userId: string) {

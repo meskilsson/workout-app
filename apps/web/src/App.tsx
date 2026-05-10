@@ -20,6 +20,8 @@ import ProfileSettingsPage from "./pages/ProfileSettingsPage/ProfileSettingsPage
 import EditExercisePage from "./pages/EditExercisePage/EditExercisePage";
 import WorkoutHistoryDetailPage from "./pages/WorkoutHistoryDetailPage/WorkoutHistoryDetailPage";
 import LibraryPage from "./pages/LibraryPage/LibraryPage";
+import WorkoutDraftTestPage from "./pages/WorkoutDraftTestPage/WorkoutDraftTestPage";
+
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
@@ -38,6 +40,15 @@ function App() {
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<Homepage />} />
+
+        <Route
+          path="draft-test"
+          element={
+            <ProtectedRoute>
+              <WorkoutDraftTestPage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="login"
@@ -80,7 +91,7 @@ function App() {
         />
 
         <Route
-          path="exercise-select"
+          path="exercise-select/:draftId"
           element={
             <ProtectedRoute>
               <ExerciseSelectPage />
@@ -89,7 +100,7 @@ function App() {
         />
 
         <Route
-          path="workout-summary"
+          path="workout-summary/:draftId"
           element={
             <ProtectedRoute>
               <WorkoutSummaryPage />
@@ -98,7 +109,7 @@ function App() {
         />
 
         <Route
-          path="workout"
+          path="workout/:draftId"
           element={
             <ProtectedRoute>
               <WorkoutPage />
@@ -107,7 +118,7 @@ function App() {
         />
 
         <Route
-          path="workout-result"
+          path="workout-result/:sessionId"
           element={
             <ProtectedRoute>
               <WorkoutResultPage />
