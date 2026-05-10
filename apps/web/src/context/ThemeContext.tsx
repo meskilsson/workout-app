@@ -1,11 +1,13 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 
 export type ColorTheme =
     | "charcoal"
     | "dark"
     | "light"
     | "pink"
-    | "neon";
+    | "neon"
+    | "orange";
 
 type ThemeContextValue = {
     theme: ColorTheme;
@@ -23,7 +25,8 @@ function isColorTheme(value: string | null): value is ColorTheme {
         value === "dark" ||
         value === "light" ||
         value === "pink" ||
-        value === "neon"
+        value === "neon" ||
+        value === "orange"
     );
 }
 
