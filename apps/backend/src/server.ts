@@ -10,6 +10,7 @@ import userRouter from "./routes/userRoutes";
 import workoutRouter from "./routes/workoutRoutes";
 import exerciseRouter from "./routes/exerciseRoutes";
 import workoutSessionRouter from "./routes/workoutSessionRoutes";
+import workoutDraftRouter from "./routes/workoutDraftRoutes";
 import { notFound } from "./middleware/notFound";
 import logger from "./middleware/logger";
 
@@ -36,6 +37,7 @@ app.use("/api/users", userRouter);
 app.use("/api/workouts", workoutRouter);
 app.use("/api/exercises", exerciseRouter);
 app.use("/api/workout-sessions", workoutSessionRouter);
+app.use("/api/workout-drafts", workoutDraftRouter);
 
 app.use(notFound);
 app.use(logger);
