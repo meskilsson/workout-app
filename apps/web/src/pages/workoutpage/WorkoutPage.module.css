@@ -194,6 +194,26 @@
     color: var(--color-text-soft);
 }
 
+.dragHandle {
+    border: none;
+    background: transparent;
+    cursor: grab;
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 0.25rem 0.5rem;
+    color: inherit;
+}
+
+.dragHandle:active {
+    cursor: grabbing;
+}
+
+.exerciseTitleRow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
 @media (max-width: 640px) {
     .page {
         padding: 0.75rem 0.4rem 1.5rem;

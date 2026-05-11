@@ -130,3 +130,22 @@ export async function abandonWorkoutDraftRequest(draftId: string) {
 
     return handleResponse(response, "Failed to abandon workout draft");
 }
+
+export async function reorderWorkoutDraftExercisesRequest(
+    draftId: string,
+    exerciseIds: string[],
+) {
+    const response = await fetch(
+        `${API_URL}/api/workout-drafts/${draftId}/exercises/order`,
+        {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ exerciseIds }),
+        },
+    );
+
+    return handleResponse(response, "Failed to reorder workout exercises");
+}

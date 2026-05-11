@@ -4,10 +4,28 @@ import { useNavigate, useParams } from "react-router-dom";
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 import {
   getWorkoutDraftByIdRequest,
   startWorkoutDraftRequest,
+  reorderWorkoutDraftExercisesRequest,
 } from "../../services/workoutDraftApi";
 
 import styles from "./WorkoutSummaryPage.module.css";
@@ -28,6 +46,60 @@ type WorkoutDraft = {
   exercises: DraftExercise[];
 };
 
+type SortableSummaryExerciseCardProps = {
+  exercise: DraftExercise;
+  index: number;
+};
+
+function SortableSummaryExerciseCard({
+  exercise,
+  index,
+}: SortableSummaryExerciseCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: exercise.exerciseId,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 10 : "auto",
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        ...style,
+        touchAction: "none",
+      }}
+      {...attributes}
+      {...listeners}
+    >
+      <Card className={styles.exerciseCard}>
+        <div className={styles.exerciseHeader}>
+          <div>
+            <p className={styles.exerciseNumber}>Exercise {index + 1}</p>
+
+            <h3 className={styles.exerciseTitle}>
+              {exercise.exerciseName}
+            </h3>
+          </div>
+
+          <span className={styles.exerciseBadge}>Selected</span>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 export default function WorkoutSummaryPage() {
   const { draftId } = useParams();
   const navigate = useNavigate();
@@ -35,10 +107,23 @@ export default function WorkoutSummaryPage() {
   const [draft, setDraft] = useState<WorkoutDraft | null>(null);
   const [isLoadingDraft, setIsLoadingDraft] = useState(true);
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
+  const [orderedExercises, setOrderedExercises] = useState<DraftExercise[]>([]);
+  const [isReordering, setIsReordering] = useState(false);
   const [error, setError] = useState("");
 
-  const selectedExercises = draft?.exercises ?? [];
+  const selectedExercises = orderedExercises;
   const totalExercises = selectedExercises.length;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   useEffect(() => {
     async function loadDraft() {
@@ -54,6 +139,7 @@ export default function WorkoutSummaryPage() {
         const data: WorkoutDraft = await getWorkoutDraftByIdRequest(draftId);
 
         setDraft(data);
+        setOrderedExercises(data.exercises);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load workout draft",
@@ -65,6 +151,59 @@ export default function WorkoutSummaryPage() {
 
     loadDraft();
   }, [draftId, navigate]);
+
+
+  async function saveExerciseOrder(
+    nextOrder: DraftExercise[],
+    previousOrder: DraftExercise[],
+  ) {
+    if (!draftId) {
+      return;
+    }
+
+    setIsReordering(true);
+    setError("");
+
+    try {
+      await reorderWorkoutDraftExercisesRequest(
+        draftId,
+        nextOrder.map((exercise) => exercise.exerciseId),
+      );
+    } catch (err) {
+      setOrderedExercises(previousOrder);
+      setError(
+        err instanceof Error ? err.message : "Failed to reorder exercises",
+      );
+    } finally {
+      setIsReordering(false);
+    }
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id || isReordering) {
+      return;
+    }
+
+    const oldIndex = orderedExercises.findIndex(
+      (exercise) => exercise.exerciseId === active.id,
+    );
+
+    const newIndex = orderedExercises.findIndex(
+      (exercise) => exercise.exerciseId === over.id,
+    );
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return;
+    }
+
+    const previousOrder = orderedExercises;
+    const nextOrder = arrayMove(orderedExercises, oldIndex, newIndex);
+
+    setOrderedExercises(nextOrder);
+    void saveExerciseOrder(nextOrder, previousOrder);
+  }
 
   async function handleContinue() {
     if (!draftId) {
@@ -168,25 +307,26 @@ export default function WorkoutSummaryPage() {
         </div>
 
         {selectedExercises.length > 0 ? (
-          <div className={styles.exerciseList}>
-            {selectedExercises.map((exercise, index) => (
-              <Card key={exercise.exerciseId} className={styles.exerciseCard}>
-                <div className={styles.exerciseHeader}>
-                  <div>
-                    <p className={styles.exerciseNumber}>
-                      Exercise {index + 1}
-                    </p>
-
-                    <h3 className={styles.exerciseTitle}>
-                      {exercise.exerciseName}
-                    </h3>
-                  </div>
-
-                  <span className={styles.exerciseBadge}>Selected</span>
-                </div>
-              </Card>
-            ))}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={selectedExercises.map((exercise) => exercise.exerciseId)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className={styles.exerciseList}>
+                {selectedExercises.map((exercise, index) => (
+                  <SortableSummaryExerciseCard
+                    key={exercise.exerciseId}
+                    exercise={exercise}
+                    index={index}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         ) : (
           <Card className={styles.stateCard}>
             <p className={styles.stateText}>

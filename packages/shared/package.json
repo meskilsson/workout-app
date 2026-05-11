@@ -7,30 +7,33 @@
     "exports": {
         ".": {
             "types": "./src/index.ts",
-            "import": "./src/index.ts"
+            "import": "./src/index.ts",
+            "default": "./src/index.ts"
         },
         "./timer": {
             "types": "./src/timer/workout/index.ts",
-            "import": "./src/timer/workout/index.ts"
+            "import": "./src/timer/workout/index.ts",
+            "default": "./src/timer/workout/index.ts"
         },
         "./timer/rest": {
             "types": "./src/timer/rest/index.ts",
-            "import": "./src/timer/rest/index.ts"
+            "import": "./src/timer/rest/index.ts",
+            "default": "./src/timer/rest/index.ts"
         },
         "./utils": {
             "types": "./src/utils/index.ts",
-            "import": "./src/utils/index.ts"
+            "import": "./src/utils/index.ts",
+            "default": "./src/utils/index.ts"
         },
         "./utils/formatElapsedTime": {
             "types": "./src/utils/formatElapsedTime.ts",
-            "import": "./src/utils/formatElapsedTime.ts"
+            "import": "./src/utils/formatElapsedTime.ts",
+            "default": "./src/utils/formatElapsedTime.ts"
         },
         "./currentWorkoutContext": {
             "types": "./src/currentWorkoutContext/index.ts",
-            "import": "./src/currentWorkoutContext/index.ts"
+            "import": "./src/currentWorkoutContext/index.ts",
+            "default": "./src/currentWorkoutContext/index.ts"
         }
-    },
-    "peerDependencies": {
-        "react": "^19.0.0"
     }
 }

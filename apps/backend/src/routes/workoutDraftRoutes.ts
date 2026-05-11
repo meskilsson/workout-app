@@ -7,6 +7,7 @@ import {
     createWorkoutDraft,
     getCurrentWorkoutDraft,
     getWorkoutDraftById,
+    reorderWorkoutDraftExercises,
     startWorkoutDraft,
     updateWorkoutDraftExercises,
     updateWorkoutDraftMuscleGroups,
@@ -18,6 +19,7 @@ import {
     updateWorkoutDraftMuscleGroupsSchema,
     updateWorkoutDraftSetsSchema,
     workoutDraftIdParamsSchema,
+    reorderWorkoutDraftExercisesSchema,
 } from "../schemas/workoutDraft.schema";
 
 const workoutDraftRouter = Router();
@@ -91,6 +93,12 @@ workoutDraftRouter.patch(
         params: workoutDraftIdParamsSchema,
     }),
     abandonWorkoutDraft,
+);
+
+workoutDraftRouter.patch(
+    "/:draftId/exercises/order",
+    validateRequest({ params: workoutDraftIdParamsSchema, body: reorderWorkoutDraftExercisesSchema }),
+    reorderWorkoutDraftExercises,
 );
 
 export default workoutDraftRouter;

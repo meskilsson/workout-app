@@ -9,7 +9,26 @@ import {
     completeWorkoutDraftRequest,
     getWorkoutDraftByIdRequest,
     updateWorkoutDraftSetsRequest,
+    reorderWorkoutDraftExercisesRequest
 } from "../../services/workoutDraftApi";
+
+import {
+    closestCenter,
+    DndContext,
+    type DragEndEvent,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from "@dnd-kit/core";
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 import { useWorkoutTimer } from "@workout-app/shared/timer";
 import { useRestTimerControls } from "@workout-app/shared/timer/rest";
@@ -58,6 +77,152 @@ function hasCompletedSet(sets: WorkoutSet[]) {
     return sets.some((set) => set.weight !== "" && set.reps !== "");
 }
 
+type SortableWorkoutExerciseCardProps = {
+    exercise: SelectedExercise;
+    index: number;
+    exerciseSets: WorkoutSet[];
+    onAddSet: (exerciseId: string) => void;
+    onSetChange: (
+        exerciseId: string,
+        index: number,
+        field: "weight" | "reps",
+        value: string,
+    ) => void;
+    onRemoveSet: (exerciseId: string, index: number) => void;
+    onCompleteSet: (exerciseId: string, index: number) => void;
+};
+
+function SortableWorkoutExerciseCard({
+    exercise,
+    index,
+    exerciseSets,
+    onAddSet,
+    onSetChange,
+    onRemoveSet,
+    onCompleteSet,
+}: SortableWorkoutExerciseCardProps) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
+        id: exercise._id,
+    });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.6 : 1,
+        zIndex: isDragging ? 10 : "auto",
+    };
+
+    return (
+        <section
+            ref={setNodeRef}
+            style={{
+                ...style,
+                touchAction: "none",
+            }}
+            className={styles.exerciseCard}
+            {...attributes}
+            {...listeners}
+        >
+            <div className={styles.exerciseHeader}>
+                <div className={styles.exerciseTitleRow}>
+                    <h2 className={styles.exerciseName}>{exercise.name}</h2>
+                </div>
+
+                <Button
+                    type="button"
+                    variant="primary"
+                    size="small"
+                    className={styles.addSetButton}
+                    onClick={() => onAddSet(exercise._id)}
+                >
+                    Add set
+                </Button>
+            </div>
+
+            <div className={styles.setsList}>
+                {exerciseSets.map((set, setIndex) => (
+                    <div key={setIndex} className={styles.setRow}>
+                        <div className={styles.inputGroup}>
+                            {setIndex === 0 && (
+                                <label className={styles.inputLabel}>
+                                    Weight
+                                </label>
+                            )}
+
+                            <input
+                                type="number"
+                                min={0}
+                                value={set.weight}
+                                className={styles.underlineInput}
+                                onChange={(event) =>
+                                    onSetChange(
+                                        exercise._id,
+                                        setIndex,
+                                        "weight",
+                                        event.target.value,
+                                    )
+                                }
+                            />
+                        </div>
+
+                        <div className={styles.inputGroup}>
+                            {setIndex === 0 && (
+                                <label className={styles.inputLabel}>
+                                    Reps
+                                </label>
+                            )}
+
+                            <input
+                                type="number"
+                                min={0}
+                                value={set.reps}
+                                className={styles.underlineInput}
+                                onChange={(event) =>
+                                    onSetChange(
+                                        exercise._id,
+                                        setIndex,
+                                        "reps",
+                                        event.target.value,
+                                    )
+                                }
+                            />
+                        </div>
+
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="small"
+                            className={styles.completeSetButton}
+                            onClick={() => onCompleteSet(exercise._id, setIndex)}
+                            aria-label="Complete set and start rest timer"
+                        >
+                            ✓
+                        </Button>
+
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="small"
+                            className={styles.deleteButton}
+                            onClick={() => onRemoveSet(exercise._id, setIndex)}
+                            aria-label="Remove set"
+                        >
+                            X
+                        </Button>
+                    </div>
+                ))}
+            </div>
+        </section>
+    );
+}
+
 export default function WorkoutPage() {
     const { draftId } = useParams();
     const navigate = useNavigate();
@@ -90,6 +255,27 @@ export default function WorkoutPage() {
     const [openModal, setOpenModal] = useState(false);
     const [error, setError] = useState("");
     const [isSaving, setIsSaving] = useState(false);
+    const [isReorderingExercises, setIsReorderingExercises] = useState(false);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        }),
+    );
+
+    function handleAddSet(exerciseId: string) {
+        setHasUserEditedSets(true);
+
+        setSetsByExercise((prev) => ({
+            ...prev,
+            [exerciseId]: [...(prev[exerciseId] ?? []), { weight: "", reps: "" }],
+        }));
+    }
 
     useEffect(() => {
         async function loadDraft() {
@@ -171,14 +357,12 @@ export default function WorkoutPage() {
             try {
                 setIsSavingDraft(true);
 
-                await Promise.all(
-                    selectedExercises.map((exercise) =>
-                        updateWorkoutDraftSetsRequest(draftId, {
-                            exerciseId: exercise._id,
-                            sets: setsByExercise[exercise._id] ?? [],
-                        }),
-                    ),
-                );
+                for (const exercise of selectedExercises) {
+                    await updateWorkoutDraftSetsRequest(draftId, {
+                        exerciseId: exercise._id,
+                        sets: setsByExercise[exercise._id] ?? [],
+                    });
+                }
             } catch (err) {
                 setError(
                     err instanceof Error
@@ -218,26 +402,67 @@ export default function WorkoutPage() {
         setIsSavingDraft(true);
 
         try {
-            await Promise.all(
-                selectedExercises.map((exercise) =>
-                    updateWorkoutDraftSetsRequest(draftId, {
-                        exerciseId: exercise._id,
-                        sets: setsByExercise[exercise._id] ?? [],
-                    }),
-                ),
-            );
+            for (const exercise of selectedExercises) {
+                await updateWorkoutDraftSetsRequest(draftId, {
+                    exerciseId: exercise._id,
+                    sets: setsByExercise[exercise._id] ?? [],
+                });
+            }
         } finally {
             setIsSavingDraft(false);
         }
     }
 
-    function handleAddSet(exerciseId: string) {
-        setHasUserEditedSets(true);
+    async function saveExerciseOrder(
+        nextOrder: SelectedExercise[],
+        previousOrder: SelectedExercise[],
+    ) {
+        if (!draftId) {
+            return;
+        }
 
-        setSetsByExercise((prev) => ({
-            ...prev,
-            [exerciseId]: [...(prev[exerciseId] ?? []), { weight: "", reps: "" }],
-        }));
+        setIsReorderingExercises(true);
+        setError("");
+
+        try {
+            await reorderWorkoutDraftExercisesRequest(
+                draftId,
+                nextOrder.map((exercise) => exercise._id),
+            );
+        } catch (err) {
+            setSelectedExercises(previousOrder);
+            setError(
+                err instanceof Error ? err.message : "Failed to reorder exercises",
+            );
+        } finally {
+            setIsReorderingExercises(false);
+        }
+    }
+
+    function handleDragEnd(event: DragEndEvent) {
+        const { active, over } = event;
+
+        if (!over || active.id === over.id || isReorderingExercises) {
+            return;
+        }
+
+        const oldIndex = selectedExercises.findIndex(
+            (exercise) => exercise._id === active.id,
+        );
+
+        const newIndex = selectedExercises.findIndex(
+            (exercise) => exercise._id === over.id,
+        );
+
+        if (oldIndex === -1 || newIndex === -1) {
+            return;
+        }
+
+        const previousOrder = selectedExercises;
+        const nextOrder = arrayMove(selectedExercises, oldIndex, newIndex);
+
+        setSelectedExercises(nextOrder);
+        void saveExerciseOrder(nextOrder, previousOrder);
     }
 
     function handleSetChange(
@@ -359,107 +584,31 @@ export default function WorkoutPage() {
             <div className={styles.container}>
                 <WorkoutDurationTimer />
 
-                <div className={styles.exerciseList}>
-                    {selectedExercises.map((exercise) => {
-                        const exerciseSets = setsByExercise[exercise._id] ?? [];
-
-                        return (
-                            <section className={styles.exerciseCard} key={exercise._id}>
-                                <div className={styles.exerciseHeader}>
-                                    <h2 className={styles.exerciseName}>{exercise.name}</h2>
-
-                                    <Button
-                                        type="button"
-                                        variant="primary"
-                                        size="small"
-                                        className={styles.addSetButton}
-                                        onClick={() => handleAddSet(exercise._id)}
-                                    >
-                                        Add set
-                                    </Button>
-                                </div>
-
-                                <div className={styles.setsList}>
-                                    {exerciseSets.map((set, index) => (
-                                        <div key={index} className={styles.setRow}>
-                                            <div className={styles.inputGroup}>
-                                                {index === 0 && (
-                                                    <label className={styles.inputLabel}>
-                                                        Weight
-                                                    </label>
-                                                )}
-
-                                                <input
-                                                    type="number"
-                                                    min={0}
-                                                    value={set.weight}
-                                                    className={styles.underlineInput}
-                                                    onChange={(event) =>
-                                                        handleSetChange(
-                                                            exercise._id,
-                                                            index,
-                                                            "weight",
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                />
-                                            </div>
-
-                                            <div className={styles.inputGroup}>
-                                                {index === 0 && (
-                                                    <label className={styles.inputLabel}>
-                                                        Reps
-                                                    </label>
-                                                )}
-
-                                                <input
-                                                    type="number"
-                                                    min={0}
-                                                    value={set.reps}
-                                                    className={styles.underlineInput}
-                                                    onChange={(event) =>
-                                                        handleSetChange(
-                                                            exercise._id,
-                                                            index,
-                                                            "reps",
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                />
-                                            </div>
-
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="small"
-                                                className={styles.completeSetButton}
-                                                onClick={() =>
-                                                    handleCompleteSet(exercise._id, index)
-                                                }
-                                                aria-label="Complete set and start rest timer"
-                                            >
-                                                ✓
-                                            </Button>
-
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="small"
-                                                className={styles.deleteButton}
-                                                onClick={() =>
-                                                    handleRemoveSet(exercise._id, index)
-                                                }
-                                                aria-label="Remove set"
-                                            >
-                                                X
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        );
-                    })}
-                </div>
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                >
+                    <SortableContext
+                        items={selectedExercises.map((exercise) => exercise._id)}
+                        strategy={verticalListSortingStrategy}
+                    >
+                        <div className={styles.exerciseList}>
+                            {selectedExercises.map((exercise, index) => (
+                                <SortableWorkoutExerciseCard
+                                    key={exercise._id}
+                                    exercise={exercise}
+                                    index={index}
+                                    exerciseSets={setsByExercise[exercise._id] ?? []}
+                                    onAddSet={handleAddSet}
+                                    onSetChange={handleSetChange}
+                                    onRemoveSet={handleRemoveSet}
+                                    onCompleteSet={handleCompleteSet}
+                                />
+                            ))}
+                        </div>
+                    </SortableContext>
+                </DndContext>
 
                 {error && (
                     <div className={styles.errorWrapper}>

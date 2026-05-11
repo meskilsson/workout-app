@@ -453,3 +453,57 @@ export async function abandonWorkoutDraft(draftId: string, userId: string) {
 
     return draft;
 }
+
+export async function reorderWorkoutDraftExercises(
+    draftId: string,
+    reorderData: UpdateExercisesInput,
+    userId: string,
+) {
+    const draft = await getOwnedDraft(draftId, userId);
+
+    if (!editableStatuses.includes(draft.status)) {
+        throw new ConflictError("This draft cannot be reordered");
+    }
+
+    const exerciseIds = normalizeExerciseIds(reorderData.exerciseIds);
+
+    const currentExerciseIds = draft.exercises.map((exercise) =>
+        exercise.exerciseId.toString(),
+    );
+
+    if (exerciseIds.length !== currentExerciseIds.length) {
+        throw new ValidationError("Reordered exercises must contain the same exercises");
+    }
+
+    const currentExerciseIdSet = new Set(currentExerciseIds);
+
+    const hasSameExercises = exerciseIds.every((exerciseId) =>
+        currentExerciseIdSet.has(exerciseId),
+    );
+
+    if (!hasSameExercises) {
+        throw new ValidationError("Reordered exercises must contain the same exercises");
+    }
+
+    const exerciseById = new Map(
+        draft.exercises.map((exercise) => [
+            exercise.exerciseId.toString(),
+            exercise,
+        ]),
+    );
+
+    draft.exercises = exerciseIds.map((exerciseId) => {
+        const exercise = exerciseById.get(exerciseId);
+
+        if (!exercise) {
+            throw new ValidationError("Exercise is not part of this draft");
+        }
+
+        return exercise;
+    });
+
+    await draft.save();
+
+    return draft;
+
+}

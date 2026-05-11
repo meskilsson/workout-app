@@ -218,3 +218,25 @@ export async function abandonWorkoutDraft(
         next(error);
     }
 }
+
+export async function reorderWorkoutDraftExercises(
+    req: Request<{ draftId: string }>,
+    res: Response,
+    next: NextFunction,
+): Promise<void> {
+    try {
+        if (!req.user?.id) {
+            throw new UnauthorizedError("Unauthorized");
+        }
+
+        const draft = await workoutDraftService.reorderWorkoutDraftExercises(
+            req.params.draftId,
+            req.body,
+            req.user.id,
+        );
+
+        res.status(200).json(draft);
+    } catch (error) {
+        next(error);
+    }
+}
