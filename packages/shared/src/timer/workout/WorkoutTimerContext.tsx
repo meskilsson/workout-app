@@ -74,7 +74,7 @@ export function WorkoutTimerProvider({
     const [state, dispatch] = useReducer(
         workoutTimerReducer,
         undefined,
-        createWorkoutTimerInitialState,
+        () => hydrateWorkoutTimerState(),
     );
 
     useEffect(() => {

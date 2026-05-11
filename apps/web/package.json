@@ -10,7 +10,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "@workout-app/shared": "1.0.0",
+        "@workout-app/shared": "workspace:*",
         "react": "^19.2.4",
         "react-dom": "^19.2.4"
     },

@@ -10,6 +10,7 @@ import { createWorkoutDraftRequest } from "../../services/workoutDraftApi";
 import "../../components/ui/button/button.css";
 import styles from "./WorkoutSelectPage.module.css";
 
+
 const muscleGroupCards = [
   { id: "back", title: "Back" },
   { id: "shoulders", title: "Shoulders" },

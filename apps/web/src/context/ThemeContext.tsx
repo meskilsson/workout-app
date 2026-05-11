@@ -7,7 +7,8 @@ export type ColorTheme =
     | "light"
     | "pink"
     | "neon"
-    | "orange";
+    | "orange"
+    | "space";
 
 type ThemeContextValue = {
     theme: ColorTheme;
@@ -26,7 +27,8 @@ function isColorTheme(value: string | null): value is ColorTheme {
         value === "light" ||
         value === "pink" ||
         value === "neon" ||
-        value === "orange"
+        value === "orange" ||
+        value === "space"
     );
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Modal from "../../components/ui/modal/Modal";
@@ -13,6 +13,7 @@ import {
 
 import { useWorkoutTimer } from "@workout-app/shared/timer";
 import { useRestTimerControls } from "@workout-app/shared/timer/rest";
+import { useCurrentWorkout } from "@workout-app/shared/currentWorkoutContext";
 
 import styles from "./WorkoutPage.module.css";
 
@@ -60,10 +61,20 @@ function hasCompletedSet(sets: WorkoutSet[]) {
 export default function WorkoutPage() {
     const { draftId } = useParams();
     const navigate = useNavigate();
+    const { setCurrentWorkoutId } = useCurrentWorkout();
 
-    const { start: startWorkoutTimer, state: workoutTimerState } =
-        useWorkoutTimer();
-    const { start: startRestTimer } = useRestTimerControls();
+    const {
+        start: startWorkoutTimer,
+        reset: resetWorkoutTimer,
+    } = useWorkoutTimer();
+
+    const {
+        start: startRestTimer,
+        reset: resetRestTimer,
+    } = useRestTimerControls();
+
+
+    const hasAutoStartedWorkoutTimer = useRef(false);
 
     const [selectedExercises, setSelectedExercises] = useState<SelectedExercise[]>(
         [],
@@ -108,10 +119,13 @@ export default function WorkoutPage() {
                     return;
                 }
 
+                setCurrentWorkoutId(draft._id);
+
                 const exercises = draft.exercises.map((exercise) => ({
                     _id: exercise.exerciseId,
                     name: exercise.exerciseName,
                 }));
+
 
                 const initialSetsByExercise = draft.exercises.reduce<
                     Record<string, WorkoutSet[]>
@@ -136,22 +150,17 @@ export default function WorkoutPage() {
         }
 
         loadDraft();
-    }, [draftId, navigate]);
+    }, [draftId, navigate, setCurrentWorkoutId]);
 
     useEffect(() => {
         if (
             selectedExercises.length > 0 &&
-            !workoutTimerState.isRunning &&
-            workoutTimerState.elapsedTime === 0
+            !hasAutoStartedWorkoutTimer.current
         ) {
             startWorkoutTimer();
+            hasAutoStartedWorkoutTimer.current = true;
         }
-    }, [
-        selectedExercises.length,
-        workoutTimerState.isRunning,
-        workoutTimerState.elapsedTime,
-        startWorkoutTimer,
-    ]);
+    }, [selectedExercises.length, startWorkoutTimer]);
 
     useEffect(() => {
         if (!draftId || !hasUserEditedSets || selectedExercises.length === 0) {
@@ -317,6 +326,11 @@ export default function WorkoutPage() {
             await saveAllExerciseSets();
 
             const savedWorkoutSession = await completeWorkoutDraftRequest(draftId);
+
+
+            resetWorkoutTimer();
+            resetRestTimer();
+            setCurrentWorkoutId(null);
 
             setOpenModal(false);
 

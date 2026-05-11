@@ -4,13 +4,34 @@ import { useAuth } from "../../context/AuthContext";
 import ThemeSelect from "../theme/ThemeSelect";
 import styles from "./Navbar.module.css";
 
+
+import { useCurrentWorkout } from "@workout-app/shared/currentWorkoutContext";
+import { useWorkoutTimer } from "@workout-app/shared/timer";
+import { formatElapsedDuration } from "@workout-app/shared/utils/formatElapsedTime";
+
 export default function Navbar() {
     const navigate = useNavigate();
     const { user, isAuthenticated, logout } = useAuth();
 
+    const { currentWorkoutId } = useCurrentWorkout();
+    const { state: timerState } = useWorkoutTimer();
+
+    const currentWorkoutPath = currentWorkoutId
+        ? `/workout/${currentWorkoutId}`
+        : null;
+
+    const shouldShowCurrentWorkout = isAuthenticated && currentWorkoutPath !== null;
+
+
     async function handleLogout() {
         await logout();
         navigate("/login");
+    }
+
+    function handleCurrentWorkout() {
+        if (!currentWorkoutPath) return;
+
+        navigate(currentWorkoutPath);
     }
 
     return (
@@ -78,6 +99,18 @@ export default function Navbar() {
                 <div className={styles.actions}>
                     <ThemeSelect />
 
+                    {shouldShowCurrentWorkout && (
+                        <>
+                            <Button variant="ghost" onClick={handleCurrentWorkout}>
+                                Current Workout
+                            </Button>
+
+                            <span className={styles.timerText}>
+                                {formatElapsedDuration(timerState.elapsedTime)}
+                            </span>
+                        </>
+                    )}
+
                     {isAuthenticated ? (
                         <>
                             <span className={styles.userText}>
@@ -99,6 +132,9 @@ export default function Navbar() {
                             </Button>
                         </>
                     )}
+
+
+
                 </div>
             </div>
         </nav>

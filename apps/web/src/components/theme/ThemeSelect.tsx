@@ -8,6 +8,7 @@ const themeOptions: { value: ColorTheme; label: string }[] = [
     { value: "pink", label: "Pink" },
     { value: "neon", label: "Neon" },
     { value: "orange", label: "Orange" },
+    { value: "space", label: "Space" },
 ];
 
 export default function ThemeSelect() {
