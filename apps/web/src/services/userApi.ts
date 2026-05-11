@@ -1,5 +1,5 @@
 
-import type { UpdateUserData } from "@workout-app/shared";
+import type { UpdateUserBody } from "@workout-app/shared";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api/v1";
 
@@ -42,7 +42,7 @@ export async function deleteUserRequest(id: string) {
     return data;
 }
 
-export async function updateUserRequest(id: string, userData: UpdateUserData) {
+export async function updateUserRequest(id: string, userData: UpdateUserBody) {
     const response = await fetch(`${API_URL}/users/${id}`, {
         method: "PATCH",
         headers: {

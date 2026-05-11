@@ -3,6 +3,7 @@ import Button from "../ui/button/Button";
 import { useAuth } from "../../context/AuthContext";
 import ThemeSelect from "../theme/ThemeSelect";
 import styles from "./Navbar.module.css";
+import Logo from '../../../../../public/moose_charging_kettlebell_clean_transparent.png';
 
 
 import { useCurrentWorkout } from "@workout-app/shared/currentWorkoutContext";
@@ -37,63 +38,69 @@ export default function Navbar() {
     return (
         <nav className={styles.navbar}>
             <div className={styles.inner}>
-                <button
-                    className={styles.brand}
-                    type="button"
-                    onClick={() => navigate(isAuthenticated ? "/" : "/")}
-                >
-                    Workout App
-                </button>
-
-                <div className={styles.links}>
-                    <NavLink
-                        to={isAuthenticated ? "/" : "/"}
-                        className={({ isActive }) =>
-                            `${styles.link} ${isActive ? styles.linkActive : ""}`.trim()
-                        }
+                <div className={styles.centerNav}>
+                    <button
+                        className={styles.brand}
+                        type="button"
+                        onClick={() => navigate("/")}
                     >
-                        Home
-                    </NavLink>
+                        <img
+                            src="/moose_charging_kettlebell_clean_transparent.png"
+                            alt="Moose logo"
+                            className={styles.logo}
+                        />
+                    </button>
 
-                    <NavLink
-                        to="/templates"
-                        className={({ isActive }) =>
-                            `${styles.link} ${isActive ? styles.linkActive : ""}`.trim()
-                        }
-                    >
-                        Templates
-                    </NavLink>
+                    <div className={styles.links}>
+                        <NavLink
+                            to="/"
+                            className={({ isActive }) =>
+                                `${styles.link} ${isActive ? styles.linkActive : ""}`.trim()
+                            }
+                        >
+                            Home
+                        </NavLink>
 
-                    <NavLink
-                        to="/library"
-                        className={({ isActive }) =>
-                            `${styles.link} ${isActive ? styles.linkActive : ""}`.trim()
-                        }
-                    >
-                        Library
-                    </NavLink>
+                        <NavLink
+                            to="/templates"
+                            className={({ isActive }) =>
+                                `${styles.link} ${isActive ? styles.linkActive : ""}`.trim()
+                            }
+                        >
+                            Templates
+                        </NavLink>
 
-                    {isAuthenticated && (
-                        <>
-                            <NavLink
-                                to="/create-exercise"
-                                className={({ isActive }) =>
-                                    `${styles.link} ${isActive ? styles.linkActive : ""}`.trim()
-                                }
-                            >
-                                Create Exercise
-                            </NavLink>
+                        <NavLink
+                            to="/library"
+                            className={({ isActive }) =>
+                                `${styles.link} ${isActive ? styles.linkActive : ""}`.trim()
+                            }
+                        >
+                            Library
+                        </NavLink>
 
-                            <NavLink
-                                to="/profile"
-                                className={({ isActive }) =>
-                                    `${styles.link} ${isActive ? styles.linkActive : ""}`.trim()
-                                }
-                            >
-                                Profile
-                            </NavLink>
-                        </>
-                    )}
+                        {isAuthenticated && (
+                            <>
+                                <NavLink
+                                    to="/create-exercise"
+                                    className={({ isActive }) =>
+                                        `${styles.link} ${isActive ? styles.linkActive : ""}`.trim()
+                                    }
+                                >
+                                    Create Exercise
+                                </NavLink>
+
+                                <NavLink
+                                    to="/profile"
+                                    className={({ isActive }) =>
+                                        `${styles.link} ${isActive ? styles.linkActive : ""}`.trim()
+                                    }
+                                >
+                                    Profile
+                                </NavLink>
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 <div className={styles.actions}>
@@ -132,7 +139,6 @@ export default function Navbar() {
                             </span>
                         </div>
                     )}
-
                 </div>
             </div>
         </nav>

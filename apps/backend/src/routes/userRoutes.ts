@@ -4,18 +4,20 @@ import { getAllUsers, getUserById, createUser, deleteUser, updateUser, changePas
 import { validateRequest } from "../middleware/validate";
 import { createUserSchema, userIdParamsSchema, changePasswordSchema, updateUserSchema } from "../schemas/userSchemas";
 import { requireAuth } from "../middleware/requireAuth";
+import { requireSelfOrAdmin } from "../middleware/requireSelfOrAdmin";
+
 
 const userRouter = Router();
 
 userRouter.get("/", requireAuth, getAllUsers);
-userRouter.get("/:id", requireAuth, validateRequest({ params: userIdParamsSchema }), getUserById);
+userRouter.get("/:id", requireAuth, validateRequest({ params: userIdParamsSchema }), requireSelfOrAdmin, getUserById);
 
 
 userRouter.post("/", validateRequest({ body: createUserSchema }), createUser);
 
-userRouter.patch("/:id", requireAuth, validateRequest({ params: userIdParamsSchema, body: updateUserSchema }), updateUser);
-userRouter.patch("/:id/password", requireAuth, validateRequest({ params: userIdParamsSchema, body: changePasswordSchema }), changePassword);
+userRouter.patch("/:id", requireAuth, validateRequest({ params: userIdParamsSchema, body: updateUserSchema }), requireSelfOrAdmin, updateUser);
+userRouter.patch("/:id/password", requireAuth, validateRequest({ params: userIdParamsSchema, body: changePasswordSchema }), requireSelfOrAdmin, changePassword);
 
-userRouter.delete("/:id", requireAuth, validateRequest({ params: userIdParamsSchema }), deleteUser);
+userRouter.delete("/:id", requireAuth, validateRequest({ params: userIdParamsSchema }), requireSelfOrAdmin, deleteUser);
 
 export default userRouter;

@@ -13,6 +13,8 @@ import workoutSessionRouter from "./routes/workoutSessionRoutes";
 import workoutDraftRouter from "./routes/workoutDraftRoutes";
 import { notFound } from "./middleware/notFound";
 import logger from "./middleware/logger";
+import errorHandler from "./middleware/errorHandler";
+import adminRouter from "./routes/adminRoutes";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,6 +29,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+app.use(logger);
 
 app.get("/", (_req, res) => {
   res.json({ message: "Backend is running" });
@@ -38,9 +41,10 @@ app.use("/api/workouts", workoutRouter);
 app.use("/api/exercises", exerciseRouter);
 app.use("/api/workout-sessions", workoutSessionRouter);
 app.use("/api/workout-drafts", workoutDraftRouter);
+app.use("/api/admin", adminRouter);
 
 app.use(notFound);
-app.use(logger);
+app.use(errorHandler);
 
 async function startServer(): Promise<void> {
   await connectDB();

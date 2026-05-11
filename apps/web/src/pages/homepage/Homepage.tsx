@@ -24,7 +24,7 @@ export default function Homepage() {
 
             <p className={styles.subtitle}>
               Create exercises, save workout templates, and start your next
-              training session faster.
+              training session-
             </p>
 
             <div className={styles.heroActions}>

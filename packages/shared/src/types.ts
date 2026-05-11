@@ -62,14 +62,12 @@ export interface UpdateUserInput {
     name?: string;
     email?: string;
     username?: string;
-    role?: UserRole;
 }
 
 export interface UpdateUserBody {
     name?: string;
     email?: string;
     username?: string;
-    role?: UserRole;
 }
 
 

@@ -4,6 +4,7 @@ import Exercise from "../models/Exercises";
 import WorkoutDraft from "../models/WorkoutDraft";
 import { createWorkoutSession } from "./workoutSessionService";
 import { ConflictError, NotFoundError, ValidationError } from "../errors/AppError";
+import type { WorkoutDraftStatus } from "../models/WorkoutDraft";
 
 interface CreateWorkoutDraftInput {
     selectedMuscleGroups?: unknown;
@@ -32,8 +33,16 @@ type CompletedWorkoutSet = {
     reps: number;
 };
 
-const editableStatuses = ["building", "active"];
+const editableStatuses = ["building", "active"] as const;
 const muscleOptionSet = new Set<string>(MUSCLE_OPTIONS);
+
+function isEditableStatus(
+    status: WorkoutDraftStatus,
+): status is (typeof editableStatuses)[number] {
+    return editableStatuses.includes(
+        status as (typeof editableStatuses)[number],
+    );
+}
 
 function normalizeMuscleGroups(value: unknown): Muscle[] {
     if (!Array.isArray(value)) {
@@ -461,7 +470,7 @@ export async function reorderWorkoutDraftExercises(
 ) {
     const draft = await getOwnedDraft(draftId, userId);
 
-    if (!editableStatuses.includes(draft.status)) {
+    if (!isEditableStatus(draft.status)) {
         throw new ConflictError("This draft cannot be reordered");
     }
 

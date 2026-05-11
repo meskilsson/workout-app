@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { updateUserRequest } from "../../services/userApi";
 import { useAuth } from "../../context/AuthContext";
-import type { UpdateUserData } from "@workout-app/shared";
+import type { UpdateUserBody } from "@workout-app/shared";
 import Button from "../ui/button/Button";
 
 export default function UpdateAccountForm() {
@@ -33,7 +33,7 @@ export default function UpdateAccountForm() {
         setIsLoading(true);
 
         try {
-            const userData: UpdateUserData = {
+            const userData: UpdateUserBody = {
                 name,
                 username,
                 email,

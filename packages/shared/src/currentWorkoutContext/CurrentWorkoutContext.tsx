@@ -7,6 +7,7 @@ import {
     type Dispatch,
     type ReactNode,
     type SetStateAction,
+    type ReactElement,
 } from "react";
 
 export type CurrentWorkoutStorage = {
@@ -32,7 +33,7 @@ const CurrentWorkoutContext = createContext<CurrentWorkoutContextValue | null>(n
 export function CurrentWorkoutProvider({
     children,
     storage,
-}: CurrentWorkoutProviderProps): JSX.Element {
+}: CurrentWorkoutProviderProps): ReactElement {
     const [currentWorkoutId, setCurrentWorkoutId] = useState<string | null>(null);
     const [hasHydrated, setHasHydrated] = useState(false);
 
