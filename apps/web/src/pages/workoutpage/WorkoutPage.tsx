@@ -44,6 +44,7 @@ type SelectedExercise = {
 type WorkoutSet = {
     weight: string;
     reps: string;
+    isCompleted: boolean;
 };
 
 type DraftSet = {
@@ -70,6 +71,7 @@ function draftSetToInputSet(set: DraftSet): WorkoutSet {
     return {
         weight: set.weight === null ? "" : String(set.weight),
         reps: set.reps === null ? "" : String(set.reps),
+        isCompleted: false,
     };
 }
 
@@ -199,7 +201,8 @@ function SortableWorkoutExerciseCard({
                             type="button"
                             variant="ghost"
                             size="small"
-                            className={styles.completeSetButton}
+                            className={`${styles.completeSetButton} ${set.isCompleted ? styles.completedSetButton : ""
+                                }`}
                             onClick={() => onCompleteSet(exercise._id, setIndex)}
                             aria-label="Complete set and start rest timer"
                         >
@@ -268,12 +271,22 @@ export default function WorkoutPage() {
         }),
     );
 
+    function toDraftSets(sets: WorkoutSet[]) {
+        return sets.map((set) => ({
+            weight: set.weight,
+            reps: set.reps,
+        }));
+    }
+
     function handleAddSet(exerciseId: string) {
         setHasUserEditedSets(true);
 
         setSetsByExercise((prev) => ({
             ...prev,
-            [exerciseId]: [...(prev[exerciseId] ?? []), { weight: "", reps: "" }],
+            [exerciseId]: [
+                ...(prev[exerciseId] ?? []),
+                { weight: "", reps: "", isCompleted: false },
+            ],
         }));
     }
 
@@ -319,7 +332,7 @@ export default function WorkoutPage() {
                     acc[exercise.exerciseId] =
                         exercise.sets.length > 0
                             ? exercise.sets.map(draftSetToInputSet)
-                            : [{ weight: "", reps: "" }];
+                            : [{ weight: "", reps: "", isCompleted: false }];
 
                     return acc;
                 }, {});
@@ -360,7 +373,7 @@ export default function WorkoutPage() {
                 for (const exercise of selectedExercises) {
                     await updateWorkoutDraftSetsRequest(draftId, {
                         exerciseId: exercise._id,
-                        sets: setsByExercise[exercise._id] ?? [],
+                        sets: toDraftSets(setsByExercise[exercise._id] ?? []),
                     });
                 }
             } catch (err) {
@@ -387,7 +400,7 @@ export default function WorkoutPage() {
         try {
             await updateWorkoutDraftSetsRequest(draftId, {
                 exerciseId,
-                sets: setsByExercise[exerciseId] ?? [],
+                sets: toDraftSets(setsByExercise[exerciseId] ?? []),
             });
         } finally {
             setIsSavingDraft(false);
@@ -405,7 +418,7 @@ export default function WorkoutPage() {
             for (const exercise of selectedExercises) {
                 await updateWorkoutDraftSetsRequest(draftId, {
                     exerciseId: exercise._id,
-                    sets: setsByExercise[exercise._id] ?? [],
+                    sets: toDraftSets(setsByExercise[exercise._id] ?? []),
                 });
             }
         } finally {
@@ -476,7 +489,7 @@ export default function WorkoutPage() {
         setSetsByExercise((prev) => ({
             ...prev,
             [exerciseId]: (prev[exerciseId] ?? []).map((set, i) =>
-                i === index ? { ...set, [field]: value } : set,
+                i === index ? { ...set, [field]: value, isCompleted: false } : set,
             ),
         }));
     }
@@ -507,6 +520,16 @@ export default function WorkoutPage() {
         try {
             setError("");
             await saveExerciseSets(exerciseId);
+
+            setSetsByExercise((prev) => ({
+                ...prev,
+                [exerciseId]: (prev[exerciseId] ?? []).map((currentSet, i) =>
+                    i === index
+                        ? { ...currentSet, isCompleted: true }
+                        : currentSet,
+                ),
+            }));
+
             startRestTimer();
         } catch (err) {
             setError(

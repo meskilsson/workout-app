@@ -84,43 +84,43 @@
 
 /* Neutral dark theme */
 :root[data-theme="dark"] {
-        --color-background: #0a0a0a;
+        --color-background: #080808;
         --color-background-soft: #111111;
-        --color-background-deep: #050505;
+        --color-background-deep: #030303;
 
         --color-surface: #171717;
-        --color-surface-light: #242424;
-        --color-surface-soft: rgba(255, 255, 255, 0.055);
+        --color-surface-light: #272727;
+        --color-surface-soft: rgba(255, 255, 255, 0.08);
         --color-surface-strong: #0f0f0f;
 
-        --color-text: #f5f5f5;
-        --color-text-soft: rgba(245, 245, 245, 0.82);
-        --color-text-muted: #a3a3a3;
+        --color-text: #ffffff;
+        --color-text-soft: #e2e2e2;
+        --color-text-muted: #b8b8b8;
 
-        --color-primary: #e5e5e5;
-        --color-primary-hover: #ffffff;
-        --color-primary-soft: rgba(255, 255, 255, 0.1);
-        --color-primary-border: rgba(255, 255, 255, 0.24);
+        --color-primary: #b8b8b8;
+        --color-primary-hover: #d4d4d4;
+        --color-primary-soft: rgba(184, 184, 184, 0.14);
+        --color-primary-border: rgba(184, 184, 184, 0.36);
         --color-on-primary: #111111;
 
-        --color-border: #333333;
-        --color-border-soft: rgba(255, 255, 255, 0.12);
-        --color-overlay: rgba(0, 0, 0, 0.66);
+        --color-border: #4a4a4a;
+        --color-border-soft: rgba(255, 255, 255, 0.18);
+        --color-overlay: rgba(0, 0, 0, 0.72);
 
-        --hero-image-filter: grayscale(0.55) contrast(1.15) brightness(0.62);
+        --hero-image-filter: grayscale(0.5) contrast(1.18) brightness(0.58);
         --hero-overlay: linear-gradient(135deg,
-                        rgba(0, 0, 0, 0.72),
+                        rgba(0, 0, 0, 0.78),
                         var(--color-overlay));
 
-        --color-danger: #ef4444;
-        --color-danger-hover: #dc2626;
-        --color-danger-soft: rgba(239, 68, 68, 0.14);
-        --color-on-danger: #ffffff;
+        --color-danger: #ff8a8a;
+        --color-danger-hover: #ffb0b0;
+        --color-danger-soft: rgba(255, 138, 138, 0.18);
+        --color-on-danger: #260000;
 
-        --color-success: #22c55e;
-        --color-success-hover: #16a34a;
-        --color-success-soft: rgba(34, 197, 94, 0.14);
-        --color-on-success: #ffffff;
+        --color-success: #a3a3a3;
+        --color-success-hover: #c7c7c7;
+        --color-success-soft: rgba(163, 163, 163, 0.16);
+        --color-on-success: #111111;
 
         --gradient-background:
                 radial-gradient(circle at top, rgba(255, 255, 255, 0.045), transparent 30%),
@@ -134,8 +134,8 @@
                         var(--color-surface));
 
         --gradient-primary: linear-gradient(135deg,
-                        var(--color-primary),
-                        var(--color-primary-hover));
+                        #8f8f8f,
+                        #cfcfcf);
 
         --gradient-danger: linear-gradient(135deg,
                         var(--color-danger),
@@ -145,12 +145,15 @@
                         var(--color-success),
                         var(--color-success-hover));
 
-        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.28);
-        --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.38);
-        --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.48);
-        --shadow-focus: 0 0 0 3px var(--color-primary-soft);
-        --color-dummy-muscle-secondary: rgba(226, 99, 99, 0.9);
-        --color-dummy-muscle-primary: #f32727;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.32);
+        --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.44);
+        --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.54);
+        --shadow-focus:
+                0 0 0 3px var(--color-background),
+                0 0 0 6px var(--color-primary);
+
+        --color-dummy-muscle-secondary: #9ca3af;
+        --color-dummy-muscle-primary: #d4d4d4;
 }
 
 /* Light theme */

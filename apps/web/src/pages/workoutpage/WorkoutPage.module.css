@@ -23,6 +23,11 @@
     padding: 16px 16px 18px;
     color: var(--color-text);
     box-shadow: var(--shadow-sm);
+    cursor: grab;
+}
+
+.exerciseCard:active {
+    cursor: grabbing;
 }
 
 .exerciseHeader {
@@ -30,6 +35,12 @@
     justify-content: space-between;
     align-items: flex-start;
     gap: 1rem;
+}
+
+.exerciseTitleRow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .exerciseName {
@@ -129,6 +140,19 @@
     box-shadow: var(--shadow-md);
 }
 
+.completeSetButton.completedSetButton {
+    background: var(--color-success) !important;
+    color: var(--color-on-success) !important;
+    border-color: var(--color-success) !important;
+    box-shadow: 0 0 0 3px var(--color-success-soft);
+}
+
+.completeSetButton.completedSetButton:hover {
+    background: var(--color-success-hover) !important;
+    color: var(--color-on-success) !important;
+    border-color: var(--color-success-hover) !important;
+}
+
 .deleteButton.deleteButton {
     width: 48px;
     min-width: 48px;
@@ -192,26 +216,6 @@
 .modalText {
     margin: 0;
     color: var(--color-text-soft);
-}
-
-.dragHandle {
-    border: none;
-    background: transparent;
-    cursor: grab;
-    font-size: 1.25rem;
-    line-height: 1;
-    padding: 0.25rem 0.5rem;
-    color: inherit;
-}
-
-.dragHandle:active {
-    cursor: grabbing;
-}
-
-.exerciseTitleRow {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
 }
 
 @media (max-width: 640px) {

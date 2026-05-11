@@ -14,11 +14,12 @@
     width: 100%;
     max-width: var(--max-width);
     margin: 0 auto;
-    padding: 0.9rem 1rem;
+    padding: 0.85rem 1.25rem;
+
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto max-content minmax(0, 1fr);
     align-items: center;
-    gap: 1rem;
+    column-gap: 2rem;
 }
 
 .brand {
@@ -30,21 +31,25 @@
     letter-spacing: 0.01em;
     cursor: pointer;
     padding: 0;
+    white-space: nowrap;
 }
 
 .links {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0.35rem;
+    flex-wrap: nowrap;
+    white-space: nowrap;
 }
 
 .link {
     color: var(--color-text-soft);
     text-decoration: none;
-    padding: 0.55rem 0.9rem;
+    padding: 0.5rem 0.7rem;
     border-radius: var(--radius-pill);
+    white-space: nowrap;
+
     transition:
         background 0.2s ease,
         color 0.2s ease,
@@ -67,28 +72,94 @@
     align-items: center;
     justify-content: flex-end;
     gap: 0.75rem;
-    flex-wrap: wrap;
+    min-width: 0;
+    flex-wrap: nowrap;
 }
 
 .userText {
     color: var(--color-text-soft);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    max-width: 8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.currentWorkout {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-left: 1rem;
+    margin-left: 0.25rem;
+    border-left: 1px solid var(--color-border-soft);
     white-space: nowrap;
 }
 
-@media (max-width: 900px) {
+.timerText {
+    color: var(--color-text);
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+
+    padding: 0.35rem 0.65rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-primary-soft);
+    border: 1px solid var(--color-primary-border);
+}
+
+/* Medium screens: put links on their own row */
+@media (max-width: 1180px) {
+    .inner {
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-areas:
+            "brand actions"
+            "links links";
+        row-gap: 0.75rem;
+    }
+
+    .brand {
+        grid-area: brand;
+    }
+
+    .links {
+        grid-area: links;
+        justify-content: center;
+    }
+
+    .actions {
+        grid-area: actions;
+    }
+}
+
+/* Small screens: stack everything cleanly */
+@media (max-width: 760px) {
     .inner {
         grid-template-columns: 1fr;
-        justify-items: start;
+        grid-template-areas:
+            "brand"
+            "links"
+            "actions";
+        row-gap: 0.75rem;
+        align-items: start;
     }
 
     .links {
         justify-content: flex-start;
+        flex-wrap: wrap;
+        width: 100%;
     }
 
     .actions {
         justify-content: flex-start;
         flex-wrap: wrap;
         width: 100%;
+    }
+
+    .currentWorkout {
+        width: 100%;
+        padding-left: 0;
+        margin-left: 0;
+        border-left: none;
+        justify-content: space-between;
     }
 }

@@ -301,7 +301,8 @@ export default function WorkoutSummaryPage() {
           <div>
             <h2 className={styles.sectionTitle}>Selected exercises</h2>
             <p className={styles.sectionText}>
-              These exercises will be included in your workout session.
+              These exercises will be included in your workout session. <br />
+              Drag and drop to re-order exercises.
             </p>
           </div>
         </div>

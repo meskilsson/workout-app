@@ -99,18 +99,6 @@ export default function Navbar() {
                 <div className={styles.actions}>
                     <ThemeSelect />
 
-                    {shouldShowCurrentWorkout && (
-                        <>
-                            <Button variant="ghost" onClick={handleCurrentWorkout}>
-                                Current Workout
-                            </Button>
-
-                            <span className={styles.timerText}>
-                                {formatElapsedDuration(timerState.elapsedTime)}
-                            </span>
-                        </>
-                    )}
-
                     {isAuthenticated ? (
                         <>
                             <span className={styles.userText}>
@@ -133,7 +121,17 @@ export default function Navbar() {
                         </>
                     )}
 
+                    {shouldShowCurrentWorkout && (
+                        <div className={styles.currentWorkout}>
+                            <Button variant="ghost" onClick={handleCurrentWorkout}>
+                                Current Workout
+                            </Button>
 
+                            <span className={styles.timerText}>
+                                {formatElapsedDuration(timerState.elapsedTime)}
+                            </span>
+                        </div>
+                    )}
 
                 </div>
             </div>
