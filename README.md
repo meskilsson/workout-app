@@ -4,34 +4,16 @@ A full-stack workout tracking app for building training sessions, selecting exer
 
 The main purpose of this app is for self-use, hoping to be able to build a mobile app with React Native once the web MVP is done.
 
-This project is currently **pre-MVP and in active development**. The core workout flow is already taking shape, while UI polish, screenshots, deployment, templates, tests, and production hardening are still planned.
+This project is currently **pre-MVP and in active development**. The core workout flow is already taking shape, while UI polish, deployment, templates, tests, and production hardening are still planned. Screenshot galleries have been added and will be updated as the UI evolves.
 
 ## Screenshots
 
+Screenshots are organized by theme and body model so the main README stays easy to scan. The app is still in active development, so the UI may change as the MVP becomes more stable.
 
-Screenshots will be updated as the MVP UI improves and changes.
-
-![Homepage](docs/screenshots/Homepage_Charcoal.png)
-
-![Exercise Library](docs/screenshots/Library_Charcoal.png)
-
-![Muscle Group Selection](docs/screenshots/Muscle_Group_Select_Charcoal.png)
-
-![Exercise Selection](docs/screenshots/Exercise_Select_Charcoal.png)
-
-![Workout Summary](docs/screenshots/Workout_Summary_Charcoal.png)
-
-![Active Workout](docs/screenshots/Workout_Charcoal.png)
-
-![Workout Result](docs/screenshots/Workout_Result_Charcoal.png)
-
-![Profile](docs/screenshots/Profile_Charcoal.png)
-
-![Workout History](docs/screenshots/Workout_History_Charcoal.png)
-
-![Workout History Details](docs/screenshots/Workout_History_ById_Charcoal.png)
-
-![Workout History Details Continued](docs/screenshots/Workout_History_ById2_Charcoal.png)
+| Theme | Body model | Gallery |
+| --- | --- | --- |
+| Charcoal | Male | [View screenshots](docs/screenshots/charcoal-male) |
+| Pink | Female | [View screenshots](docs/screenshots/pink-female) |
 
 ## Project status
 
@@ -43,7 +25,7 @@ Current focus:
 - Connecting frontend and backend features
 - Saving user-created exercises and completed workouts
 - Improving the user experience before MVP
-- Preparing the project for screenshots, deployment, and portfolio presentation
+- Preparing the project for deployment and portfolio presentation
 
 ## Features
 
@@ -286,7 +268,6 @@ This project is still in active development. Some areas are intentionally unfini
 
 Known limitations / planned improvements:
 
-- Screenshots are not added yet
 - Templates page is still a placeholder
 - Admin dashboard is still a placeholder
 - Native app is currently a scaffold
@@ -299,7 +280,7 @@ Known limitations / planned improvements:
 
 Potential next steps before presenting this as MVP-ready:
 
-- Add screenshots to the README
+- Keep screenshot galleries updated as the UI changes
 - Add a deployed demo link
 - Polish responsive layout on mobile and tablet
 - Finish workout templates
