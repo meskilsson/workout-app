@@ -10,6 +10,18 @@ This project is currently **pre-MVP and in active development**. The core workou
 
 Screenshots are organized by theme and body model so the main README stays easy to scan. The app is still in active development, so the UI may change as the MVP becomes more stable.
 
+There are currently 7 different themes:
+
+- Charcoal
+- Dark
+- Light
+- Pink
+- Neon
+- Orange
+- Space
+
+Here is just an example of two of the themes with a male and female muscle dummy.
+
 | Theme | Body model | Gallery |
 | --- | --- | --- |
 | Charcoal | Male | [View screenshots](docs/screenshots/charcoal-male) |
