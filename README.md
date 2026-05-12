@@ -6,7 +6,30 @@ This project is currently **pre-MVP and in active development**. The core workou
 
 ## Screenshots
 
-Screenshots will be added once the MVP UI is more stable.
+
+Screenshots will be updated as the MVP UI improves and changes.
+
+![Homepage](docs/screenshots/Homepage_Charcoal.png)
+
+![Exercise Library](docs/screenshots/Library_Charcoal.png)
+
+![Muscle Group Selection](docs/screenshots/Muscle_Group_Select_Charcoal.png)
+
+![Exercise Selection](docs/screenshots/Exercise_Select_Charcoal.png)
+
+![Workout Summary](docs/screenshots/Workout_Summary_Charcoal.png)
+
+![Active Workout](docs/screenshots/Workout_Charcoal.png)
+
+![Workout Result](docs/screenshots/Workout_Result_Charcoal.png)
+
+![Profile](docs/screenshots/Profile_Charcoal.png)
+
+![Workout History](docs/screenshots/Workout_History_Charcoal.png)
+
+![Workout History Details](docs/screenshots/Workout_History_ById_Charcoal.png)
+
+![Workout History Details Continued](docs/screenshots/Workout_History_ById2_Charcoal.png)
 
 ## Project status
 
