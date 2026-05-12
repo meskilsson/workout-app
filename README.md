@@ -8,34 +8,6 @@ This project is currently **pre-MVP and in active development**. The core workou
 
 Screenshots will be added once the MVP UI is more stable.
 
-Suggested screenshots to add later:
-
-- Home page
-- Exercise library
-- Muscle group selection
-- Exercise selection
-- Active workout screen
-- Workout result / summary
-- Profile and workout history
-
-Recommended folder structure:
-
-```text
-/docs/screenshots/home.png
-/docs/screenshots/library.png
-/docs/screenshots/workout-builder.png
-/docs/screenshots/active-workout.png
-/docs/screenshots/workout-result.png
-/docs/screenshots/profile-history.png
-```
-
-When the screenshots are ready, you can add them here like this:
-
-```md
-![Home page](docs/screenshots/home.png)
-![Active workout](docs/screenshots/active-workout.png)
-```
-
 ## Project status
 
 The app is not meant to be presented as a finished product yet. It is a work in progress focused on building a strong full-stack foundation.
