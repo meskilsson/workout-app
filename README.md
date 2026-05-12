@@ -2,6 +2,8 @@
 
 A full-stack workout tracking app for building training sessions, selecting exercises by muscle group, logging sets, and saving workout history.
 
+The main purpose of this app is for self-use, hoping to be able to build a mobile app with React Native once the web MVP is done.
+
 This project is currently **pre-MVP and in active development**. The core workout flow is already taking shape, while UI polish, screenshots, deployment, templates, tests, and production hardening are still planned.
 
 ## Screenshots
