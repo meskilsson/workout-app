@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import * as exerciseService from "../services/exerciseService";
-import { UnauthorizedError } from "../errors/AppError";
+import { UnauthorizedError, ValidationError } from "../errors/AppError";
+import { parseExerciseQuery } from "../utils/parseExerciseQuery";
 
 export async function createExercise(
     req: Request,
@@ -20,13 +21,14 @@ export async function createExercise(
 }
 
 export async function getPublicExercises(
-    _req: Request,
+    req: Request,
     res: Response,
     next: NextFunction,
 ): Promise<void> {
     try {
-        const exercises = await exerciseService.getPublicExercises();
-        res.status(200).json(exercises);
+        const options = parseExerciseQuery(req);
+        const result = await exerciseService.getPublicExercises(options);
+        res.status(200).json(result);
     } catch (error) {
         next(error);
     }
@@ -42,8 +44,14 @@ export async function getExerciseLibrary(
             throw new UnauthorizedError("Unauthorized");
         }
 
-        const exercises = await exerciseService.getExerciseLibrary(req.user.id);
-        res.status(200).json(exercises);
+        const options = parseExerciseQuery(req);
+
+        const result = await exerciseService.getExerciseLibrary(
+            req.user.id,
+            options,
+        );
+
+        res.status(200).json(result);
     } catch (error) {
         next(error);
     }

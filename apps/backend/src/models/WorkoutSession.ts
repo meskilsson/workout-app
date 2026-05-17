@@ -16,6 +16,9 @@ export interface IWorkoutSession {
     exercises: WorkoutSessionExercise[];
     startedAt: Date;
     endedAt: Date;
+    deletedAt?: Date | null;
+    deletedBy?: Types.ObjectId | null;
+    deleteReason?: string | null;
 };
 
 const workoutSetSchema = new Schema<WorkoutSet>(
@@ -80,6 +83,20 @@ const workoutSessionSchema = new Schema<IWorkoutSession>(
         endedAt: {
             type: Date,
             required: [true, "Workout end time is required"],
+        },
+        deletedAt: {
+            type: Date,
+            default: null,
+        },
+        deletedBy: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            default: null,
+        },
+        deleteReason: {
+            type: String,
+            trim: true,
+            default: null,
         },
     },
     {

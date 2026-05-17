@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import { Types } from "mongoose";
 
 export interface IUser {
   name: string;
@@ -7,6 +8,11 @@ export interface IUser {
   passwordHash: string;
   profileImage?: string | null;
   role: "user" | "admin";
+  deletedAt?: Date | null;
+  deletedBy?: Types.ObjectId | null;
+  deleteReason?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 const userSchema = new Schema<IUser>(
@@ -49,7 +55,21 @@ const userSchema = new Schema<IUser>(
       type: String,
       enum: ["user", "admin"],
       default: "user",
-    }
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+    deletedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    deleteReason: {
+      type: String,
+      trim: true,
+      default: null,
+    },
   },
   {
     timestamps: true,

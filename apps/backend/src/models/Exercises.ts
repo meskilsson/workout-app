@@ -23,6 +23,9 @@ export interface IExercise {
     imageUrl?: string;
     isCustom: boolean;
     createdBy?: Types.ObjectId | null;
+    deletedAt?: Date | null;
+    deletedBy?: Types.ObjectId | null;
+    deleteReason?: string | null;
 }
 
 const exerciseSchema = new Schema<IExercise>(
@@ -81,6 +84,20 @@ const exerciseSchema = new Schema<IExercise>(
         createdBy: {
             type: Schema.Types.ObjectId,
             ref: "User",
+            default: null,
+        },
+        deletedAt: {
+            type: Date,
+            default: null,
+        },
+        deletedBy: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            default: null,
+        },
+        deleteReason: {
+            type: String,
+            trim: true,
             default: null,
         },
     },

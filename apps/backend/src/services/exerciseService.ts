@@ -34,6 +34,12 @@ interface UpdateExerciseInput {
     imageUrl: string;
 }
 
+type GetExercisesOptions = {
+    page: number;
+    limit: number;
+    search?: string;
+};
+
 function escapeRegex(value: string) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -84,21 +90,88 @@ export async function createExercise(
     return exercise;
 }
 
-export async function getPublicExercises() {
-    const exercises = await Exercise.find({
-        isCustom: false,
-        createdBy: null,
-    }).sort({ name: 1 });
-
-    return exercises;
+type GetPublicExercisesOptions = {
+    page: number;
+    limit: number;
+    search?: string;
 }
 
-export async function getExerciseLibrary(userId: string) {
-    const exercises = await Exercise.find({
-        $or: [{ isCustom: false, createdBy: null }, { createdBy: userId }],
-    }).sort({ name: 1 });
+export async function getPublicExercises({ page, limit, search }: GetPublicExercisesOptions) {
 
-    return exercises;
+    const skip = (page - 1) * limit;
+
+    const filter: Record<string, unknown> = {
+        isCustom: false,
+        createdBy: null,
+    };
+
+    if (search) {
+        const searchRegex = new RegExp(escapeRegex(search), "i");
+
+        filter.$or = [
+            { name: searchRegex },
+            { description: searchRegex },
+            { instructions: searchRegex },
+        ];
+    }
+
+    const [exercises, total] = await Promise.all([
+        Exercise.find(filter).sort({ name: 1 }).skip(skip).limit(limit),
+        Exercise.countDocuments(filter),
+    ]);
+
+    return {
+        success: true,
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPreviousPage: page > 1,
+        exercises,
+    };
+}
+
+export async function getExerciseLibrary(userId: string, { page, limit, search }: GetExercisesOptions) {
+    const skip = (page - 1) * limit;
+
+    const accessFilter = {
+        $or: [{ isCustom: false, createdBy: null }, { createdBy: userId }],
+    };
+
+    const filters: Record<string, unknown>[] = [accessFilter];
+
+    if (search) {
+        const searchRegex = new RegExp(escapeRegex(search), "i");
+
+        filters.push({
+            $or: [
+                { name: searchRegex },
+                { description: searchRegex },
+                { instructions: searchRegex },
+            ],
+        });
+    }
+
+    const filter = {
+        $and: filters,
+    };
+
+    const [exercises, total] = await Promise.all([
+        Exercise.find(filter).sort({ name: 1 }).skip(skip).limit(limit),
+        Exercise.countDocuments(filter),
+    ]);
+
+    return {
+        success: true,
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPreviousPage: page > 1,
+        exercises,
+    };
 }
 
 export async function getExerciseById(id: string) {

@@ -19,7 +19,7 @@ export async function createUser(
 }
 
 export async function getAllUsers(
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> {
