@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import * as exerciseService from "../services/exerciseService";
-import { UnauthorizedError, ValidationError } from "../errors/AppError";
+import { UnauthorizedError } from "../errors/AppError";
 import { parseExerciseQuery } from "../utils/parseExerciseQuery";
 
 export async function createExercise(
