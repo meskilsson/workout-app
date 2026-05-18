@@ -1,48 +1,16 @@
 import Exercise from "../models/Exercises";
-import type {
-    Muscle,
-    Equipment,
-    Difficulty,
-    ExerciseType,
-} from "@workout-app/shared";
 import { Types } from "mongoose";
 import { ConflictError, ValidationError, NotFoundError, ForbiddenError } from "../errors/AppError";
+import { escapeRegex } from "../utils/escapeRegex";
+import { CreateExerciseInput, UpdateExerciseInput } from "@workout-app/shared";
+import { buildSearchFilter, buildMuscleFilter } from "../utils/exerciseFilters";
+import { findPaginatedExercises } from "./exercisePagination";
+import type { GetExercisesOptions } from "@workout-app/shared";
 
-interface CreateExerciseInput {
-    name: string;
-    description?: string;
-    instructions?: string;
-    exerciseType?: ExerciseType;
-    primaryMuscles?: Muscle[];
-    secondaryMuscles?: Muscle[];
-    equipment?: Equipment;
-    difficulty?: Difficulty;
-    videoUrl?: string;
-    imageUrl?: string;
-}
 
-interface UpdateExerciseInput {
-    name?: string;
-    description?: string;
-    instructions?: string;
-    exerciseType?: ExerciseType;
-    primaryMuscles?: Muscle[];
-    secondaryMuscles?: Muscle[];
-    equipment?: Equipment;
-    difficulty?: Difficulty;
-    videoUrl?: string;
-    imageUrl: string;
-}
 
-type GetExercisesOptions = {
-    page: number;
-    limit: number;
-    search?: string;
-};
 
-function escapeRegex(value: string) {
-    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
+
 
 export async function createExercise(
     exerciseData: CreateExerciseInput,
@@ -90,88 +58,58 @@ export async function createExercise(
     return exercise;
 }
 
-type GetPublicExercisesOptions = {
-    page: number;
-    limit: number;
-    search?: string;
-}
 
-export async function getPublicExercises({ page, limit, search }: GetPublicExercisesOptions) {
 
-    const skip = (page - 1) * limit;
+export async function getPublicExercises({ page, limit, search, muscles }: GetExercisesOptions) {
 
-    const filter: Record<string, unknown> = {
-        isCustom: false,
-        createdBy: null,
-    };
 
-    if (search) {
-        const searchRegex = new RegExp(escapeRegex(search), "i");
+    const filters: Record<string, unknown>[] = [
+        {
+            isCustom: false,
+            createdBy: null,
+        },
+    ];
 
-        filter.$or = [
-            { name: searchRegex },
-            { description: searchRegex },
-            { instructions: searchRegex },
-        ];
+    if (muscles && muscles.length > 0) {
+        filters.push(buildMuscleFilter(muscles));
     }
 
-    const [exercises, total] = await Promise.all([
-        Exercise.find(filter).sort({ name: 1 }).skip(skip).limit(limit),
-        Exercise.countDocuments(filter),
-    ]);
-
-    return {
-        success: true,
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasNextPage: page * limit < total,
-        hasPreviousPage: page > 1,
-        exercises,
-    };
-}
-
-export async function getExerciseLibrary(userId: string, { page, limit, search }: GetExercisesOptions) {
-    const skip = (page - 1) * limit;
-
-    const accessFilter = {
-        $or: [{ isCustom: false, createdBy: null }, { createdBy: userId }],
-    };
-
-    const filters: Record<string, unknown>[] = [accessFilter];
-
     if (search) {
-        const searchRegex = new RegExp(escapeRegex(search), "i");
-
-        filters.push({
-            $or: [
-                { name: searchRegex },
-                { description: searchRegex },
-                { instructions: searchRegex },
-            ],
-        });
+        filters.push(buildSearchFilter(search));
     }
 
     const filter = {
         $and: filters,
     };
 
-    const [exercises, total] = await Promise.all([
-        Exercise.find(filter).sort({ name: 1 }).skip(skip).limit(limit),
-        Exercise.countDocuments(filter),
-    ]);
 
-    return {
-        success: true,
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasNextPage: page * limit < total,
-        hasPreviousPage: page > 1,
-        exercises,
+    return findPaginatedExercises(filter, page, limit);
+}
+
+export async function getExerciseLibrary(userId: string, { page, limit, search, muscles }: GetExercisesOptions) {
+    const filters: Record<string, unknown>[] = [
+        {
+            $or: [
+                { isCustom: false },
+                { createdBy: userId },
+            ],
+        },
+    ];
+
+
+    if (muscles && muscles.length > 0) {
+        filters.push(buildMuscleFilter(muscles));
+    }
+
+    if (search) {
+        filters.push(buildSearchFilter(search));
+    }
+
+    const filter = {
+        $and: filters,
     };
+
+    return findPaginatedExercises(filter, page, limit);
 }
 
 export async function getExerciseById(id: string) {
