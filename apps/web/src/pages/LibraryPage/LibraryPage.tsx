@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -9,35 +10,32 @@ import {
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
-
-import { muscleSearchAliases } from "@workout-app/shared";
+import type { Exercise } from "@workout-app/shared";
+import { usePaginationScroll } from "../../hooks/usePaginationScroll";
 
 import styles from "./LibraryPage.module.css";
 
-type Exercise = {
-    _id: string;
-    name: string;
-    primaryMuscles?: string[];
-    secondaryMuscles?: string[];
-    exerciseType?: "strength" | "cardio" | "mobility";
-    equipment?:
-    | "bodyweight"
-    | "dumbbell"
-    | "barbell"
-    | "machine"
-    | "kettlebell"
-    | "band";
-    difficulty?: "beginner" | "intermediate" | "advanced";
-    isCustom: boolean;
-};
+
 
 export default function LibraryPage() {
     const { isAuthenticated } = useAuth();
+    const navigate = useNavigate();
 
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+
+
     const [searchTerm, setSearchTerm] = useState("");
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+
+    const [limit] = useState(12);
+    const [total, setTotal] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+
+    const { page, setPage, pageTopRef, handlePageChange } = usePaginationScroll<HTMLDivElement>(totalPages)
 
     useEffect(() => {
         async function loadExercises() {
@@ -45,56 +43,44 @@ export default function LibraryPage() {
             setIsLoading(true);
 
             try {
-                const data = isAuthenticated
-                    ? await getExerciseLibraryRequest()
-                    : await getPublicExercisesRequest();
 
-                setExercises(data);
+                const options = {
+                    page,
+                    limit,
+                    search: debouncedSearchTerm
+                };
+
+                const data = isAuthenticated
+                    ? await getExerciseLibraryRequest(options)
+                    : await getPublicExercisesRequest(options);
+
+                setExercises(data.exercises);
+                setTotal(data.total);
+                setTotalPages(data.totalPages);
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to load exercises");
             } finally {
                 setIsLoading(false);
+                setHasLoadedOnce(true);
             }
         }
 
         loadExercises();
-    }, [isAuthenticated]);
+    }, [isAuthenticated, page, limit, debouncedSearchTerm]);
 
-    const filteredExercises = useMemo(() => {
-        const normalizedSearch = searchTerm.trim().toLowerCase();
+    useEffect(() => {
+        const timeoutId = window.setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm.trim());
+            setPage(1);
+        }, 300);
 
-        if (!normalizedSearch) {
-            return exercises;
+        return () => {
+            window.clearTimeout(timeoutId);
         }
+    }, [searchTerm, setPage])
 
-        const muscleAliases = muscleSearchAliases[normalizedSearch] ?? [];
 
-        return exercises.filter((exercise) => {
-            const primaryMuscles =
-                exercise.primaryMuscles?.map((muscle) => muscle.toLowerCase()) ?? [];
-
-            const secondaryMuscles =
-                exercise.secondaryMuscles?.map((muscle) => muscle.toLowerCase()) ?? [];
-
-            const allMuscles = [...primaryMuscles, ...secondaryMuscles];
-
-            const matchesAlias =
-                muscleAliases.length > 0 &&
-                muscleAliases.some((muscle) => allMuscles.includes(muscle));
-
-            return (
-                exercise.name.toLowerCase().includes(normalizedSearch) ||
-                exercise.exerciseType?.toLowerCase().includes(normalizedSearch) ||
-                exercise.equipment?.toLowerCase().includes(normalizedSearch) ||
-                exercise.difficulty?.toLowerCase().includes(normalizedSearch) ||
-                primaryMuscles.some((muscle) => muscle.includes(normalizedSearch)) ||
-                secondaryMuscles.some((muscle) => muscle.includes(normalizedSearch)) ||
-                matchesAlias
-            );
-        });
-    }, [exercises, searchTerm]);
-
-    if (isLoading) {
+    if (isLoading && !hasLoadedOnce) {
         return (
             <Box className={styles.page}>
                 <div className={styles.stateCard}>
@@ -120,18 +106,18 @@ export default function LibraryPage() {
 
     return (
         <Box className={styles.page}>
-            <div className={styles.header}>
+            <div ref={pageTopRef} className={styles.header}>
                 <div>
                     <p className={styles.kicker}>Exercise library</p>
                     <h1 className={styles.title}>Library</h1>
                     <p className={styles.subtitle}>
                         Browse exercises by muscle, equipment, type, or difficulty.
                     </p>
+                    <p className={styles.subtitle}>Click an exercise for more details.</p>
                 </div>
 
                 <div className={styles.countBadge}>
-                    {filteredExercises.length} exercise
-                    {filteredExercises.length === 1 ? "" : "s"}
+                    {total} exercise{total === 1 ? "" : "s"}
                 </div>
             </div>
 
@@ -139,16 +125,16 @@ export default function LibraryPage() {
                 <input
                     className={styles.searchInput}
                     type="text"
-                    placeholder="Search exercises, muscles, or equipment..."
+                    placeholder="Search exercises..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
 
-            {filteredExercises.length > 0 ? (
+            {exercises.length > 0 ? (
                 <div className={styles.exerciseGrid}>
-                    {filteredExercises.map((exercise) => (
-                        <Card key={exercise._id} className={styles.exerciseCard}>
+                    {exercises.map((exercise) => (
+                        <Card key={exercise._id} className={styles.exerciseCard} onClick={() => navigate(`/exercises/${exercise._id}`)}>
                             <div className={styles.exerciseCardTop}>
                                 <div>
                                     <h2 className={styles.exerciseName}>{exercise.name}</h2>
@@ -220,6 +206,32 @@ export default function LibraryPage() {
             ) : (
                 <div className={styles.stateCard}>
                     <p className={styles.stateText}>No exercises found.</p>
+                </div>
+            )}
+
+            {totalPages > 1 && (
+                <div className={styles.pagination}>
+                    <button
+                        type="button"
+                        className={styles.pageButton}
+                        disabled={page === 1}
+                        onClick={() => handlePageChange(page - 1)}
+                    >
+                        Previous
+                    </button>
+
+                    <span className={styles.pageInfo}>
+                        Page {page} of {totalPages}
+                    </span>
+
+                    <button
+                        type="button"
+                        className={styles.pageButton}
+                        disabled={page === totalPages}
+                        onClick={() => handlePageChange(page + 1)}
+                    >
+                        Next
+                    </button>
                 </div>
             )}
         </Box>
