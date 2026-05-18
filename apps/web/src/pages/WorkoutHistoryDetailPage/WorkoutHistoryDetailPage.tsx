@@ -82,8 +82,14 @@ export default function WorkoutHistoryDetailPage() {
             setIsLoadingMuscles(true);
 
             try {
-                const data = await getExerciseLibraryRequest();
-                setExerciseLibrary(data);
+
+                const options = {
+                    page: 1,
+                    limit: 100,
+                }
+
+                const data = await getExerciseLibraryRequest(options);
+                setExerciseLibrary(data.exercises);
             } catch (err) {
                 setMuscleError(
                     err instanceof Error
