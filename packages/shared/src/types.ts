@@ -78,3 +78,46 @@ export const muscleSearchAliases: Record<string, string[]> = {
     push: ["chest", "shoulders", "triceps"],
     pull: ["back", "biceps"],
 };
+
+export type Exercise = {
+    _id: string;
+    name: string;
+    description?: string;
+    instructions?: string;
+    exerciseType?: "strength" | "cardio" | "mobility";
+    primaryMuscles?: string[];
+    secondaryMuscles?: string[];
+    equipment?: string;
+    difficulty?: "beginner" | "intermediate" | "advanced";
+    videoUrl?: string;
+    imageUrl?: string;
+    isCustom: boolean;
+    createdBy?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
+};
+
+export type PaginatedExercisesResponse = {
+    success: boolean;
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+    exercises: Exercise[];
+};
+
+export type GetExercisesParams = {
+    page?: number;
+    limit?: number;
+    search?: string;
+    muscles?: string[];
+}
+
+export type GetExercisesOptions = {
+    page: number;
+    limit: number;
+    search?: string;
+    muscles?: Muscle[],
+};
