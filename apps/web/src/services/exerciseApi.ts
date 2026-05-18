@@ -1,27 +1,35 @@
 import type {
-    Equipment,
-    Difficulty,
-    ExerciseType,
-    Muscle,
+    PaginatedExercisesResponse,
+    GetExercisesParams
 } from "@workout-app/shared";
+import type { CreateExerciseInput } from "@workout-app/shared";
 
 import type { UpdateExerciseInput } from "@workout-app/shared";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-type CreateExerciseInput = {
-    name: string;
-    description?: string;
-    instructions?: string;
-    exerciseType?: ExerciseType;
-    primaryMuscles?: Muscle[];
-    secondaryMuscles?: Muscle[];
-    equipment?: Equipment;
-    difficulty?: Difficulty;
-};
 
-export async function getPublicExercisesRequest() {
-    const response = await fetch(`${API_URL}/api/exercises`);
+
+export async function getPublicExercisesRequest({
+    page = 1,
+    limit = 10,
+    search = "",
+    muscles = [],
+}: GetExercisesParams): Promise<PaginatedExercisesResponse> {
+    const params = new URLSearchParams();
+
+    params.set("page", String(page));
+    params.set("limit", String(limit));
+
+    if (search.trim()) {
+        params.set("search", search.trim());
+    }
+
+    if (muscles.length > 0) {
+        params.set("muscles", muscles.join(","));
+    }
+
+    const response = await fetch(`${API_URL}/api/exercises?${params.toString()}`);
 
     const data = await response.json();
 
@@ -32,8 +40,27 @@ export async function getPublicExercisesRequest() {
     return data;
 }
 
-export async function getExerciseLibraryRequest() {
-    const response = await fetch(`${API_URL}/api/exercises/library`, {
+export async function getExerciseLibraryRequest({
+    page = 1,
+    limit = 10,
+    search = "",
+    muscles = [],
+}: GetExercisesParams): Promise<PaginatedExercisesResponse> {
+
+    const params = new URLSearchParams();
+
+    params.set("page", String(page));
+    params.set("limit", String(limit));
+
+    if (search.trim()) {
+        params.set("search", search.trim());
+    }
+
+    if (muscles.length > 0) {
+        params.set("muscles", muscles.join(","));
+    }
+
+    const response = await fetch(`${API_URL}/api/exercises/library?${params.toString()}`, {
         credentials: "include",
     });
 
