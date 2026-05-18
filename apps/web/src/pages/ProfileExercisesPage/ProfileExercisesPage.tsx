@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Card from "../../components/ui/cards/Card";
@@ -41,8 +41,16 @@ export default function ProfileExercisesPage() {
             setIsLoading(true);
 
             try {
-                const exercisesData = await getExerciseLibraryRequest();
-                setExercises(exercisesData);
+                const data = await getExerciseLibraryRequest({
+                    page: 1,
+                    limit: 100,
+                });
+
+                const customExercises = data.exercises.filter(
+                    (exercise) => exercise.isCustom,
+                );
+
+                setExercises(customExercises);
             } catch (err) {
                 if (err instanceof Error) {
                     setError(err.message);
@@ -56,10 +64,6 @@ export default function ProfileExercisesPage() {
 
         loadExercises();
     }, []);
-
-    const customExercises = useMemo(() => {
-        return exercises.filter((exercise) => exercise.isCustom);
-    }, [exercises]);
 
     async function handleConfirmDeleteExercise() {
         if (!exerciseToDelete) return;
@@ -116,7 +120,7 @@ export default function ProfileExercisesPage() {
                 </Card>
             )}
 
-            {customExercises.length === 0 ? (
+            {exercises.length === 0 ? (
                 <Card className={styles.stateCard}>
                     <p className={styles.stateText}>
                         You have not created any custom exercises yet.
@@ -124,7 +128,7 @@ export default function ProfileExercisesPage() {
                 </Card>
             ) : (
                 <div className={styles.exerciseList}>
-                    {customExercises.map((exercise) => (
+                    {exercises.map((exercise) => (
                         <Card key={exercise._id} className={styles.exerciseCard}>
                             <div className={styles.exerciseTopRow}>
                                 <div>
