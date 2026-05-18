@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { muscleSearchAliases } from "@workout-app/shared";
 
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -22,23 +21,9 @@ import "../../components/ui/box/box.css";
 import "../../components/ui/cards/card.css";
 
 import styles from "./ExerciseSelectPage.module.css";
+import type { Exercise } from "@workout-app/shared";
 
-type Exercise = {
-    _id: string;
-    name: string;
-    primaryMuscles?: string[];
-    secondaryMuscles?: string[];
-    exerciseType?: "strength" | "cardio" | "mobility";
-    equipment?:
-    | "bodyweight"
-    | "dumbbell"
-    | "barbell"
-    | "machine"
-    | "kettlebell"
-    | "band";
-    difficulty?: "beginner" | "intermediate" | "advanced";
-    isCustom: boolean;
-};
+import { usePaginationScroll } from "../../hooks/usePaginationScroll";
 
 type SelectedMuscleGroup = {
     id: string;
@@ -59,19 +44,6 @@ type WorkoutDraft = {
     }[];
 };
 
-const muscleGroupMap: Record<string, string[]> = {
-    chest: ["chest"],
-    back: ["back"],
-    shoulders: ["shoulders"],
-    biceps: ["biceps"],
-    triceps: ["triceps"],
-    core: ["core"],
-    quads: ["quads"],
-    hamstrings: ["hamstrings"],
-    glutes: ["glutes"],
-    calves: ["calves"],
-    ...muscleSearchAliases,
-};
 
 function formatMuscleTitle(muscle: string) {
     return muscle.charAt(0).toUpperCase() + muscle.slice(1);
@@ -82,47 +54,83 @@ export default function ExerciseSelectPage() {
     const { draftId } = useParams();
     const navigate = useNavigate();
 
+
     const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<
         SelectedMuscleGroup[]
     >([]);
     const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
     const [exercises, setExercises] = useState<Exercise[]>([]);
 
-    const [isLoadingExercises, setIsLoadingExercises] = useState(true);
+    const [isLoadingExercises, setIsLoadingExercises] = useState(false);
     const [isLoadingDraft, setIsLoadingDraft] = useState(true);
     const [isSavingExercises, setIsSavingExercises] = useState(false);
+    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
     const [exerciseError, setExerciseError] = useState("");
     const [draftError, setDraftError] = useState("");
     const [actionError, setActionError] = useState("");
 
     const [searchTerm, setSearchTerm] = useState("");
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+    const [limit] = useState(12);
+    const [total, setTotal] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+
+    const { page, setPage, pageTopRef, handlePageChange } =
+        usePaginationScroll<HTMLDivElement>(totalPages);
 
     const isLoading = isLoadingExercises || isLoadingDraft;
     const error = draftError || exerciseError || actionError;
 
+    const selectedMuscleQuery = useMemo(() => {
+        return selectedMuscleGroups.map((group) => group.id).join(",");
+    }, [selectedMuscleGroups]);
+
+
+
     useEffect(() => {
         async function loadExercises() {
+            if (!selectedMuscleQuery) {
+                return;
+            }
+
             setExerciseError("");
             setIsLoadingExercises(true);
 
             try {
-                const data = isAuthenticated
-                    ? await getExerciseLibraryRequest()
-                    : await getPublicExercisesRequest();
+                const options = {
+                    page,
+                    limit,
+                    search: debouncedSearchTerm,
+                    muscles: selectedMuscleQuery.split(","),
+                };
 
-                setExercises(data);
+                const data = isAuthenticated
+                    ? await getExerciseLibraryRequest(options)
+                    : await getPublicExercisesRequest(options);
+
+                setExercises(data.exercises);
+                setTotal(data.total);
+                setTotalPages(data.totalPages);
             } catch (err) {
                 setExerciseError(
                     err instanceof Error ? err.message : "Failed to load exercises",
                 );
             } finally {
                 setIsLoadingExercises(false);
+                setHasLoadedOnce(true);
             }
         }
 
         loadExercises();
-    }, [isAuthenticated]);
+    }, [
+        isAuthenticated,
+        page,
+        limit,
+        debouncedSearchTerm,
+        selectedMuscleQuery,
+    ]);
 
     useEffect(() => {
         async function loadDraft() {
@@ -161,6 +169,23 @@ export default function ExerciseSelectPage() {
         loadDraft();
     }, [draftId, navigate]);
 
+    useEffect(() => {
+        if (!isLoadingExercises && !isLoadingDraft) {
+            setHasLoadedOnce(true);
+        }
+    }, [isLoadingExercises, isLoadingDraft]);
+
+    useEffect(() => {
+        const timeoutId = window.setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm.trim());
+            setPage(1);
+        }, 300);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+        };
+    }, [searchTerm, setPage]);
+
     function handleToggleExercise(exerciseId: string) {
         if (isSavingExercises) {
             return;
@@ -173,72 +198,23 @@ export default function ExerciseSelectPage() {
         );
     }
 
-    const groupedExercises = useMemo(() => {
-        return selectedMuscleGroups.map((group) => {
-            const normalizedSearch = searchTerm.trim().toLowerCase();
 
-            const targetMuscles =
-                muscleGroupMap[group.id.toLowerCase()] ?? [
-                    group.title.trim().toLowerCase(),
-                ];
+    const exerciseGroupTitle =
+        selectedMuscleGroups.length > 0
+            ? selectedMuscleGroups.map((group) => group.title).join(" and ")
+            : "Exercises";
 
-            const searchAliasMuscles =
-                muscleSearchAliases[normalizedSearch] ?? [];
+    const groupedExercises = [
+        {
+            id: "matching-exercises",
+            title: debouncedSearchTerm
+                ? `Search results for "${debouncedSearchTerm}"`
+                : exerciseGroupTitle,
+            exercises,
+        },
+    ];
 
-            const matchingExercises = exercises.filter((exercise) => {
-                const primary =
-                    exercise.primaryMuscles?.map((muscle) =>
-                        muscle.trim().toLowerCase(),
-                    ) ?? [];
 
-                const secondary =
-                    exercise.secondaryMuscles?.map((muscle) =>
-                        muscle.trim().toLowerCase(),
-                    ) ?? [];
-
-                const matchesMuscleGroup = targetMuscles.some((muscle) =>
-                    primary.includes(muscle),
-                );
-
-                const matchesSearchAlias =
-                    searchAliasMuscles.length > 0 &&
-                    searchAliasMuscles.some(
-                        (muscle) =>
-                            primary.includes(muscle) || secondary.includes(muscle),
-                    );
-
-                const matchesSearch =
-                    normalizedSearch === "" ||
-                    exercise.name.toLowerCase().includes(normalizedSearch) ||
-                    primary.some((muscle) => muscle.includes(normalizedSearch)) ||
-                    secondary.some((muscle) => muscle.includes(normalizedSearch)) ||
-                    matchesSearchAlias ||
-                    (exercise.equipment
-                        ?.toLowerCase()
-                        .includes(normalizedSearch) ??
-                        false) ||
-                    (exercise.difficulty
-                        ?.toLowerCase()
-                        .includes(normalizedSearch) ??
-                        false) ||
-                    (exercise.exerciseType
-                        ?.toLowerCase()
-                        .includes(normalizedSearch) ??
-                        false);
-
-                return matchesMuscleGroup && matchesSearch;
-            });
-
-            return {
-                ...group,
-                exercises: matchingExercises,
-            };
-        });
-    }, [selectedMuscleGroups, exercises, searchTerm]);
-
-    const chosenExercises = exercises.filter((exercise) =>
-        selectedExercises.includes(exercise._id),
-    );
 
     async function handleContinue() {
         if (!draftId) {
@@ -266,7 +242,7 @@ export default function ExerciseSelectPage() {
         }
     }
 
-    if (isLoading) {
+    if (isLoading && !hasLoadedOnce) {
         return (
             <Box className={styles.page}>
                 <div className={styles.stateCard}>
@@ -292,7 +268,7 @@ export default function ExerciseSelectPage() {
 
     return (
         <Box className={styles.page}>
-            <div className={styles.header}>
+            <div ref={pageTopRef} className={styles.header}>
                 <div>
                     <p className={styles.kicker}>Exercise library</p>
                     <h1 className={styles.title}>Select exercises</h1>
@@ -302,7 +278,7 @@ export default function ExerciseSelectPage() {
                 </div>
 
                 <div className={styles.selectedBadge}>
-                    {chosenExercises.length} selected
+                    {selectedExercises.length} selected
                 </div>
             </div>
 
@@ -316,6 +292,10 @@ export default function ExerciseSelectPage() {
                 />
             </div>
 
+            {isLoadingExercises && hasLoadedOnce && (
+                <p className={styles.loadingText}>Updating exercises...</p>
+            )}
+
             {actionError && <p className={styles.errorText}>{actionError}</p>}
 
             <Box className={styles.groupList}>
@@ -324,7 +304,7 @@ export default function ExerciseSelectPage() {
                         <div className={styles.groupHeader}>
                             <h2 className={styles.groupTitle}>{group.title}</h2>
                             <p className={styles.groupCount}>
-                                {group.exercises.length} exercises
+                                {total} exercises
                             </p>
                         </div>
 
@@ -416,8 +396,8 @@ export default function ExerciseSelectPage() {
                                                         )}
 
                                                     {exercise.secondaryMuscles &&
-                                                        exercise.secondaryMuscles
-                                                            .length > 0 && (
+                                                        exercise.secondaryMuscles.length >
+                                                        0 && (
                                                             <div>
                                                                 <p
                                                                     className={
@@ -454,7 +434,7 @@ export default function ExerciseSelectPage() {
                                 })
                             ) : (
                                 <p className={styles.emptyText}>
-                                    No exercises found for this muscle group.
+                                    No matching exercises found.
                                 </p>
                             )}
                         </Box>
@@ -464,20 +444,46 @@ export default function ExerciseSelectPage() {
 
             <div className={styles.footer}>
                 <p className={styles.footerText}>
-                    {chosenExercises.length === 0
+                    {selectedExercises.length === 0
                         ? "Select at least one exercise to continue."
-                        : `${chosenExercises.length} exercise${chosenExercises.length === 1 ? "" : "s"
+                        : `${selectedExercises.length} exercise${selectedExercises.length === 1 ? "" : "s"
                         } ready.`}
                 </p>
 
                 <Button
                     variant="primary"
                     onClick={handleContinue}
-                    disabled={chosenExercises.length === 0 || isSavingExercises}
+                    disabled={selectedExercises.length === 0 || isSavingExercises}
                 >
                     {isSavingExercises ? "Saving..." : "Continue"}
                 </Button>
             </div>
+
+            {totalPages > 1 && (
+                <div className={styles.pagination}>
+                    <button
+                        type="button"
+                        className={styles.pageButton}
+                        disabled={page === 1}
+                        onClick={() => handlePageChange(page - 1)}
+                    >
+                        Previous
+                    </button>
+
+                    <span className={styles.pageInfo}>
+                        Page {page} of {totalPages}
+                    </span>
+
+                    <button
+                        type="button"
+                        className={styles.pageButton}
+                        disabled={page === totalPages}
+                        onClick={() => handlePageChange(page + 1)}
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
         </Box>
     );
 }
