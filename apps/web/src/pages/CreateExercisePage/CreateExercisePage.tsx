@@ -58,8 +58,6 @@ export default function CreateExercisePage() {
                 equipment: equipment || undefined,
                 difficulty: difficulty || undefined,
             });
-
-            navigate("/");
         } catch (err) {
             if (err instanceof Error) {
                 setError(err.message);
