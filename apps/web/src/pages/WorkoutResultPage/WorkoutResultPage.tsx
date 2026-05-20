@@ -87,18 +87,26 @@ export default function WorkoutResultPage() {
         loadWorkoutSession();
     }, [sessionId, navigate]);
 
+
+
     useEffect(() => {
         if (!workoutSession) {
             return;
+        }
+
+        const options = {
+            page: 1,
+            limit: 100
         }
 
         async function loadExerciseLibrary() {
             setMuscleError("");
             setIsLoadingMuscles(true);
 
+
             try {
-                const data = await getExerciseLibraryRequest();
-                setExerciseLibrary(data);
+                const data = await getExerciseLibraryRequest(options);
+                setExerciseLibrary(data.exercises);
             } catch (error) {
                 setMuscleError(
                     error instanceof Error

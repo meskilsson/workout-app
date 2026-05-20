@@ -25,6 +25,7 @@ export interface IWorkoutDraft {
     exercises: WorkoutDraftExercise[];
     startedAt?: Date | null;
     completedSessionId?: Types.ObjectId | null;
+    sourceTemplateId?: Types.ObjectId | null;
 }
 
 const workoutDraftSetSchema = new Schema<WorkoutDraftSet>(
@@ -92,6 +93,11 @@ const workoutDraftSchema = new Schema<IWorkoutDraft>(
         completedSessionId: {
             type: Schema.Types.ObjectId,
             ref: "WorkoutSession",
+            default: null,
+        },
+        sourceTemplateId: {
+            type: Schema.Types.ObjectId,
+            ref: "WorkoutTemplate",
             default: null,
         },
     },
