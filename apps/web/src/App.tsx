@@ -2,6 +2,7 @@ import "./App.css";
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/layouts/Layout";
 import AccountLayout from "./components/layouts/AccountLayout";
+import { Navigate } from "react-router-dom";
 
 
 import LoginPage from "./pages/LoginPage/LoginPage";
@@ -22,6 +23,8 @@ import WorkoutHistoryDetailPage from "./pages/WorkoutHistoryDetailPage/WorkoutHi
 import LibraryPage from "./pages/LibraryPage/LibraryPage";
 import WorkoutDraftTestPage from "./pages/WorkoutDraftTestPage/WorkoutDraftTestPage";
 import ExerciseDetailsPage from "./pages/ExerciseDetailsPage/ExerciseDetailsPage";
+import TemplatesPage from "./pages/TemplatesPage/TemplatesPage";
+import TemplatesLayout from "./components/layouts/TemplatesLayout";
 
 
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -32,9 +35,6 @@ function AdminPage() {
   return <div>Admin Page</div>;
 }
 
-function TemplatesPage() {
-  return <div>Public Templates Page</div>;
-}
 
 function App() {
   return (
@@ -69,7 +69,11 @@ function App() {
           }
         />
 
-        <Route path="templates" element={<TemplatesPage />} />
+
+        <Route path="templates" element={<TemplatesLayout />}>
+          <Route index element={<Navigate to="pre-made" replace />} />
+          <Route path="pre-made" element={<TemplatesPage />} />
+        </Route>
 
         <Route path="/library" element={<LibraryPage />} />
 

@@ -6,7 +6,8 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "seed:exercises": "tsx src/seed/seedExercises.ts"
+    "seed:exercises": "tsx src/seed/seedExercises.ts",
+    "seed:templates": "tsx src/seed/seedWorkoutTemplates.ts"
   },
   "dependencies": {
     "@workout-app/shared": "1.0.0",
