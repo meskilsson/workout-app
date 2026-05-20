@@ -15,6 +15,7 @@ import { notFound } from "./middleware/notFound";
 import logger from "./middleware/logger";
 import errorHandler from "./middleware/errorHandler";
 import adminRouter from "./routes/adminRoutes";
+import workoutTemplateRouter from "./routes/workoutTemplateRoutes";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -42,6 +43,7 @@ app.use("/api/exercises", exerciseRouter);
 app.use("/api/workout-sessions", workoutSessionRouter);
 app.use("/api/workout-drafts", workoutDraftRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/workout-templates", workoutTemplateRouter);
 
 app.use(notFound);
 app.use(errorHandler);
