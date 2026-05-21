@@ -32,20 +32,39 @@ export default function TemplatesLayout() {
                         </NavLink>
 
                         {isAuthenticated ? (
-                            <NavLink
-                                to="/templates/my"
-                                className={({ isActive }) =>
-                                    `${styles.navLink} ${isActive ? styles.activeLink : ""
-                                    }`
-                                }
-                            >
-                                My templates
-                            </NavLink>
+                            <>
+                                <NavLink
+                                    to="/templates/my"
+                                    className={({ isActive }) =>
+                                        `${styles.navLink} ${isActive ? styles.activeLink : ""
+                                        }`
+                                    }
+                                >
+                                    My templates
+                                </NavLink>
+
+                                <NavLink
+                                    to="/templates/create"
+                                    className={({ isActive }) =>
+                                        `${styles.navLink} ${isActive ? styles.activeLink : ""
+                                        }`
+                                    }
+                                >
+                                    Create template
+                                </NavLink>
+                            </>
                         ) : (
-                            <div className={styles.disabledLink}>
-                                My templates
-                                <span>Log in required</span>
-                            </div>
+                            <>
+                                <div className={styles.disabledLink}>
+                                    My templates
+                                    <span>Log in required</span>
+                                </div>
+
+                                <div className={styles.disabledLink}>
+                                    Create templates
+                                    <span>Log in required</span>
+                                </div>
+                            </>
                         )}
                     </nav>
                 </aside>

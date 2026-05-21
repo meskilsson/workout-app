@@ -208,7 +208,7 @@ export default function TemplatesPage() {
                         <Button
                             type="button"
                             variant="secondary"
-                            onClick={() => navigate("/create-template")}
+                            onClick={() => navigate("/templates/create")}
                         >
                             Create template
                         </Button>

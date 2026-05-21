@@ -26,7 +26,7 @@ export type WorkoutTemplateExercise = {
 export type WorkoutTemplateDocument = {
     name: string;
     description?: string;
-    category: WorkoutTemplateCategory;
+    category?: WorkoutTemplateCategory;
     isPublic: boolean;
     createdBy?: Types.ObjectId | null;
     exercises: WorkoutTemplateExercise[];

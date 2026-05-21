@@ -25,11 +25,13 @@ import WorkoutDraftTestPage from "./pages/WorkoutDraftTestPage/WorkoutDraftTestP
 import ExerciseDetailsPage from "./pages/ExerciseDetailsPage/ExerciseDetailsPage";
 import TemplatesPage from "./pages/TemplatesPage/TemplatesPage";
 import TemplatesLayout from "./components/layouts/TemplatesLayout";
+import CreateTemplatePage from "./pages/CreateTemplatePage/CreateTemplatePage";
 
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
 import RoleRoute from "./routes/RoleRoute";
+import MyTemplatesPage from "./pages/MyTemplatesPage/MyTemplatesPage";
 
 function AdminPage() {
   return <div>Admin Page</div>;
@@ -73,6 +75,8 @@ function App() {
         <Route path="templates" element={<TemplatesLayout />}>
           <Route index element={<Navigate to="pre-made" replace />} />
           <Route path="pre-made" element={<TemplatesPage />} />
+          <Route path="my" element={<MyTemplatesPage />} />
+          <Route path="create" element={<CreateTemplatePage />} />
         </Route>
 
         <Route path="/library" element={<LibraryPage />} />
