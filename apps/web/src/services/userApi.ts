@@ -1,4 +1,5 @@
 import type { UpdateUserBody } from "@workout-app/shared";
+import { parseJsonResponse } from "../utils/parseJsonResponse";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
@@ -15,49 +16,12 @@ type MessageResponse = {
     message: string;
 };
 
-async function parseUserResponse<T>(
-    response: Response,
-    fallbackMessage: string,
-): Promise<T> {
-    let data: unknown = null;
-
-    try {
-        data = await response.json();
-    } catch {
-        data = null;
-    }
-
-    if (!response.ok) {
-        const errorData = data as {
-            message?: string;
-            errors?: { field?: string; message?: string }[];
-        } | null;
-
-        const validationMessage = errorData?.errors
-            ?.map((error) =>
-                error.field
-                    ? `${error.field}: ${error.message}`
-                    : error.message,
-            )
-            .filter(Boolean)
-            .join("\n");
-
-        throw new Error(
-            validationMessage ||
-            errorData?.message ||
-            fallbackMessage,
-        );
-    }
-
-    return data as T;
-}
-
 export async function getAllUsersRequest(): Promise<UserResponse[]> {
     const response = await fetch(`${API_URL}/api/users`, {
         credentials: "include",
     });
 
-    return parseUserResponse<UserResponse[]>(
+    return parseJsonResponse<UserResponse[]>(
         response,
         "Failed to get users",
     );
@@ -68,7 +32,7 @@ export async function getUserByIdRequest(id: string): Promise<UserResponse> {
         credentials: "include",
     });
 
-    return parseUserResponse<UserResponse>(
+    return parseJsonResponse<UserResponse>(
         response,
         "Failed to get user",
     );
@@ -87,7 +51,7 @@ export async function updateUserRequest(
         body: JSON.stringify(userData),
     });
 
-    return parseUserResponse<UserResponse>(
+    return parseJsonResponse<UserResponse>(
         response,
         "Failed to update user",
     );
@@ -109,7 +73,7 @@ export async function changePasswordRequest(
         body: JSON.stringify(passwordData),
     });
 
-    return parseUserResponse<MessageResponse>(
+    return parseJsonResponse<MessageResponse>(
         response,
         "Failed to update password",
     );
@@ -121,7 +85,7 @@ export async function deleteUserRequest(userId: string): Promise<MessageResponse
         credentials: "include",
     });
 
-    return parseUserResponse<MessageResponse>(
+    return parseJsonResponse<MessageResponse>(
         response,
         "Failed to delete account",
     );

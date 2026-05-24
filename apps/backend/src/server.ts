@@ -20,9 +20,22 @@ import workoutTemplateRouter from "./routes/workoutTemplateRoutes";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+function parseCorsOrigins(value?: string) {
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:4173",
+  ...parseCorsOrigins(process.env.CORS_ORIGIN),
+  ...parseCorsOrigins(process.env.CORS_ORIGINS),
 ];
 
 app.use(
@@ -33,7 +46,7 @@ app.use(
         return;
       }
 
-      callback(new Error("Not allowed by CORS"));
+      callback(new Error(`CORS blocked origin: ${origin}`));
     },
     credentials: true,
   }),
