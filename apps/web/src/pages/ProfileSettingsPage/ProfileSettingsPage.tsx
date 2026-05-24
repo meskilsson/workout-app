@@ -6,10 +6,43 @@ import UpdateAccountForm from "../../components/forms/UpdateAccountForm";
 import styles from "./ProfileSettingsPage.module.css";
 import BodyModelSelect from "../../components/bodyModel/BodyModelSelect";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import Modal from "../../components/ui/modal/Modal";
+import { deleteUserRequest } from "../../services/userApi";
 
 export default function ProfileSettingsPage() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+    const [deleteError, setDeleteError] = useState("");
+
+
+    async function handleConfirmDeleteAccount() {
+        if (!user?._id) {
+            setDeleteError("Could not find the current user.");
+            return;
+        }
+
+        setIsDeletingAccount(true);
+        setDeleteError("");
+
+        try {
+            await deleteUserRequest(user._id);
+            await logout();
+
+            navigate("/");
+        } catch (error) {
+            if (error instanceof Error) {
+                setDeleteError(error.message);
+            } else {
+                setDeleteError("Failed to delete account");
+            }
+        } finally {
+            setIsDeletingAccount(false);
+        }
+    }
 
     return (
         <div className={styles.page}>
@@ -129,11 +162,56 @@ export default function ProfileSettingsPage() {
                         </p>
                     </div>
 
-                    <Button variant="danger">
+                    <Button
+                        type="button"
+                        variant="danger"
+                        onClick={() => setIsDeleteModalOpen(true)}
+                    >
                         Delete account
                     </Button>
                 </Card>
             </section>
+
+            <Modal
+                title="Delete account?"
+                isOpen={isDeleteModalOpen}
+                onClose={() => {
+                    if (!isDeletingAccount) {
+                        setIsDeleteModalOpen(false);
+                    }
+                }}
+                actions={
+                    <>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => setIsDeleteModalOpen(false)}
+                            disabled={isDeletingAccount}
+                        >
+                            Cancel
+                        </Button>
+
+                        <Button
+                            type="button"
+                            variant="danger"
+                            onClick={handleConfirmDeleteAccount}
+                            disabled={isDeletingAccount}
+                        >
+                            {isDeletingAccount ? "Deleting..." : "Delete account"}
+                        </Button>
+                    </>
+                }
+            >
+                <p className={styles.modalText}>
+                    Are you sure you want to delete your account? This action cannot be undone.
+                </p>
+
+                {deleteError && (
+                    <p className={styles.errorText}>
+                        {deleteError}
+                    </p>
+                )}
+            </Modal>
         </div>
     );
 }

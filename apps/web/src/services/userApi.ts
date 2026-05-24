@@ -28,15 +28,17 @@ export async function getUserByIdRequest(id: string) {
     return data;
 }
 
-export async function deleteUserRequest(id: string) {
-    const response = await fetch(`${API_URL}/users/${id}`, {
+
+export async function deleteUserRequest(userId: string) {
+    const response = await fetch(`${API_URL}/api/users/${userId}`, {
         method: "DELETE",
+        credentials: "include",
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(data.message || "Failed to delete user");
+        throw new Error(data.message || "Failed to delete account");
     }
 
     return data;
@@ -45,6 +47,7 @@ export async function deleteUserRequest(id: string) {
 export async function updateUserRequest(id: string, userData: UpdateUserBody) {
     const response = await fetch(`${API_URL}/users/${id}`, {
         method: "PATCH",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -69,6 +72,7 @@ export async function changePasswordRequest(
 ) {
     const response = await fetch(`${API_URL}/users/${id}/password`, {
         method: "PATCH",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
