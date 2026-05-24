@@ -65,7 +65,7 @@ export default function Navbar() {
                 `${styles.link} ${isActive ? styles.linkActive : ""}`.trim()
               }
             >
-              Templates
+              Workouts
             </NavLink>
 
             <NavLink
