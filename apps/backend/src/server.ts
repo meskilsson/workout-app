@@ -7,7 +7,6 @@ import cookieParser from "cookie-parser";
 import { connectDB } from "./config/db";
 import authRouter from "./routes/authRoutes";
 import userRouter from "./routes/userRoutes";
-import workoutRouter from "./routes/workoutRoutes";
 import exerciseRouter from "./routes/exerciseRoutes";
 import workoutSessionRouter from "./routes/workoutSessionRoutes";
 import workoutDraftRouter from "./routes/workoutDraftRoutes";
@@ -63,7 +62,6 @@ app.get("/", (_req, res) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
-app.use("/api/workouts", workoutRouter);
 app.use("/api/exercises", exerciseRouter);
 app.use("/api/workout-sessions", workoutSessionRouter);
 app.use("/api/workout-drafts", workoutDraftRouter);

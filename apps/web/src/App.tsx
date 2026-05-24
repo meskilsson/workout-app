@@ -21,7 +21,6 @@ import ProfileSettingsPage from "./pages/ProfileSettingsPage/ProfileSettingsPage
 import EditExercisePage from "./pages/EditExercisePage/EditExercisePage";
 import WorkoutHistoryDetailPage from "./pages/WorkoutHistoryDetailPage/WorkoutHistoryDetailPage";
 import LibraryPage from "./pages/LibraryPage/LibraryPage";
-import WorkoutDraftTestPage from "./pages/WorkoutDraftTestPage/WorkoutDraftTestPage";
 import ExerciseDetailsPage from "./pages/ExerciseDetailsPage/ExerciseDetailsPage";
 import TemplatesPage from "./pages/TemplatesPage/TemplatesPage";
 import TemplatesLayout from "./components/layouts/TemplatesLayout";
@@ -31,12 +30,7 @@ import TemplatesDetailsPage from "./pages/TemplatesDetailsPage/TemplatesDetailsP
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
-import RoleRoute from "./routes/RoleRoute";
 import MyTemplatesPage from "./pages/MyTemplatesPage/MyTemplatesPage";
-
-function AdminPage() {
-  return <div>Admin Page</div>;
-}
 
 
 function App() {
@@ -45,14 +39,6 @@ function App() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Homepage />} />
 
-        <Route
-          path="draft-test"
-          element={
-            <ProtectedRoute>
-              <WorkoutDraftTestPage />
-            </ProtectedRoute>
-          }
-        />
 
         <Route
           path="login"
@@ -76,8 +62,8 @@ function App() {
         <Route path="templates" element={<TemplatesLayout />}>
           <Route index element={<Navigate to="pre-made" replace />} />
           <Route path="pre-made" element={<TemplatesPage />} />
-          <Route path="my" element={<MyTemplatesPage />} />
-          <Route path="create" element={<CreateTemplatePage />} />
+          <Route path="my" element={<ProtectedRoute><MyTemplatesPage /></ProtectedRoute>} />
+          <Route path="create" element={<ProtectedRoute><CreateTemplatePage /></ProtectedRoute>} />
         </Route>
 
         <Route path="/templates/pre-made/templates-details/:id" element={<TemplatesDetailsPage />} />
@@ -167,14 +153,6 @@ function App() {
           <Route path="settings" element={<ProfileSettingsPage />} />
         </Route>
 
-        <Route
-          path="admin"
-          element={
-            <RoleRoute allowedRoles={["admin"]}>
-              <AdminPage />
-            </RoleRoute>
-          }
-        />
 
         <Route
           path="edit-exercise/:id"
