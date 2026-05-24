@@ -3,7 +3,7 @@ import * as userService from "../services/userService";
 import type { IdParams } from "../types/errors";
 
 import type { ChangePasswordBody, UpdateUserBody } from "@workout-app/shared";
-import { NotFoundError } from "../errors/AppError";
+import { NotFoundError, UnauthorizedError } from "../errors/AppError";
 
 export async function createUser(
   req: Request,
@@ -64,9 +64,24 @@ export async function deleteUser(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const deletedUser = await userService.deleteUser(req.params.id);
-    res.status(200).json(deletedUser);
+    if (!req.user?.id) {
+      throw new UnauthorizedError("Unauthorized");
+    }
 
+    const deletedUser = await userService.deleteUser(
+      req.params.id,
+      req.user.id,
+    );
+
+    if (req.user.id === req.params.id) {
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      });
+    }
+
+    res.status(200).json(deletedUser);
   } catch (error) {
     next(error);
   }
