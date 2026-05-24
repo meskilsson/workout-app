@@ -17,7 +17,7 @@ export default function Homepage() {
         <h1 className={styles.title}>Build and track your workouts.</h1>
 
         <p className={styles.subtitle}>
-          Choose muscles, select exercises, save templates, and keep track of your sessions.
+          Choose muscles, select exercises, save workouts templates, and keep track of your sessions.
         </p>
 
         <div className={styles.actions}>
