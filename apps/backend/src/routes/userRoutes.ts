@@ -17,10 +17,11 @@ import {
 } from "../schemas/userSchemas";
 import { requireAuth } from "../middleware/requireAuth";
 import { requireSelfOrAdmin } from "../middleware/requireSelfOrAdmin";
+import { requireRole } from "../middleware/requireRole";
 
 const userRouter = Router();
 
-userRouter.get("/", requireAuth, getAllUsers);
+userRouter.get("/", requireAuth, requireRole("admin"), getAllUsers);
 userRouter.get(
   "/:id",
   requireAuth,
