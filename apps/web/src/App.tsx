@@ -26,6 +26,7 @@ import ExerciseDetailsPage from "./pages/ExerciseDetailsPage/ExerciseDetailsPage
 import TemplatesPage from "./pages/TemplatesPage/TemplatesPage";
 import TemplatesLayout from "./components/layouts/TemplatesLayout";
 import CreateTemplatePage from "./pages/CreateTemplatePage/CreateTemplatePage";
+import TemplatesDetailsPage from "./pages/TemplatesDetailsPage/TemplatesDetailsPage";
 
 
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -78,6 +79,8 @@ function App() {
           <Route path="my" element={<MyTemplatesPage />} />
           <Route path="create" element={<CreateTemplatePage />} />
         </Route>
+
+        <Route path="/templates/pre-made/templates-details/:id" element={<TemplatesDetailsPage />} />
 
         <Route path="/library" element={<LibraryPage />} />
 
