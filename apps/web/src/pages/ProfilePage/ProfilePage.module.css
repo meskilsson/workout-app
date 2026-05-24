@@ -140,6 +140,11 @@
     line-height: 1.5;
 }
 
+.buttonArrow {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
 @media (max-width: 760px) {
 
     .header,

@@ -1,18 +1,23 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 import { getPublicWorkoutTemplateByIdRequest } from "../../services/workoutTemplateApi";
 import { getExerciseByIdRequest } from "../../services/exerciseApi";
+
 
 import type { WorkoutTemplate, Exercise } from "@workout-app/shared";
 
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
+import Button from "../../components/ui/button/Button";
 
 import styles from "./TemplatesDetailsPage.module.css";
 
 export default function TemplatesDetailsPage() {
+
+    const navigate = useNavigate();
+
     const [template, setTemplate] = useState<WorkoutTemplate | null>(null);
     const [exerciseDetails, setExerciseDetails] = useState<Exercise[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -135,6 +140,16 @@ export default function TemplatesDetailsPage() {
                         <p className={styles.sectionText}>
                             Full exercise overview with muscles, instructions and planned sets.
                         </p>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+                            className={styles.backButton}
+                            onClick={() => navigate(-1)}
+
+                        >
+                            <span className={styles.buttonArrow}>←</span>
+                        </Button>
                     </div>
 
                     <span className={styles.categoryBadge}>

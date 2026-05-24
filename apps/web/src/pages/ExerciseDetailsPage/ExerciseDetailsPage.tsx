@@ -73,9 +73,12 @@ export default function ExerciseDetailsPage() {
                     <Button
                         type="button"
                         variant="secondary"
-                        onClick={() => navigate("/library")}
+                        style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+                        className={styles.backButton}
+                        onClick={() => navigate(-1)}
+
                     >
-                        Back to Library
+                        <span className={styles.buttonArrow}>←</span>
                     </Button>
                 </Card>
             </Box>
@@ -99,17 +102,19 @@ export default function ExerciseDetailsPage() {
                         Details of the exercise, instructions, equipment, difficulty,
                         and trained muscles.
                     </p>
-                </div>
-
-                <div className={styles.headerActions}>
                     <Button
                         type="button"
                         variant="secondary"
-                        onClick={() => navigate("/library")}
+                        style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+                        className={styles.backButton}
+                        onClick={() => navigate(-1)}
+
                     >
-                        Back to Library
+                        <span className={styles.buttonArrow}>←</span>
                     </Button>
                 </div>
+
+
             </header>
 
             <Card className={styles.summaryCard}>

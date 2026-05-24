@@ -275,6 +275,16 @@ export default function ExerciseSelectPage() {
                     <p className={styles.subtitle}>
                         Choose exercises for the muscle groups you selected.
                     </p>
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        style={{ minWidth: "3.25rem", marginTop: "1.5rem" }}
+                        className={styles.backButton}
+                        onClick={() => navigate(-1)}
+
+                    >
+                        <span className={styles.buttonArrow}>←</span>
+                    </Button>
                 </div>
 
                 <div className={styles.selectedBadge}>

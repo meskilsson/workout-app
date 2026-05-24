@@ -188,6 +188,17 @@ export default function TemplatesPage() {
                         <p className={styles.sectionText}>
                             Workouts available for everyone to browse.
                         </p>
+
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+                            className={styles.backButton}
+                            onClick={() => navigate(-1)}
+
+                        >
+                            <span className={styles.buttonArrow}>←</span>
+                        </Button>
                     </div>
                 </div>
 

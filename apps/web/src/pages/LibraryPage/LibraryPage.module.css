@@ -296,6 +296,12 @@
     white-space: nowrap;
 }
 
+.buttonArrow {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+
 @media (max-width: 1200px) {
     .exerciseGrid {
         grid-template-columns: repeat(2, minmax(360px, 1fr));

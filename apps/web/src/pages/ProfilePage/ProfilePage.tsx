@@ -1,9 +1,13 @@
 import Card from "../../components/ui/cards/Card";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./ProfilePage.module.css";
+import Button from "../../components/ui/button/Button";
+import { useNavigate } from "react-router-dom";
+
 
 export default function ProfilePage() {
     const { user } = useAuth();
+    const navigate = useNavigate();
 
     if (!user) {
         return (
@@ -24,6 +28,17 @@ export default function ProfilePage() {
                     <p className={styles.subtitle}>
                         View your account information. Training stats can be added here later.
                     </p>
+
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+                        className={styles.backButton}
+                        onClick={() => navigate(-1)}
+
+                    >
+                        <span className={styles.buttonArrow}>←</span>
+                    </Button>
                 </div>
             </div>
 

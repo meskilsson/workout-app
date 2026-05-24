@@ -168,6 +168,17 @@
     font-weight: 700;
 }
 
+.buttonArrow {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.buttonArrow {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+
 @media (max-width: 640px) {
     .page {
         padding: 1.5rem 1rem;
