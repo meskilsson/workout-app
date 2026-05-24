@@ -2,6 +2,7 @@ import User from "../models/User";
 import bcrypt from 'bcrypt';
 import type { UserRole } from "@workout-app/shared";
 import { ConflictError, NotFoundError, ValidationError } from "../errors/AppError";
+import { Types } from "mongoose";
 
 
 interface CreateUserInput {
@@ -54,36 +55,55 @@ export async function createUser(userData: CreateUserInput) {
 }
 
 export async function getAllUsers() {
-  const users = await User.find().sort({ createdAt: -1 });
+  const users = await User.find({
+    deletedAt: null,
+  }).sort({ createdAt: -1 });
+
   return users;
 }
 
 export async function getUserById(id: string) {
-  const user = await User.findById(id);
+  const user = await User.findOne({
+    _id: id,
+    deletedAt: null,
+  });
 
   if (!user) {
-    const error = new Error("User not found") as Error & {
-      statusCode?: number;
-    };
-    error.statusCode = 404;
-    throw error;
+    throw new NotFoundError("User not found");
   }
+
   return user;
 }
 
-export async function deleteUser(id: string) {
-  const deletedUser = await User.findByIdAndDelete(id);
+export async function deleteUser(id: string, deletedByUserId: string) {
+  const user = await User.findById(id);
 
-  if (!deletedUser) {
+  if (!user) {
     throw new NotFoundError("User not found");
   }
+
+  if (user.deletedAt) {
+    throw new ValidationError("User is already deleted");
+  }
+
+  user.deletedAt = new Date();
+  user.deletedBy = new Types.ObjectId(deletedByUserId);
+  user.deleteReason =
+    user._id.toString() === deletedByUserId
+      ? "User requested account deletion"
+      : "Account deleted by admin";
+
+  await user.save();
 
   return { message: "User deleted successfully" };
 }
 
 export async function updateUser(id: string, userData: UpdatedUserInput) {
 
-  const user = await User.findById(id);
+  const user = await User.findOne({
+    _id: id,
+    deletedAt: null,
+  });
 
   if (!user) {
     throw new NotFoundError("User not found");
@@ -152,10 +172,17 @@ export async function updateUser(id: string, userData: UpdatedUserInput) {
     }
   }
 
-  const updatedUser = await User.findByIdAndUpdate(id, updateData, {
-    new: true,
-    runValidators: true,
-  });
+  const updatedUser = await User.findOneAndUpdate(
+    {
+      _id: id,
+      deletedAt: null,
+    },
+    updateData,
+    {
+      new: true,
+      runValidators: true,
+    },
+  );
 
   return updatedUser;
 
@@ -166,7 +193,10 @@ export async function changePasswordService(
   currentPassword: string,
   newPassword: string
 ) {
-  const user = await User.findById(userId).select("+passwordHash");
+  const user = await User.findOne({
+    _id: userId,
+    deletedAt: null,
+  }).select("+passwordHash");
 
   if (!user) {
     throw new NotFoundError("User not found");

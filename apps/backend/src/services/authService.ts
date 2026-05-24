@@ -14,7 +14,10 @@ export async function loginUser(loginData: LoginUserInput) {
 
     const email = loginData.email.trim().toLowerCase();
 
-    const user = await User.findOne({ email }).select("+passwordHash");
+    const user = await User.findOne({
+        email,
+        deletedAt: null,
+    }).select("+passwordHash");
 
     if (!user) {
         throw new UnauthorizedError("Invalid email or password");

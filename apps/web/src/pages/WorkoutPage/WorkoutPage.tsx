@@ -96,7 +96,6 @@ type SortableWorkoutExerciseCardProps = {
 
 function SortableWorkoutExerciseCard({
     exercise,
-    index,
     exerciseSets,
     onAddSet,
     onSetChange,
@@ -252,7 +251,7 @@ export default function WorkoutPage() {
     >({});
 
     const [isLoadingDraft, setIsLoadingDraft] = useState(true);
-    const [isSavingDraft, setIsSavingDraft] = useState(false);
+    const [, setIsSavingDraft] = useState(false);
     const [hasUserEditedSets, setHasUserEditedSets] = useState(false);
 
     const [openModal, setOpenModal] = useState(false);

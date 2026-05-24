@@ -68,9 +68,6 @@ export async function getMyWorkoutTemplateById(
             throw new UnauthorizedError("Unauthorized");
         }
 
-        console.log("REQ USER ID:", req.user?.id);
-        console.log("TEMPLATE ID:", req.params.templateId);
-
         const template =
             await workoutTemplateService.getMyWorkoutTemplateById(
                 req.params.templateId,

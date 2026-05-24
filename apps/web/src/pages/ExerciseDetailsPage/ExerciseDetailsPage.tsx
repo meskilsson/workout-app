@@ -8,12 +8,15 @@ import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 
-import { getExerciseByIdRequest } from "../../services/exerciseApi";
+import { getLibraryExerciseByIdRequest, getPublicExerciseByIdRequest } from "../../services/exerciseApi";
 import type { Exercise } from "@workout-app/shared";
+
+import { useAuth } from "../../context/AuthContext";
 
 export default function ExerciseDetailsPage() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuth();
 
     const [exercise, setExercise] = useState<Exercise | null>(null);
     const [error, setError] = useState("");
@@ -33,7 +36,9 @@ export default function ExerciseDetailsPage() {
             setIsLoading(true);
 
             try {
-                const data = await getExerciseByIdRequest(exerciseId);
+                const data = isAuthenticated
+                    ? await getLibraryExerciseByIdRequest(exerciseId)
+                    : await getPublicExerciseByIdRequest(exerciseId);
                 setExercise(data);
             } catch (error) {
                 if (error instanceof Error) {
@@ -47,7 +52,7 @@ export default function ExerciseDetailsPage() {
         }
 
         getExercise();
-    }, [id]);
+    }, [id, isAuthenticated]);
 
     if (isLoading) {
         return (

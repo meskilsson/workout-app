@@ -57,13 +57,34 @@ export async function getExerciseLibrary(
     }
 }
 
+export async function getExerciseLibraryById(
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction,
+): Promise<void> {
+    try {
+        if (!req.user?.id) {
+            throw new UnauthorizedError("Unauthorized");
+        }
+
+        const exercise = await exerciseService.getLibraryExerciseById(
+            req.params.id,
+            req.user.id,
+        );
+
+        res.status(200).json(exercise);
+    } catch (error) {
+        next(error);
+    }
+}
+
 export async function getExerciseById(
     req: Request<{ id: string }>,
     res: Response,
     next: NextFunction,
 ): Promise<void> {
     try {
-        const exercise = await exerciseService.getExerciseById(req.params.id);
+        const exercise = await exerciseService.getPublicExerciseById(req.params.id);
         res.status(200).json(exercise);
     } catch (error) {
         next(error);

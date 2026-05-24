@@ -258,6 +258,19 @@ export async function startWorkoutFromTemplate(
         throw new ValidationError("Cannot start workout from an empty template");
     }
 
+    await WorkoutDraft.updateMany(
+        {
+            userId,
+            purpose: "workout",
+            status: { $in: ["building", "active"] },
+        },
+        {
+            $set: {
+                status: "abandoned",
+            },
+        },
+    );
+
     const selectedMuscleGroups = new Set<Muscle>();
 
     for (const templateExercise of template.exercises) {

@@ -20,12 +20,19 @@ export default function Modal({
     if (!isOpen) return null;
 
     return (
-        <div className="modal-overlay">
-            <Box className="modal-panel">
-                {title && <h2 className="modal-title">{title}</h2>}
-                <div className="modal-content">{children}</div>
-                <div className="modal-actions">{actions}</div>
-            </Box>
+        <div className="modal-overlay" onClick={onClose}>
+            <div
+                className="modal-shell"
+                onClick={(event) => event.stopPropagation()}
+            >
+                <Box className="modal-panel">
+                    {title && <h2 className="modal-title">{title}</h2>}
+
+                    <div className="modal-content">{children}</div>
+
+                    {actions && <div className="modal-actions">{actions}</div>}
+                </Box>
+            </div>
         </div>
     );
 }

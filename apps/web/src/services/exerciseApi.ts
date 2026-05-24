@@ -1,21 +1,21 @@
 import type {
     PaginatedExercisesResponse,
-    GetExercisesParams
+    GetExercisesParams,
+    CreateExerciseInput,
+    UpdateExerciseInput,
+    Exercise
 } from "@workout-app/shared";
-import type { CreateExerciseInput } from "@workout-app/shared";
 
-import type { UpdateExerciseInput } from "@workout-app/shared";
+import { parseJsonResponse } from "../utils/parseJsonResponse";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-
-
-export async function getPublicExercisesRequest({
+function buildExerciseQueryParams({
     page = 1,
     limit = 10,
     search = "",
     muscles = [],
-}: GetExercisesParams): Promise<PaginatedExercisesResponse> {
+}: GetExercisesParams) {
     const params = new URLSearchParams();
 
     params.set("page", String(page));
@@ -29,65 +29,80 @@ export async function getPublicExercisesRequest({
         params.set("muscles", muscles.join(","));
     }
 
-    const response = await fetch(`${API_URL}/api/exercises?${params.toString()}`);
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch public exercises");
-    }
-
-    return data;
+    return params;
 }
 
-export async function getExerciseLibraryRequest({
-    page = 1,
-    limit = 10,
-    search = "",
-    muscles = [],
-}: GetExercisesParams): Promise<PaginatedExercisesResponse> {
+export async function getPublicExercisesRequest(
+    params: GetExercisesParams,
+): Promise<PaginatedExercisesResponse> {
+    const queryParams = buildExerciseQueryParams(params);
 
-    const params = new URLSearchParams();
+    const response = await fetch(
+        `${API_URL}/api/exercises?${queryParams.toString()}`,
+    );
 
-    params.set("page", String(page));
-    params.set("limit", String(limit));
+    return parseJsonResponse<PaginatedExercisesResponse>(
+        response,
+        "Failed to fetch public exercises",
+    );
+}
 
-    if (search.trim()) {
-        params.set("search", search.trim());
-    }
+export async function getExerciseLibraryRequest(
+    params: GetExercisesParams,
+): Promise<PaginatedExercisesResponse> {
+    const queryParams = buildExerciseQueryParams(params);
 
-    if (muscles.length > 0) {
-        params.set("muscles", muscles.join(","));
-    }
+    const response = await fetch(
+        `${API_URL}/api/exercises/library?${queryParams.toString()}`,
+        {
+            credentials: "include",
+        },
+    );
 
-    const response = await fetch(`${API_URL}/api/exercises/library?${params.toString()}`, {
+    return parseJsonResponse<PaginatedExercisesResponse>(
+        response,
+        "Failed to fetch exercise library",
+    );
+}
+
+export async function getPublicExerciseByIdRequest(
+    exerciseId: string,
+): Promise<Exercise> {
+    const response = await fetch(`${API_URL}/api/exercises/${exerciseId}`);
+
+    return parseJsonResponse<Exercise>(
+        response,
+        "Failed to fetch exercise",
+    );
+}
+
+export async function getLibraryExerciseByIdRequest(
+    exerciseId: string,
+): Promise<Exercise> {
+    const response = await fetch(`${API_URL}/api/exercises/library/${exerciseId}`, {
         credentials: "include",
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch exercise library");
-    }
-
-    return data;
+    return parseJsonResponse<Exercise>(
+        response,
+        "Failed to fetch exercise",
+    );
 }
 
-export async function getExerciseByIdRequest(exerciseId: string) {
-    const response = await fetch(`${API_URL}/api/exercises/${exerciseId}`, {
-        credentials: "include",
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch exercise");
+export async function getExerciseByIdRequest(
+    exerciseId: string,
+    isAuthenticated = false,
+): Promise<Exercise> {
+    if (isAuthenticated) {
+        return getLibraryExerciseByIdRequest(exerciseId);
     }
 
-    return data;
+    return getPublicExerciseByIdRequest(exerciseId);
 }
 
-export async function createExerciseRequest(exerciseData: CreateExerciseInput) {
+export async function createExerciseRequest(
+    exerciseData: CreateExerciseInput,
+) {
     const response = await fetch(`${API_URL}/api/exercises`, {
         method: "POST",
         headers: {
@@ -97,13 +112,10 @@ export async function createExerciseRequest(exerciseData: CreateExerciseInput) {
         body: JSON.stringify(exerciseData),
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to create exercise");
-    }
-
-    return data;
+    return parseJsonResponse(
+        response,
+        "Failed to create exercise",
+    );
 }
 
 export async function updateExerciseRequest(
@@ -119,29 +131,20 @@ export async function updateExerciseRequest(
         body: JSON.stringify(exerciseData),
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to update exercise");
-    }
-
-    return data;
+    return parseJsonResponse(
+        response,
+        "Failed to update exercise",
+    );
 }
 
 export async function deleteExerciseRequest(exerciseId: string) {
     const response = await fetch(`${API_URL}/api/exercises/${exerciseId}`, {
         method: "DELETE",
-        headers: {
-            "Content-Type": "application/json",
-        },
         credentials: "include",
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to delete exercise");
-    }
-
-    return data;
+    return parseJsonResponse<{ message: string; deletedExerciseId?: string }>(
+        response,
+        "Failed to delete exercise",
+    );
 }

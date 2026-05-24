@@ -48,6 +48,30 @@ export function restTimerReducer(
             return createRestTimerInitialState(state.duration);
         }
 
+        case "ADJUST_TIME": {
+            const currentTime = Date.now();
+
+            const currentTimeLeft =
+                state.isRunning && state.endTime !== null
+                    ? Math.max(0, state.endTime - currentTime)
+                    : state.timeLeft;
+
+            const adjustedTimeLeft = Math.max(
+                0,
+                currentTimeLeft + action.amountMs,
+            );
+
+            return {
+                ...state,
+                timeLeft: adjustedTimeLeft,
+                isRunning: adjustedTimeLeft > 0 ? state.isRunning : false,
+                endTime:
+                    state.isRunning && adjustedTimeLeft > 0
+                        ? currentTime + adjustedTimeLeft
+                        : null,
+            };
+        }
+
         case "TICK": {
             if (state.endTime === null) return state;
 

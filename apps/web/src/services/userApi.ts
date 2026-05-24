@@ -1,63 +1,60 @@
-
 import type { UpdateUserBody } from "@workout-app/shared";
+import { parseJsonResponse } from "../utils/parseJsonResponse";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api/v1";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
+type UserResponse = {
+    _id: string;
+    name: string;
+    email: string;
+    username: string;
+    profileImage: string | null;
+    role: "user" | "admin";
+};
 
-export async function getAllUsersRequest() {
-    const response = await fetch(`${API_URL}/users`);
+type MessageResponse = {
+    message: string;
+};
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to get users");
-    }
-
-    return data;
-}
-
-export async function getUserByIdRequest(id: string) {
-    const response = await fetch(`${API_URL}/users/${id}`);
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to get user");
-    }
-
-    return data;
-}
-
-export async function deleteUserRequest(id: string) {
-    const response = await fetch(`${API_URL}/users/${id}`, {
-        method: "DELETE",
+export async function getAllUsersRequest(): Promise<UserResponse[]> {
+    const response = await fetch(`${API_URL}/api/users`, {
+        credentials: "include",
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to delete user");
-    }
-
-    return data;
+    return parseJsonResponse<UserResponse[]>(
+        response,
+        "Failed to get users",
+    );
 }
 
-export async function updateUserRequest(id: string, userData: UpdateUserBody) {
-    const response = await fetch(`${API_URL}/users/${id}`, {
+export async function getUserByIdRequest(id: string): Promise<UserResponse> {
+    const response = await fetch(`${API_URL}/api/users/${id}`, {
+        credentials: "include",
+    });
+
+    return parseJsonResponse<UserResponse>(
+        response,
+        "Failed to get user",
+    );
+}
+
+export async function updateUserRequest(
+    id: string,
+    userData: UpdateUserBody,
+): Promise<UserResponse> {
+    const response = await fetch(`${API_URL}/api/users/${id}`, {
         method: "PATCH",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify(userData),
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to update user");
-    }
-
-    return data;
+    return parseJsonResponse<UserResponse>(
+        response,
+        "Failed to update user",
+    );
 }
 
 export async function changePasswordRequest(
@@ -65,21 +62,31 @@ export async function changePasswordRequest(
     passwordData: {
         currentPassword: string;
         newPassword: string;
-    }
-) {
-    const response = await fetch(`${API_URL}/users/${id}/password`, {
+    },
+): Promise<MessageResponse> {
+    const response = await fetch(`${API_URL}/api/users/${id}/password`, {
         method: "PATCH",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify(passwordData),
     });
 
-    const data = await response.json();
+    return parseJsonResponse<MessageResponse>(
+        response,
+        "Failed to update password",
+    );
+}
 
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to update password");
-    }
+export async function deleteUserRequest(userId: string): Promise<MessageResponse> {
+    const response = await fetch(`${API_URL}/api/users/${userId}`, {
+        method: "DELETE",
+        credentials: "include",
+    });
 
-    return data;
+    return parseJsonResponse<MessageResponse>(
+        response,
+        "Failed to delete account",
+    );
 }

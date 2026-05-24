@@ -7,7 +7,6 @@ import cookieParser from "cookie-parser";
 import { connectDB } from "./config/db";
 import authRouter from "./routes/authRoutes";
 import userRouter from "./routes/userRoutes";
-import workoutRouter from "./routes/workoutRoutes";
 import exerciseRouter from "./routes/exerciseRoutes";
 import workoutSessionRouter from "./routes/workoutSessionRoutes";
 import workoutDraftRouter from "./routes/workoutDraftRoutes";
@@ -20,9 +19,34 @@ import workoutTemplateRouter from "./routes/workoutTemplateRoutes";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+function parseCorsOrigins(value?: string) {
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:4173",
+  ...parseCorsOrigins(process.env.CORS_ORIGIN),
+  ...parseCorsOrigins(process.env.CORS_ORIGINS),
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`CORS blocked origin: ${origin}`));
+    },
     credentials: true,
   }),
 );
@@ -38,7 +62,6 @@ app.get("/", (_req, res) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
-app.use("/api/workouts", workoutRouter);
 app.use("/api/exercises", exerciseRouter);
 app.use("/api/workout-sessions", workoutSessionRouter);
 app.use("/api/workout-drafts", workoutDraftRouter);
