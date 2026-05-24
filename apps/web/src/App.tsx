@@ -61,12 +61,42 @@ function App() {
 
         <Route path="templates" element={<TemplatesLayout />}>
           <Route index element={<Navigate to="pre-made" replace />} />
+
           <Route path="pre-made" element={<TemplatesPage />} />
-          <Route path="my" element={<ProtectedRoute><MyTemplatesPage /></ProtectedRoute>} />
-          <Route path="create" element={<ProtectedRoute><CreateTemplatePage /></ProtectedRoute>} />
+
+          <Route
+            path="pre-made/templates-details/:id"
+            element={<TemplatesDetailsPage templateSource={'public'} />}
+          />
+
+          <Route
+            path="my"
+            element={
+              <ProtectedRoute>
+                <MyTemplatesPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="my/templates-details/:id"
+            element={
+              <ProtectedRoute>
+                <TemplatesDetailsPage templateSource={'my'} />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="create"
+            element={
+              <ProtectedRoute>
+                <CreateTemplatePage />
+              </ProtectedRoute>
+            }
+          />
         </Route>
 
-        <Route path="/templates/pre-made/templates-details/:id" element={<TemplatesDetailsPage />} />
 
         <Route path="/library" element={<LibraryPage />} />
 

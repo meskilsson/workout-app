@@ -164,6 +164,14 @@ export default function MyTemplatesPage() {
                                             ? "Starting..."
                                             : "Start workout"}
                                     </Button>
+
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={() => navigate(`templates-details/${template._id}`)}
+                                    >
+                                        View details
+                                    </Button>
                                 </div>
                             </Card>
                         );

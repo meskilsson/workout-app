@@ -32,6 +32,18 @@ export default function errorHandler(
       message: e.message,
     }));
 
+    if (
+      err &&
+      typeof err === "object" &&
+      "code" in err &&
+      err.code === 11000
+    ) {
+      res.status(409).json({
+        message: "A record with that value already exists",
+      });
+      return;
+    }
+
     res.status(400).json({
       message: "Validation error",
       errors,

@@ -86,8 +86,13 @@ export default function TemplatesPage() {
 
 
 
-    function renderTemplateCard(template: WorkoutTemplate, label: string) {
+    function renderTemplateCard(template: WorkoutTemplate, label: string, templateSource: "public" | "my") {
         const isStarting = startingTemplateId === template._id;
+
+        const detailsPath =
+            templateSource === "my"
+                ? `/templates/my/templates-details/${template._id}`
+                : `/templates/pre-made/templates-details/${template._id}`;
 
         return (
             <Card key={template._id} className={styles.templateCard}>
@@ -127,7 +132,8 @@ export default function TemplatesPage() {
 
                     <Button
                         type="button"
-                        onClick={() => navigate(`templates-details/${template._id}`)}
+                        variant="secondary"
+                        onClick={() => navigate(detailsPath)}
                     >
                         View details
                     </Button>
@@ -205,7 +211,7 @@ export default function TemplatesPage() {
                 {publicTemplates.length > 0 ? (
                     <div className={styles.templateGrid}>
                         {publicTemplates.map((template) =>
-                            renderTemplateCard(template, "Pre-made"),
+                            renderTemplateCard(template, "Pre-made", "public"),
                         )}
                     </div>
                 ) : (
@@ -237,7 +243,7 @@ export default function TemplatesPage() {
                     {myTemplates.length > 0 ? (
                         <div className={styles.templateGrid}>
                             {myTemplates.map((template) =>
-                                renderTemplateCard(template, "My template"),
+                                renderTemplateCard(template, "My template", "public"),
                             )}
                         </div>
                     ) : (

@@ -9,6 +9,9 @@ export async function loginUser(
     res: Response,
     next: NextFunction,
 ): Promise<void> {
+
+    const isProduction = process.env.NODE_ENV === "production";
+
     try {
         const user = await authService.loginUser(req.body);
 
@@ -24,8 +27,8 @@ export async function loginUser(
 
         res.cookie("token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            secure: isProduction,
+            sameSite: isProduction ? "none" : "lax",
             maxAge: 1000 * 60 * 60 * 24,
         });
 

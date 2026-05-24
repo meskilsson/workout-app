@@ -5,6 +5,9 @@ import type { IdParams } from "../types/errors";
 import type { ChangePasswordBody, UpdateUserBody } from "@workout-app/shared";
 import { NotFoundError, UnauthorizedError } from "../errors/AppError";
 
+
+const isProduction = process.env.NODE_ENV === "production";
+
 export async function createUser(
   req: Request,
   res: Response,
@@ -76,8 +79,8 @@ export async function deleteUser(
     if (req.user.id === req.params.id) {
       res.clearCookie("token", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
       });
     }
 

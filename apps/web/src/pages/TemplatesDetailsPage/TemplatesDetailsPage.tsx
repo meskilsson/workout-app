@@ -1,8 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
-import { getPublicWorkoutTemplateByIdRequest } from "../../services/workoutTemplateApi";
+import {
+    getMyWorkoutTemplateByIdRequest,
+    getPublicWorkoutTemplateByIdRequest,
+} from "../../services/workoutTemplateApi";
 import { getExerciseByIdRequest } from "../../services/exerciseApi";
+import { useAuth } from "../../context/AuthContext";
 
 
 import type { WorkoutTemplate, Exercise } from "@workout-app/shared";
@@ -14,9 +18,15 @@ import Button from "../../components/ui/button/Button";
 
 import styles from "./TemplatesDetailsPage.module.css";
 
-export default function TemplatesDetailsPage() {
+
+type TemplatesDetailsPageProps = {
+    templateSource: "public" | "my";
+};
+
+export default function TemplatesDetailsPage({ templateSource }: TemplatesDetailsPageProps) {
 
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuth();
 
     const [template, setTemplate] = useState<WorkoutTemplate | null>(null);
     const [exerciseDetails, setExerciseDetails] = useState<Exercise[]>([]);
@@ -42,7 +52,10 @@ export default function TemplatesDetailsPage() {
 
 
             try {
-                const templateData = await getPublicWorkoutTemplateByIdRequest(templateId);
+                const templateData =
+                    templateSource === "my"
+                        ? await getMyWorkoutTemplateByIdRequest(templateId)
+                        : await getPublicWorkoutTemplateByIdRequest(templateId);
 
                 const uniqueExerciseIds = Array.from(
                     new Set(
@@ -54,7 +67,7 @@ export default function TemplatesDetailsPage() {
 
                 const fullExerciseData = await Promise.all(
                     uniqueExerciseIds.map((exerciseId) =>
-                        getExerciseByIdRequest(exerciseId),
+                        getExerciseByIdRequest(exerciseId, isAuthenticated),
                     ),
                 );
 
@@ -82,7 +95,7 @@ export default function TemplatesDetailsPage() {
         return () => {
             shouldIgnore = true;
         };
-    }, [id]);
+    }, [id, isAuthenticated, templateSource]);
 
     if (isLoading) {
         return (
