@@ -1,5 +1,6 @@
 .timer {
     width: 100%;
+
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -14,6 +15,7 @@
 
 .label {
     color: var(--color-text-muted);
+
     font-size: 0.75rem;
     font-weight: 800;
     letter-spacing: 0.12em;
@@ -22,12 +24,21 @@
 
 .time {
     color: var(--color-text);
+
     font-size: clamp(1.6rem, 4vw, 2.25rem);
     line-height: 1;
     font-weight: 900;
     font-variant-numeric: tabular-nums;
 }
 
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.adjustActions,
 .actions {
     display: flex;
     align-items: center;
@@ -46,12 +57,27 @@
         text-align: center;
     }
 
+    .controls {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .adjustActions,
     .actions {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
         width: 100%;
     }
 
+    .adjustActions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .actions {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .adjustActions button,
     .actions button {
         width: 100%;
     }

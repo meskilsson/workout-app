@@ -25,5 +25,7 @@ export function useRestTimer(durationMs: number) {
         start: () => dispatch({ type: "START" }),
         pause: () => dispatch({ type: "PAUSE" }),
         reset: () => dispatch({ type: "RESET" }),
+        adjustTime: (amountMs: number) =>
+            dispatch({ type: "ADJUST_TIME", amountMs }),
     };
 }
