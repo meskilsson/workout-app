@@ -243,7 +243,7 @@ export default function TemplatesPage() {
                     {myTemplates.length > 0 ? (
                         <div className={styles.templateGrid}>
                             {myTemplates.map((template) =>
-                                renderTemplateCard(template, "My template", "public"),
+                                renderTemplateCard(template, "My template", "my"),
                             )}
                         </div>
                     ) : (
