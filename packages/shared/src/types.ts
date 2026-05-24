@@ -197,3 +197,10 @@ export type StartedWorkoutDraft = {
     createdAt: string;
     updatedAt: string;
 };
+
+export type WorkoutDraftPurpose = "workout" | "template";
+
+export type CreateWorkoutDraftInput = {
+    selectedMuscleGroups: string[];
+    purpose?: WorkoutDraftPurpose;
+};

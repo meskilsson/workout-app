@@ -103,7 +103,7 @@ export default function MyTemplatesPage() {
                 <Button
                     type="button"
                     variant="secondary"
-                    onClick={() => navigate("/templates/create")}
+                    onClick={() => navigate("/workout-select?purpose=template")}
                 >
                     Create workout
                 </Button>

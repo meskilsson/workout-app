@@ -1,8 +1,8 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-type CreateWorkoutDraftInput = {
-    selectedMuscleGroups: string[];
-};
+import type { CreateWorkoutDraftInput } from "@workout-app/shared";
+
+
 
 type UpdateWorkoutDraftExercisesInput = {
     exerciseIds: string[];

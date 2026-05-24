@@ -286,6 +286,7 @@ export async function startWorkoutFromTemplate(
     const draft = await WorkoutDraft.create({
         userId,
         status: "building",
+        purpose: "workout",
         selectedMuscleGroups: Array.from(selectedMuscleGroups),
         exercises: draftExercises,
         sourceTemplateId: template._id,
