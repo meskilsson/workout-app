@@ -21,11 +21,15 @@ export interface WorkoutDraftExercise {
 export interface IWorkoutDraft {
     userId: Types.ObjectId;
     status: WorkoutDraftStatus;
+    purpose: WorkoutDraftPurpose;
     selectedMuscleGroups: Muscle[];
     exercises: WorkoutDraftExercise[];
     startedAt?: Date | null;
     completedSessionId?: Types.ObjectId | null;
+    sourceTemplateId?: Types.ObjectId | null;
 }
+
+export type WorkoutDraftPurpose = "workout" | "template";
 
 const workoutDraftSetSchema = new Schema<WorkoutDraftSet>(
     {
@@ -77,6 +81,13 @@ const workoutDraftSchema = new Schema<IWorkoutDraft>(
             default: "building",
             index: true,
         },
+        purpose: {
+            type: String,
+            enum: ["workout", "template"],
+            default: "workout",
+            required: true,
+            index: true,
+        },
         selectedMuscleGroups: {
             type: [{ type: String, enum: MUSCLE_OPTIONS }],
             default: [],
@@ -92,6 +103,11 @@ const workoutDraftSchema = new Schema<IWorkoutDraft>(
         completedSessionId: {
             type: Schema.Types.ObjectId,
             ref: "WorkoutSession",
+            default: null,
+        },
+        sourceTemplateId: {
+            type: Schema.Types.ObjectId,
+            ref: "WorkoutTemplate",
             default: null,
         },
     },

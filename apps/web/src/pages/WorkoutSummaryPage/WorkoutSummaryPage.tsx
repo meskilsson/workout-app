@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
+import Modal from "../../components/ui/modal/Modal";
+
 import {
   closestCenter,
   DndContext,
@@ -13,6 +15,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+
 import {
   arrayMove,
   SortableContext,
@@ -20,6 +23,7 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+
 import { CSS } from "@dnd-kit/utilities";
 
 import {
@@ -27,6 +31,10 @@ import {
   startWorkoutDraftRequest,
   reorderWorkoutDraftExercisesRequest,
 } from "../../services/workoutDraftApi";
+
+import { createWorkoutTemplateFromDraftRequest } from "../../services/workoutTemplateApi";
+
+import type { WorkoutTemplateCategory } from "@workout-app/shared";
 
 import styles from "./WorkoutSummaryPage.module.css";
 
@@ -42,6 +50,7 @@ type DraftExercise = {
 type WorkoutDraft = {
   _id: string;
   status: "building" | "active" | "completed" | "abandoned";
+  purpose: "workout" | "template";
   selectedMuscleGroups: string[];
   exercises: DraftExercise[];
 };
@@ -50,6 +59,20 @@ type SortableSummaryExerciseCardProps = {
   exercise: DraftExercise;
   index: number;
 };
+
+const categoryOptions: WorkoutTemplateCategory[] = [
+  "full_body",
+  "push",
+  "pull",
+  "legs",
+  "upper",
+  "lower",
+  "custom",
+];
+
+function formatCategory(category: string) {
+  return category.replace("_", " ");
+}
 
 function SortableSummaryExerciseCard({
   exercise,
@@ -86,7 +109,9 @@ function SortableSummaryExerciseCard({
       <Card className={styles.exerciseCard}>
         <div className={styles.exerciseHeader}>
           <div>
-            <p className={styles.exerciseNumber}>Exercise {index + 1}</p>
+            <p className={styles.exerciseNumber}>
+              Exercise {index + 1}
+            </p>
 
             <h3 className={styles.exerciseTitle}>
               {exercise.exerciseName}
@@ -109,10 +134,20 @@ export default function WorkoutSummaryPage() {
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
   const [orderedExercises, setOrderedExercises] = useState<DraftExercise[]>([]);
   const [isReordering, setIsReordering] = useState(false);
+
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
+
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateDescription, setTemplateDescription] = useState("");
+  const [templateCategory, setTemplateCategory] =
+    useState<WorkoutTemplateCategory>("custom");
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
 
   const selectedExercises = orderedExercises;
   const totalExercises = selectedExercises.length;
+  const isTemplateDraft = draft?.purpose === "template";
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -134,6 +169,7 @@ export default function WorkoutSummaryPage() {
 
       try {
         setError("");
+        setActionError("");
         setIsLoadingDraft(true);
 
         const data: WorkoutDraft = await getWorkoutDraftByIdRequest(draftId);
@@ -142,7 +178,9 @@ export default function WorkoutSummaryPage() {
         setOrderedExercises(data.exercises);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to load workout draft",
+          err instanceof Error
+            ? err.message
+            : "Failed to load workout draft",
         );
       } finally {
         setIsLoadingDraft(false);
@@ -151,7 +189,6 @@ export default function WorkoutSummaryPage() {
 
     loadDraft();
   }, [draftId, navigate]);
-
 
   async function saveExerciseOrder(
     nextOrder: DraftExercise[],
@@ -162,7 +199,7 @@ export default function WorkoutSummaryPage() {
     }
 
     setIsReordering(true);
-    setError("");
+    setActionError("");
 
     try {
       await reorderWorkoutDraftExercisesRequest(
@@ -171,7 +208,7 @@ export default function WorkoutSummaryPage() {
       );
     } catch (err) {
       setOrderedExercises(previousOrder);
-      setError(
+      setActionError(
         err instanceof Error ? err.message : "Failed to reorder exercises",
       );
     } finally {
@@ -205,25 +242,79 @@ export default function WorkoutSummaryPage() {
     void saveExerciseOrder(nextOrder, previousOrder);
   }
 
-  async function handleContinue() {
+  async function handleStartWorkout() {
     if (!draftId) {
       navigate("/workout-select");
       return;
     }
 
     try {
-      setError("");
+      setActionError("");
       setIsStartingWorkout(true);
 
       await startWorkoutDraftRequest(draftId);
 
       navigate(`/workout/${draftId}`);
     } catch (err) {
-      setError(
+      setActionError(
         err instanceof Error ? err.message : "Failed to start workout",
       );
     } finally {
       setIsStartingWorkout(false);
+    }
+  }
+
+  function handleOpenTemplateModal() {
+    setActionError("");
+
+    if (!draft) {
+      return;
+    }
+
+    setTemplateName("");
+    setTemplateDescription("");
+    setTemplateCategory("custom");
+    setIsTemplateModalOpen(true);
+  }
+
+  function handleCloseTemplateModal() {
+    if (isSavingTemplate) {
+      return;
+    }
+
+    setIsTemplateModalOpen(false);
+  }
+
+  async function handleSaveTemplate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!draftId) {
+      return;
+    }
+
+    if (!templateName.trim()) {
+      setActionError("Template name is required.");
+      return;
+    }
+
+    try {
+      setActionError("");
+      setIsSavingTemplate(true);
+
+      await createWorkoutTemplateFromDraftRequest(draftId, {
+        name: templateName.trim(),
+        description: templateDescription.trim() || undefined,
+        category: templateCategory,
+      });
+
+      setIsTemplateModalOpen(false);
+      navigate("/templates/my");
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Failed to save template",
+      );
+    } finally {
+      setIsSavingTemplate(false);
     }
   }
 
@@ -268,11 +359,29 @@ export default function WorkoutSummaryPage() {
     <Box className={styles.page}>
       <div className={styles.header}>
         <div>
-          <p className={styles.kicker}>Workout builder</p>
-          <h1 className={styles.title}>Workout summary</h1>
-          <p className={styles.subtitle}>
-            Review your selected exercises before starting your session.
+          <p className={styles.kicker}>
+            {isTemplateDraft ? "Template builder" : "Workout builder"}
           </p>
+
+          <h1 className={styles.title}>
+            {isTemplateDraft ? "Template summary" : "Workout summary"}
+          </h1>
+
+          <p className={styles.subtitle}>
+            {isTemplateDraft
+              ? "Review your selected exercises before saving this as a reusable template."
+              : "Review your selected exercises before starting your session."}
+          </p>
+
+          <Button
+            type="button"
+            variant="secondary"
+            style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+            className={styles.backButton}
+            onClick={() => navigate(-1)}
+          >
+            <span className={styles.buttonArrow}>←</span>
+          </Button>
         </div>
 
         <Button type="button" variant="secondary" onClick={handleBack}>
@@ -280,11 +389,24 @@ export default function WorkoutSummaryPage() {
         </Button>
       </div>
 
+      {actionError && (
+        <Card className={styles.errorCard}>
+          <p>{actionError}</p>
+        </Card>
+      )}
+
       <Card className={styles.summaryCard}>
         <div className={styles.summaryGrid}>
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Exercises</span>
             <span className={styles.summaryValue}>{totalExercises}</span>
+          </div>
+
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Type</span>
+            <span className={styles.summaryValue}>
+              {isTemplateDraft ? "Template" : "Workout"}
+            </span>
           </div>
 
           <div className={styles.summaryItem}>
@@ -299,9 +421,15 @@ export default function WorkoutSummaryPage() {
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
-            <h2 className={styles.sectionTitle}>Selected exercises</h2>
+            <h2 className={styles.sectionTitle}>
+              Selected exercises
+            </h2>
+
             <p className={styles.sectionText}>
-              These exercises will be included in your workout session. <br />
+              {isTemplateDraft
+                ? "These exercises will be saved into your reusable template."
+                : "These exercises will be included in your workout session."}
+              <br />
               Drag and drop to re-order exercises.
             </p>
           </div>
@@ -314,7 +442,9 @@ export default function WorkoutSummaryPage() {
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={selectedExercises.map((exercise) => exercise.exerciseId)}
+              items={selectedExercises.map(
+                (exercise) => exercise.exerciseId,
+              )}
               strategy={verticalListSortingStrategy}
             >
               <div className={styles.exerciseList}>
@@ -331,8 +461,8 @@ export default function WorkoutSummaryPage() {
         ) : (
           <Card className={styles.stateCard}>
             <p className={styles.stateText}>
-              No exercises selected yet. Go back and choose at least one
-              exercise.
+              No exercises selected yet. Go back and choose at least
+              one exercise.
             </p>
           </Card>
         )}
@@ -341,7 +471,7 @@ export default function WorkoutSummaryPage() {
       <div className={styles.footer}>
         <p className={styles.footerText}>
           {selectedExercises.length === 0
-            ? "Choose exercises before starting."
+            ? "Choose exercises before continuing."
             : `${selectedExercises.length} exercise${selectedExercises.length === 1 ? "" : "s"
             } ready.`}
         </p>
@@ -351,16 +481,105 @@ export default function WorkoutSummaryPage() {
             Back
           </Button>
 
-          <Button
-            type="button"
-            variant="primary"
-            onClick={handleContinue}
-            disabled={selectedExercises.length === 0 || isStartingWorkout}
-          >
-            {isStartingWorkout ? "Starting..." : "Start workout"}
-          </Button>
+          {isTemplateDraft ? (
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleOpenTemplateModal}
+              disabled={
+                selectedExercises.length === 0 || isSavingTemplate
+              }
+            >
+              {isSavingTemplate ? "Saving..." : "Save as template"}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleStartWorkout}
+              disabled={
+                selectedExercises.length === 0 ||
+                isStartingWorkout
+              }
+            >
+              {isStartingWorkout ? "Starting..." : "Start workout"}
+            </Button>
+          )}
         </div>
       </div>
+
+      <Modal
+        title="Save as template"
+        isOpen={isTemplateModalOpen}
+        onClose={handleCloseTemplateModal}
+        actions={
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleCloseTemplateModal}
+              disabled={isSavingTemplate}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="submit"
+              form="save-template-form"
+              disabled={isSavingTemplate}
+            >
+              {isSavingTemplate ? "Saving..." : "Save template"}
+            </Button>
+          </>
+        }
+      >
+        <form
+          id="save-template-form"
+          className={styles.templateForm}
+          onSubmit={handleSaveTemplate}
+        >
+          <label className={styles.templateField}>
+            <span>Name *</span>
+            <input
+              type="text"
+              value={templateName}
+              placeholder="Example: My Push Day"
+              onChange={(event) =>
+                setTemplateName(event.target.value)
+              }
+            />
+          </label>
+
+          <label className={styles.templateField}>
+            <span>Category</span>
+            <select
+              value={templateCategory}
+              onChange={(event) =>
+                setTemplateCategory(
+                  event.target.value as WorkoutTemplateCategory,
+                )
+              }
+            >
+              {categoryOptions.map((category) => (
+                <option key={category} value={category}>
+                  {formatCategory(category)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className={styles.templateField}>
+            <span>Description</span>
+            <textarea
+              value={templateDescription}
+              placeholder="Short description for this template"
+              onChange={(event) =>
+                setTemplateDescription(event.target.value)
+              }
+            />
+          </label>
+        </form>
+      </Modal>
     </Box>
   );
 }

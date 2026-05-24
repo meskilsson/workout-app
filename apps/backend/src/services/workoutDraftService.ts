@@ -4,10 +4,11 @@ import Exercise from "../models/Exercises";
 import WorkoutDraft from "../models/WorkoutDraft";
 import { createWorkoutSession } from "./workoutSessionService";
 import { ConflictError, NotFoundError, ValidationError } from "../errors/AppError";
-import type { WorkoutDraftStatus } from "../models/WorkoutDraft";
+import type { WorkoutDraftStatus, WorkoutDraftPurpose } from "../models/WorkoutDraft";
 
 interface CreateWorkoutDraftInput {
     selectedMuscleGroups?: unknown;
+    purpose?: unknown;
 }
 
 interface UpdateMuscleGroupsInput {
@@ -42,6 +43,18 @@ function isEditableStatus(
     return editableStatuses.includes(
         status as (typeof editableStatuses)[number],
     );
+}
+
+function normalizeDraftPurpose(value: unknown): WorkoutDraftPurpose {
+    if (value === undefined || value === null || value === "") {
+        return "workout";
+    }
+
+    if (value !== "workout" && value !== "template") {
+        throw new ValidationError("Invalid workout draft purpose");
+    }
+
+    return value;
 }
 
 function normalizeMuscleGroups(value: unknown): Muscle[] {
@@ -213,9 +226,12 @@ export async function createWorkoutDraft(
         draftData.selectedMuscleGroups,
     );
 
+    const purpose = normalizeDraftPurpose(draftData.purpose);
+
     await WorkoutDraft.updateMany(
         {
             userId,
+            purpose,
             status: { $in: editableStatuses },
         },
         {
@@ -226,6 +242,7 @@ export async function createWorkoutDraft(
     const draft = await WorkoutDraft.create({
         userId,
         status: "building",
+        purpose,
         selectedMuscleGroups,
         exercises: [],
         startedAt: null,
@@ -238,6 +255,7 @@ export async function createWorkoutDraft(
 export async function getCurrentWorkoutDraft(userId: string) {
     const draft = await WorkoutDraft.findOne({
         userId,
+        purpose: "workout",
         status: { $in: editableStatuses },
     }).sort({ updatedAt: -1 });
 

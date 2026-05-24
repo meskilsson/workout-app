@@ -1,0 +1,257 @@
+.page {
+    width: 100%;
+    min-height: calc(100vh - 72px);
+    color: var(--color-text);
+
+    --templates-content-width: 1400px;
+}
+
+.header {
+    width: 100%;
+    max-width: var(--templates-content-width);
+    margin: 0 auto 1.5rem;
+}
+
+.kicker {
+    margin: 0 0 0.5rem;
+
+    color: var(--color-primary);
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.title {
+    margin: 0;
+
+    color: var(--color-text);
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+}
+
+.subtitle {
+    max-width: 620px;
+    margin: 0.8rem 0 0;
+
+    color: var(--color-text-muted);
+    font-size: 1rem;
+}
+
+.templateGrid {
+    width: 100%;
+    max-width: var(--templates-content-width);
+    margin: 0 auto;
+
+    display: grid;
+    grid-template-columns: repeat(3, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.templateCard {
+    padding: 1rem;
+
+    background: var(--gradient-surface);
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.templateName {
+    margin: 0;
+
+    color: var(--color-text);
+    font-size: 1.2rem;
+}
+
+.templateDescription {
+    margin: 0.65rem 0 0;
+
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+}
+
+.categoryBadge {
+    padding: 0.35rem 0.65rem;
+
+    color: var(--color-primary);
+    background: var(--color-primary-soft);
+
+    border: 1px solid var(--color-primary-border);
+    border-radius: var(--radius-pill);
+
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+.exerciseList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    margin-top: 1rem;
+}
+
+.exerciseItem {
+    display: flex;
+    gap: 0.5rem;
+
+    padding: 0.55rem 0.65rem;
+
+    color: var(--color-text-soft);
+    background: var(--color-surface-soft);
+
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-md);
+
+    font-size: 0.9rem;
+}
+
+.stateCard {
+    width: min(100%, 520px);
+    margin: 4rem auto 0;
+    padding: 1.5rem;
+
+    background: var(--gradient-surface);
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+
+    text-align: center;
+}
+
+.errorText {
+    color: var(--color-danger);
+}
+
+.section {
+    width: 100%;
+    max-width: var(--templates-content-width);
+    margin: 2rem auto 0;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+
+    margin-bottom: 1rem;
+}
+
+.sectionTitle {
+    margin: 0;
+
+    color: var(--color-text);
+    font-size: 1.5rem;
+}
+
+.sectionText {
+    margin: 0.5rem 0 0;
+
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+}
+
+.loginHint {
+    max-width: 620px;
+    margin: 1rem 0 0;
+    padding: 0.85rem 1rem;
+
+    color: var(--color-text-soft);
+    background: var(--color-surface-soft);
+
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-md);
+
+    font-size: 0.95rem;
+}
+
+.templateType {
+    margin: 0 0 0.4rem;
+
+    color: var(--color-primary);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.templateActions {
+    margin-top: 1rem;
+
+    display: flex;
+    justify-content: space-between;
+}
+
+.templateDetailsActions {
+    margin-top: 1rem;
+
+    display: flex;
+    justify-content: flex-end;
+}
+
+.actionErrorCard {
+    width: 100%;
+    max-width: var(--templates-content-width);
+    margin: 0 auto;
+    padding: 1rem;
+
+    background: var(--color-danger-soft);
+    border: 1px solid color-mix(in srgb, var(--color-danger) 35%, transparent);
+    border-radius: var(--radius-md);
+}
+
+.buttonArrow {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+
+@media (max-width: 1100px) {
+    .templateGrid {
+        grid-template-columns: repeat(2, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .page {
+        padding: 1.5rem 1rem 3rem;
+    }
+
+    .templateGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .cardHeader {
+        flex-direction: column;
+    }
+
+
+    .sectionHeader {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .sectionHeader button {
+        width: 100%;
+    }
+
+    .templateActions {
+        justify-content: stretch;
+    }
+
+    .templateActions button {
+        width: 100%;
+    }
+}

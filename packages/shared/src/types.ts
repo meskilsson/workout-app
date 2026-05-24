@@ -121,3 +121,94 @@ export type GetExercisesOptions = {
     search?: string;
     muscles?: Muscle[],
 };
+
+export type WorkoutTemplateCategory =
+    | "full_body"
+    | "push"
+    | "pull"
+    | "legs"
+    | "upper"
+    | "lower"
+    | "custom";
+
+export type WorkoutTemplateSet = {
+    reps?: number | null;
+    weight?: number | null;
+    restSeconds?: number | null;
+    notes?: string;
+};
+
+export type WorkoutTemplateExercise = {
+    _id: string;
+    exercise: {
+        _id: string;
+        name: string;
+        primaryMuscles?: string[];
+        secondaryMuscles?: string[];
+        equipment?: string;
+        difficulty?: "beginner" | "intermediate" | "advanced";
+        exerciseType?: "strength" | "cardio" | "mobility";
+    };
+    exerciseName: string;
+    order: number;
+    plannedSets: WorkoutTemplateSet[];
+};
+
+export type WorkoutTemplate = {
+    _id: string;
+    name: string;
+    description?: string;
+    category: WorkoutTemplateCategory;
+    isPublic: boolean;
+    createdBy?: string | null;
+    exercises: WorkoutTemplateExercise[];
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type CreateWorkoutTemplateInput = {
+    name: string;
+    description?: string;
+    category?: WorkoutTemplateCategory;
+    exercises: {
+        exerciseId: string;
+        plannedSets?: WorkoutTemplateSet[];
+    }[];
+};
+
+export type UpdateWorkoutTemplateInput = Partial<CreateWorkoutTemplateInput>;
+
+
+export type WorkoutDraftPurpose = "workout" | "template";
+
+export type CreateWorkoutDraftInput = {
+    selectedMuscleGroups: string[];
+    purpose?: WorkoutDraftPurpose;
+};
+
+export type CreateWorkoutTemplateFromDraftInput = {
+    name: string;
+    description?: string;
+    category?: WorkoutTemplateCategory;
+};
+
+export type StartedWorkoutDraft = {
+    _id: string;
+    userId: string;
+    status: "building" | "active" | "completed" | "abandoned";
+    purpose: "workout" | "template";
+    selectedMuscleGroups: string[];
+    exercises: {
+        exerciseId: string;
+        exerciseName: string;
+        sets: {
+            weight: number | null;
+            reps: number | null;
+        }[];
+    }[];
+    startedAt?: string | null;
+    completedSessionId?: string | null;
+    sourceTemplateId?: string | null;
+    createdAt: string;
+    updatedAt: string;
+};

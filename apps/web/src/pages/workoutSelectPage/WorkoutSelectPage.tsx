@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
@@ -30,6 +30,15 @@ const backendMuscleGroupMap: Record<string, string[]> = {
 };
 
 export default function WorkoutSelectPage() {
+
+  const [searchParams] = useSearchParams();
+
+  const purpose =
+    searchParams.get("purpose") === "template" ? "template" : "workout";
+
+  const isTemplatePurpose = purpose === "template";
+
+
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [isCreatingDraft, setIsCreatingDraft] = useState(false);
   const [error, setError] = useState("");
@@ -63,6 +72,7 @@ export default function WorkoutSelectPage() {
 
       const draft = await createWorkoutDraftRequest({
         selectedMuscleGroups,
+        purpose,
       });
 
       navigate(`/exercise-select/${draft._id}`);
@@ -78,11 +88,29 @@ export default function WorkoutSelectPage() {
   return (
     <Box className={styles.page}>
       <div className={styles.header}>
-        <p className={styles.kicker}>Workout builder</p>
-        <h1 className={styles.title}>Choose muscle groups</h1>
-        <p className={styles.subtitle}>
-          Pick one or more muscle groups to build your workout session.
+        <p className={styles.kicker}>
+          {isTemplatePurpose ? "Workout builder" : "Workout builder"}
         </p>
+
+        <h1 className={styles.title}>
+          {isTemplatePurpose ? "Choose workout muscles" : "Choose muscle groups"}
+        </h1>
+
+        <p className={styles.subtitle}>
+          {isTemplatePurpose
+            ? "Pick the muscle groups this reusable workout should include."
+            : "Pick one or more muscle groups to build your workout session."}
+        </p>
+        <Button
+          type="button"
+          variant="secondary"
+          style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+          className={styles.backButton}
+          onClick={() => navigate(-1)}
+
+        >
+          <span className={styles.buttonArrow}>←</span>
+        </Button>
       </div>
 
       <Box className={styles.grid}>
