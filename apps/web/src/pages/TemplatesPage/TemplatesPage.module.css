@@ -191,14 +191,20 @@
     margin-top: 1rem;
 
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .templateDetailsActions {
     margin-top: 1rem;
 
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .actionErrorCard {
@@ -219,17 +225,14 @@
 
 .backButton {
     width: 3.75rem;
-    min-width: 3.75rem;
-    max-width: 3.75rem;
     min-height: 2.35rem;
     margin-bottom: 1rem;
-    padding-inline: 0;
 
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 3.75rem;
 }
+
 
 
 @media (max-width: 1100px) {
@@ -257,8 +260,24 @@
         flex-direction: column;
     }
 
+    .sectionHeader button {
+        width: 100%;
+    }
+
     .templateActions {
         justify-content: stretch;
+    }
+
+    .templateActions button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .actions {
+        flex-direction: column-reverse;
+        align-items: flex-start;
     }
 
     .backButton {
@@ -268,11 +287,4 @@
         flex: 0 0 3.75rem;
     }
 
-}
-
-@media (max-width: 600px) {
-    .actions {
-        flex-direction: column-reverse;
-        align-items: flex-start;
-    }
 }
