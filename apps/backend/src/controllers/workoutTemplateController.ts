@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import * as workoutTemplateService from '../services/workoutTemplateService';
+import type { WorkoutDraftIdParams } from "../schemas/workoutDraft.schema";
 
 import { UnauthorizedError } from "../errors/AppError";
 
-import type { CreateWorkoutTemplateInput, UpdateWorkoutTemplateInput, WorkoutTemplateIdParams } from "../schemas/workoutTemplateSchemas";
+import type { CreateWorkoutTemplateInput, UpdateWorkoutTemplateInput, WorkoutTemplateIdParams, CreateWorkoutTemplateFromDraftInput } from "../schemas/workoutTemplateSchemas";
 
 export async function getPublicWorkoutTemplates(
     req: Request,
@@ -167,6 +168,30 @@ export async function startWorkoutFromTemplate(
         );
 
         res.status(201).json(draft);
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function createWorkoutTemplateFromDraft(
+    req: Request<WorkoutDraftIdParams>,
+    res: Response,
+    next: NextFunction,
+): Promise<void> {
+    try {
+        if (!req.user?.id) {
+            throw new UnauthorizedError("Unauthorized");
+        }
+
+        const body = req.validatedBody as CreateWorkoutTemplateFromDraftInput;
+
+        const template = await workoutTemplateService.createWorkoutTemplateFromDraft(
+            req.params.draftId,
+            req.user.id,
+            body,
+        );
+
+        res.status(201).json(template);
     } catch (error) {
         next(error);
     }

@@ -4,6 +4,7 @@ import type {
     CreateWorkoutTemplateInput,
     UpdateWorkoutTemplateInput,
     StartedWorkoutDraft,
+    CreateWorkoutTemplateFromDraftInput,
 } from "@workout-app/shared";
 
 import { parseJsonResponse } from "../utils/parseJsonResponse";
@@ -133,5 +134,27 @@ export async function startWorkoutFromTemplateRequest(
     return parseJsonResponse<StartedWorkoutDraft>(
         response,
         "Failed to start workout from template",
+    );
+}
+
+export async function createWorkoutTemplateFromDraftRequest(
+    draftId: string,
+    templateData: CreateWorkoutTemplateFromDraftInput,
+): Promise<WorkoutTemplate> {
+    const response = await fetch(
+        `${API_URL}/api/workout-templates/from-draft/${draftId}`,
+        {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(templateData),
+        },
+    );
+
+    return parseJsonResponse<WorkoutTemplate>(
+        response,
+        "Failed to save workout template",
     );
 }

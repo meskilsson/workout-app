@@ -9,7 +9,7 @@ import { ForbiddenError, NotFoundError, ValidationError } from "../errors/AppErr
 import { assertValidObjectId } from "../utils/assertValidObjectId";
 import { findDuplicateIds } from "../utils/findDuplicateIds";
 
-import type { CreateWorkoutTemplateInput, UpdateWorkoutTemplateInput } from "../schemas/workoutTemplateSchemas";
+import type { CreateWorkoutTemplateInput, UpdateWorkoutTemplateInput, CreateWorkoutTemplateFromDraftInput } from "../schemas/workoutTemplateSchemas";
 import type { Muscle } from "@workout-app/shared";
 
 type PopulatedTemplateExercise = {
@@ -293,4 +293,54 @@ export async function startWorkoutFromTemplate(
     });
 
     return draft;
+}
+
+export async function createWorkoutTemplateFromDraft(
+    draftId: string,
+    userId: string,
+    input: CreateWorkoutTemplateFromDraftInput,
+) {
+    assertValidObjectId(draftId, "draft id");
+    assertValidObjectId(userId, "user id");
+
+    const draft = await WorkoutDraft.findOne({
+        _id: draftId,
+        userId,
+        purpose: "template",
+        status: "building",
+    });
+
+    if (!draft) {
+        throw new NotFoundError("Template draft could not be found");
+    }
+
+    if (draft.exercises.length === 0) {
+        throw new ValidationError("Cannot create a template without exercises");
+    }
+
+    const templateExercises = draft.exercises.map((draftExercise, index) => ({
+        exercise: draftExercise.exerciseId,
+        exerciseName: draftExercise.exerciseName,
+        order: index,
+        plannedSets: draftExercise.sets.map((set) => ({
+            reps: set.reps,
+            weight: set.weight,
+            restSeconds: null,
+            notes: "",
+        })),
+    }));
+
+    const template = await WorkoutTemplate.create({
+        name: input.name,
+        description: input.description ?? "",
+        category: input.category ?? "custom",
+        isPublic: false,
+        createdBy: userId,
+        exercises: templateExercises,
+    });
+
+    draft.status = "abandoned";
+    await draft.save();
+
+    return template;
 }
