@@ -15,10 +15,11 @@
 }
 
 .footerBox {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto;
     align-items: center;
     justify-content: center;
-    gap: 4rem;
+    column-gap: clamp(8rem, 20vw, 24rem);
 }
 
 .footerText {
@@ -26,6 +27,7 @@
     color: var(--color-text-muted);
     font-size: 0.9rem;
     font-weight: 700;
+
 }
 
 .timerFooter {
@@ -47,14 +49,12 @@
 }
 
 .about {
-    display: flex;
-    align-items: center;
-    text-align: center;
+    text-align: left;
 }
 
 .contactBox {
     display: flex;
-    align-items: center;
+    justify-content: center;
 }
 
 .contact {
@@ -103,7 +103,12 @@
 
 @media (max-width: 600px) {
     .footerBox {
-        flex-direction: column;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        text-align: center;
+    }
+
+    .about {
         text-align: center;
     }
 }

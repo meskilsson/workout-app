@@ -1,15 +1,14 @@
 .page {
     width: 100%;
     min-height: calc(100vh - 72px);
-    padding: 2.5rem 1rem 4rem;
-
-    background: var(--gradient-background);
     color: var(--color-text);
+
+    --templates-content-width: 1400px;
 }
 
 .header {
     width: 100%;
-    max-width: var(--max-width);
+    max-width: var(--templates-content-width);
     margin: 0 auto 1.5rem;
 }
 
@@ -42,7 +41,7 @@
 
 .templateGrid {
     width: 100%;
-    max-width: var(--max-width);
+    max-width: var(--templates-content-width);
     margin: 0 auto;
 
     display: grid;
@@ -137,7 +136,7 @@
 
 .section {
     width: 100%;
-    max-width: var(--max-width);
+    max-width: var(--templates-content-width);
     margin: 2rem auto 0;
 }
 
@@ -192,12 +191,19 @@
     margin-top: 1rem;
 
     display: flex;
+    justify-content: space-between;
+}
+
+.templateDetailsActions {
+    margin-top: 1rem;
+
+    display: flex;
     justify-content: flex-end;
 }
 
 .actionErrorCard {
     width: 100%;
-    max-width: var(--max-width);
+    max-width: var(--templates-content-width);
     margin: 0 auto;
     padding: 1rem;
 
@@ -226,22 +232,21 @@
         flex-direction: column;
     }
 
-    @media (max-width: 700px) {
-        .sectionHeader {
-            align-items: flex-start;
-            flex-direction: column;
-        }
 
-        .sectionHeader button {
-            width: 100%;
-        }
+    .sectionHeader {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 
-        .templateActions {
-            justify-content: stretch;
-        }
+    .sectionHeader button {
+        width: 100%;
+    }
 
-        .templateActions button {
-            width: 100%;
-        }
+    .templateActions {
+        justify-content: stretch;
+    }
+
+    .templateActions button {
+        width: 100%;
     }
 }
