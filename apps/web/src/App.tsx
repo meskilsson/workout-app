@@ -66,7 +66,7 @@ function App() {
 
           <Route
             path="pre-made/templates-details/:id"
-            element={<TemplatesDetailsPage templateSource={'public'} />}
+            element={<TemplatesDetailsPage templateSource="public" />}
           />
 
           <Route
@@ -82,7 +82,7 @@ function App() {
             path="my/templates-details/:id"
             element={
               <ProtectedRoute>
-                <TemplatesDetailsPage templateSource={'my'} />
+                <TemplatesDetailsPage templateSource="my" />
               </ProtectedRoute>
             }
           />

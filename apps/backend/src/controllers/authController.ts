@@ -4,13 +4,16 @@ import { signAccessToken } from "../utils/jwt";
 import User from "../models/User";
 import { UnauthorizedError } from "../errors/AppError";
 
+
+
+const isProduction = process.env.NODE_ENV === "production";
+
 export async function loginUser(
     req: Request,
     res: Response,
     next: NextFunction,
 ): Promise<void> {
 
-    const isProduction = process.env.NODE_ENV === "production";
 
     try {
         const user = await authService.loginUser(req.body);
@@ -66,8 +69,8 @@ export async function logoutUser(
 ): Promise<void> {
     res.clearCookie("token", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
     });
 
     res.status(200).json({ message: "Logged out" });
