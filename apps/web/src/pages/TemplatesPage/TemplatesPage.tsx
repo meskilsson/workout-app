@@ -199,7 +199,8 @@ export default function TemplatesPage() {
                             type="button"
                             variant="secondary"
                             style={{ minWidth: "3.25rem", marginTop: "1rem" }}
-                            className={styles.backButton}
+                            iconOnly
+                            className={styles.backBottom}
                             onClick={() => navigate(-1)}
 
                         >

@@ -217,6 +217,20 @@
     line-height: 1;
 }
 
+.backButton {
+    width: 3.75rem;
+    min-width: 3.75rem;
+    max-width: 3.75rem;
+    min-height: 2.35rem;
+    margin-bottom: 1rem;
+    padding-inline: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 3.75rem;
+}
+
 
 @media (max-width: 1100px) {
     .templateGrid {
@@ -243,15 +257,22 @@
         flex-direction: column;
     }
 
-    .sectionHeader button {
-        width: 100%;
-    }
-
     .templateActions {
         justify-content: stretch;
     }
 
-    .templateActions button {
-        width: 100%;
+    .backButton {
+        width: 3.75rem;
+        min-width: 3.75rem;
+        max-width: 3.75rem;
+        flex: 0 0 3.75rem;
+    }
+
+}
+
+@media (max-width: 600px) {
+    .actions {
+        flex-direction: column-reverse;
+        align-items: flex-start;
     }
 }

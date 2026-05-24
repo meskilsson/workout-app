@@ -152,7 +152,7 @@ export default function WorkoutSummaryPage() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 30,
       },
     }),
     useSensor(KeyboardSensor, {
