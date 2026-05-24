@@ -70,7 +70,7 @@ function hydrateWorkoutTimerState(): WorkoutTimerState {
 
 export function WorkoutTimerProvider({
     children,
-}: WorkoutTimerProviderProps): JSX.Element {
+}: WorkoutTimerProviderProps) {
     const [state, dispatch] = useReducer(
         workoutTimerReducer,
         undefined,

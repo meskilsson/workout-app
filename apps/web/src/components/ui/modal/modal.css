@@ -1,39 +1,60 @@
 .modal-overlay {
     position: fixed;
     inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 24px;
-    background: var(--color-overlay);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
     z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 1rem;
+
+    background: rgba(0, 0, 0, 0.55);
+}
+
+.modal-shell {
+    width: min(100%, 560px);
 }
 
 .modal-panel {
     width: 100%;
-    max-width: 500px;
-    background: var(--color-surface);
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
+    padding: 1.25rem;
+
+    background: var(--gradient-surface);
+    border: 1px solid var(--color-border-soft);
     border-radius: var(--radius-lg);
-    padding: 24px;
     box-shadow: var(--shadow-lg);
 }
 
 .modal-title {
-    margin: 0 0 12px;
-    font-size: 1.4rem;
+    margin: 0 0 1rem;
+
+    color: var(--color-text);
+    font-size: 1.35rem;
 }
 
 .modal-content {
-    margin-bottom: 20px;
+    color: var(--color-text);
 }
 
 .modal-actions {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
+    justify-content: flex-end;
+    gap: 0.75rem;
+
+    margin-top: 1.25rem;
+}
+
+@media (max-width: 600px) {
+    .modal-shell {
+        width: 100%;
+    }
+
+    .modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .modal-actions button {
+        width: 100%;
+    }
 }

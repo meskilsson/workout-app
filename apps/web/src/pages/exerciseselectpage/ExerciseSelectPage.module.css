@@ -3,7 +3,6 @@
     min-height: calc(100vh - 72px);
     padding: 2.5rem 1rem 4rem;
 
-    background: var(--gradient-background);
     color: var(--color-text);
 
     display: flex;

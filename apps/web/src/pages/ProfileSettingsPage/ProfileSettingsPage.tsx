@@ -129,7 +129,7 @@ export default function ProfileSettingsPage() {
                         </p>
                     </div>
 
-                    <Button variant="danger" disabled>
+                    <Button variant="danger">
                         Delete account
                     </Button>
                 </Card>

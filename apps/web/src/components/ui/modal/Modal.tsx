@@ -21,7 +21,10 @@ export default function Modal({
 
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div onClick={(event) => event.stopPropagation()}>
+            <div
+                className="modal-shell"
+                onClick={(event) => event.stopPropagation()}
+            >
                 <Box className="modal-panel">
                     {title && <h2 className="modal-title">{title}</h2>}
 
