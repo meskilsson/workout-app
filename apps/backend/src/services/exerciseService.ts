@@ -112,15 +112,45 @@ export async function getExerciseLibrary(userId: string, { page, limit, search, 
     return findPaginatedExercises(filter, page, limit);
 }
 
-export async function getExerciseById(id: string) {
-    const exercise = await Exercise.findById(id);
+export async function getPublicExerciseById(id: string) {
+    if (!Types.ObjectId.isValid(id)) {
+        throw new ValidationError("Invalid exercise id");
+    }
+
+    const exercise = await Exercise.findOne({
+        _id: id,
+        isCustom: false,
+        createdBy: null,
+    });
 
     if (!exercise) {
-        const error = new Error("Exercise not found") as Error & {
-            statusCode?: number;
-        };
-        error.statusCode = 404;
-        throw error;
+        throw new NotFoundError("Exercise not found");
+    }
+
+    return exercise;
+}
+
+export async function getLibraryExerciseById(id: string, userId: string) {
+    if (!Types.ObjectId.isValid(id)) {
+        throw new ValidationError("Invalid exercise id");
+    }
+
+    const exercise = await Exercise.findOne({
+        _id: id,
+        $or: [
+            {
+                isCustom: false,
+                createdBy: null,
+            },
+            {
+                isCustom: true,
+                createdBy: userId,
+            },
+        ],
+    });
+
+    if (!exercise) {
+        throw new NotFoundError("Exercise not found");
     }
 
     return exercise;

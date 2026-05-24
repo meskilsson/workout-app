@@ -350,16 +350,25 @@ export async function updateWorkoutDraftExercises(
 }
 
 export async function startWorkoutDraft(draftId: string, userId: string) {
-    const draft = await getOwnedDraft(draftId, userId);
+    const draft = await WorkoutDraft.findOne({
+        _id: draftId,
+        userId,
+    });
 
-    ensureDraftIsBuilding(draft.status);
+    if (!draft) {
+        throw new NotFoundError("Workout draft not found");
+    }
 
-    if (draft.exercises.length === 0) {
-        throw new ValidationError("Add at least one exercise before starting");
+    if (draft.purpose !== "workout") {
+        throw new ConflictError("Template drafts cannot be started as workouts");
+    }
+
+    if (draft.status !== "building") {
+        throw new ConflictError("Only building workout drafts can be started");
     }
 
     draft.status = "active";
-    draft.startedAt = draft.startedAt ?? new Date();
+    draft.startedAt = new Date();
 
     await draft.save();
 
