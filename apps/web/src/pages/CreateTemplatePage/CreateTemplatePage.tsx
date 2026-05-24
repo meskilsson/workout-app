@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
+import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 
 import { getExerciseLibraryRequest } from "../../services/exerciseApi";
 import {
@@ -240,7 +241,7 @@ export default function CreateTemplatePage() {
         }
 
         if (selectedExercises.length === 0) {
-            setSubmitError("Add at least one exercise to the template.");
+            setSubmitError("Add at least one exercise to the workout.");
             return;
         }
 
@@ -274,7 +275,7 @@ export default function CreateTemplatePage() {
             if (error instanceof Error) {
                 setSubmitError(error.message);
             } else {
-                setSubmitError("Failed to create template");
+                setSubmitError("Failed to create workout");
             }
         } finally {
             setIsSaving(false);
@@ -286,8 +287,8 @@ export default function CreateTemplatePage() {
             <form onSubmit={handleSubmit} className={styles.form}>
                 <header className={styles.header}>
                     <div>
-                        <p className={styles.kicker}>Create template</p>
-                        <h1 className={styles.title}>New workout template</h1>
+                        <p className={styles.kicker}>Create workout</p>
+                        <h1 className={styles.title}>New workout</h1>
                         <p className={styles.subtitle}>
                             Build a reusable workout plan that you can start later.
                         </p>
@@ -315,7 +316,7 @@ export default function CreateTemplatePage() {
                 )}
 
                 <Card className={styles.sectionCard}>
-                    <h2 className={styles.sectionTitle}>Template details</h2>
+                    <h2 className={styles.sectionTitle}>Workout details</h2>
 
                     <div className={styles.fieldGrid}>
                         <label className={styles.field}>
@@ -335,7 +336,7 @@ export default function CreateTemplatePage() {
                         <span>Description</span>
                         <textarea
                             value={description}
-                            placeholder="Short description of this template"
+                            placeholder="Short description of this workout"
                             onChange={(event) => setDescription(event.target.value)}
                         />
                     </label>
@@ -349,7 +350,7 @@ export default function CreateTemplatePage() {
                                     Exercise library
                                 </h2>
                                 <p className={styles.sectionText}>
-                                    Search and add exercises to your template.
+                                    Search and add exercises to your workout.
                                 </p>
                             </div>
                         </div>
@@ -370,35 +371,59 @@ export default function CreateTemplatePage() {
                             <p className={styles.errorText}>{exerciseError}</p>
                         )}
 
-                        <div className={styles.exerciseList}>
+                        <div className={styles.templateExerciseGrid}>
                             {availableExercises.map((exercise) => {
-                                const isSelected = selectedExerciseIds.has(
-                                    exercise._id,
-                                );
+                                const isSelected = selectedExerciseIds.has(exercise._id);
 
                                 return (
-                                    <div
+                                    <article
                                         key={exercise._id}
-                                        className={styles.exerciseOption}
+                                        className={`${styles.templateExerciseCard} ${isSelected ? styles.templateExerciseCardSelected : ""
+                                            }`}
                                     >
-                                        <div>
-                                            <h3>{exercise.name}</h3>
-
-                                            <p>
-                                                {exercise.primaryMuscles?.join(", ") ||
-                                                    "No muscles"}
-                                            </p>
-                                        </div>
-
-                                        <Button
+                                        <button
                                             type="button"
-                                            variant="secondary"
+                                            className={styles.templateExerciseButton}
                                             disabled={isSelected}
                                             onClick={() => handleAddExercise(exercise)}
                                         >
-                                            {isSelected ? "Added" : "Add"}
-                                        </Button>
-                                    </div>
+                                            <div className={styles.templateExerciseText}>
+                                                <p className={styles.exerciseStatus}>
+                                                    {isSelected ? "Added" : "Click to add"}
+                                                </p>
+
+                                                <h3 className={styles.exerciseName}>{exercise.name}</h3>
+
+                                                <p className={styles.exerciseMetaText}>
+                                                    {exercise.exerciseType} · {exercise.equipment} · {exercise.difficulty}
+                                                </p>
+
+                                                <div className={styles.muscleTags}>
+                                                    {exercise.primaryMuscles?.map((muscle) => (
+                                                        <span key={muscle} className={styles.primaryTag}>
+                                                            {muscle}
+                                                        </span>
+                                                    ))}
+                                                </div>
+
+                                                <div className={styles.muscleTags}>
+                                                    {exercise.secondaryMuscles?.map((muscle) => (
+                                                        <span key={muscle} className={styles.secondaryTag}>
+                                                            {muscle}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className={styles.cardDummy}>
+                                                <MuscleDummy
+                                                    variant="mini"
+                                                    primaryMuscles={exercise.primaryMuscles ?? []}
+                                                    secondaryMuscles={exercise.secondaryMuscles ?? []}
+                                                />
+                                            </div>
+                                        </button>
+                                    </article>
                                 );
                             })}
                         </div>
@@ -408,7 +433,7 @@ export default function CreateTemplatePage() {
                         <div className={styles.sectionHeader}>
                             <div>
                                 <h2 className={styles.sectionTitle}>
-                                    Template exercises
+                                    Workout exercises
                                 </h2>
                                 <p className={styles.sectionText}>
                                     Reorder exercises and add planned sets.

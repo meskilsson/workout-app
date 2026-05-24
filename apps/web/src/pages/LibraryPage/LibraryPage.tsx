@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -8,18 +8,20 @@ import {
 } from "../../services/exerciseApi";
 
 import Box from "../../components/ui/box/Box";
-import Card from "../../components/ui/cards/Card";
+
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 import type { Exercise } from "@workout-app/shared";
 import { usePaginationScroll } from "../../hooks/usePaginationScroll";
 
 import styles from "./LibraryPage.module.css";
 
+import { Link } from "react-router-dom";
+
 
 
 export default function LibraryPage() {
     const { isAuthenticated } = useAuth();
-    const navigate = useNavigate();
+
 
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [error, setError] = useState("");
@@ -134,23 +136,30 @@ export default function LibraryPage() {
             {exercises.length > 0 ? (
                 <div className={styles.exerciseGrid}>
                     {exercises.map((exercise) => (
-                        <Card key={exercise._id} className={styles.exerciseCard} onClick={() => navigate(`/exercises/${exercise._id}`)}>
-                            <div className={styles.exerciseCardTop}>
-                                <div>
+                        <article key={exercise._id} className={styles.exerciseCard}>
+
+                            <Link to={`/exercises/${exercise._id}`} className={styles.exerciseLink}>
+                                <div className={styles.exerciseText}>
                                     <h2 className={styles.exerciseName}>{exercise.name}</h2>
 
-                                    <div className={styles.exerciseMeta}>
-                                        {exercise.exerciseType && (
-                                            <span>{exercise.exerciseType}</span>
-                                        )}
+                                    <p className={styles.exerciseMetaText}>
+                                        {exercise.exerciseType} · {exercise.equipment} · {exercise.difficulty}
+                                    </p>
 
-                                        {exercise.equipment && <span>{exercise.equipment}</span>}
+                                    <div className={styles.muscleTags}>
+                                        {exercise.primaryMuscles?.map((muscle) => (
+                                            <span key={muscle} className={styles.primaryTag}>
+                                                {muscle}
+                                            </span>
+                                        ))}
+                                    </div>
 
-                                        {exercise.difficulty && (
-                                            <span>{exercise.difficulty}</span>
-                                        )}
-
-                                        {exercise.isCustom && <span>custom</span>}
+                                    <div className={styles.muscleTags}>
+                                        {exercise.secondaryMuscles?.map((muscle) => (
+                                            <span key={muscle} className={styles.secondaryTag}>
+                                                {muscle}
+                                            </span>
+                                        ))}
                                     </div>
                                 </div>
 
@@ -161,46 +170,9 @@ export default function LibraryPage() {
                                         secondaryMuscles={exercise.secondaryMuscles ?? []}
                                     />
                                 </div>
-                            </div>
+                            </Link>
 
-                            <div className={styles.muscleInfo}>
-                                {exercise.primaryMuscles &&
-                                    exercise.primaryMuscles.length > 0 && (
-                                        <div>
-                                            <p className={styles.muscleLabel}>Primary</p>
-
-                                            <div className={styles.muscleTags}>
-                                                {exercise.primaryMuscles.map((muscle) => (
-                                                    <span
-                                                        key={muscle}
-                                                        className={styles.primaryTag}
-                                                    >
-                                                        {muscle}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                {exercise.secondaryMuscles &&
-                                    exercise.secondaryMuscles.length > 0 && (
-                                        <div>
-                                            <p className={styles.muscleLabel}>Secondary</p>
-
-                                            <div className={styles.muscleTags}>
-                                                {exercise.secondaryMuscles.map((muscle) => (
-                                                    <span
-                                                        key={muscle}
-                                                        className={styles.secondaryTag}
-                                                    >
-                                                        {muscle}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                            </div>
-                        </Card>
+                        </article>
                     ))}
                 </div>
             ) : (

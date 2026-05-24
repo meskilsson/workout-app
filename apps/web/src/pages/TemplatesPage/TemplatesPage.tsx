@@ -84,6 +84,8 @@ export default function TemplatesPage() {
         }
     }
 
+
+
     function renderTemplateCard(template: WorkoutTemplate, label: string) {
         const isStarting = startingTemplateId === template._id;
 
@@ -122,7 +124,16 @@ export default function TemplatesPage() {
                     >
                         {isStarting ? "Starting..." : "Start workout"}
                     </Button>
+
+                    <Button
+                        type="button"
+                        onClick={() => navigate(`templates-details/${template._id}`)}
+                    >
+                        View details
+                    </Button>
+
                 </div>
+
             </Card>
         );
     }
@@ -131,7 +142,7 @@ export default function TemplatesPage() {
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>
-                    <p>Loading templates...</p>
+                    <p>Loading workouts...</p>
                 </Card>
             </Box>
         );
@@ -150,18 +161,16 @@ export default function TemplatesPage() {
     return (
         <Box className={styles.page}>
             <header className={styles.header}>
-                <p className={styles.kicker}>Workout templates</p>
-
-                <h1 className={styles.title}>Templates</h1>
+                <h1 className={styles.kicker}>Workouts</h1>
 
                 <p className={styles.subtitle}>
-                    Browse pre-made workout templates and choose what you want to train.
+                    Browse pre-made workouts and choose what you want to train.
                 </p>
 
                 {!isAuthenticated && (
                     <p className={styles.loginHint}>
-                        You can browse templates while logged out, but you need to log in
-                        to start a workout or create your own templates.
+                        You can browse workouts while logged out, but you need to log in
+                        to start a workout or create your own workouts.
                     </p>
                 )}
             </header>
@@ -175,9 +184,9 @@ export default function TemplatesPage() {
             <section className={styles.section}>
                 <div className={styles.sectionHeader}>
                     <div>
-                        <h2 className={styles.sectionTitle}>Pre-made templates</h2>
+                        <h2 className={styles.sectionTitle}>Pre-made workouts</h2>
                         <p className={styles.sectionText}>
-                            Templates available for everyone to browse.
+                            Workouts available for everyone to browse.
                         </p>
                     </div>
                 </div>
@@ -190,7 +199,7 @@ export default function TemplatesPage() {
                     </div>
                 ) : (
                     <Card className={styles.stateCard}>
-                        <p>No public templates found.</p>
+                        <p>No public workouts found.</p>
                     </Card>
                 )}
             </section>
@@ -199,9 +208,9 @@ export default function TemplatesPage() {
                 <section className={styles.section}>
                     <div className={styles.sectionHeader}>
                         <div>
-                            <h2 className={styles.sectionTitle}>My templates</h2>
+                            <h2 className={styles.sectionTitle}>My workouts</h2>
                             <p className={styles.sectionText}>
-                                Templates you have created yourself.
+                                Workouts you have created yourself.
                             </p>
                         </div>
 
@@ -210,7 +219,7 @@ export default function TemplatesPage() {
                             variant="secondary"
                             onClick={() => navigate("/templates/create")}
                         >
-                            Create template
+                            Create workout
                         </Button>
                     </div>
 
@@ -222,7 +231,7 @@ export default function TemplatesPage() {
                         </div>
                     ) : (
                         <Card className={styles.stateCard}>
-                            <p>You have not created any templates yet.</p>
+                            <p>You have not created any workouts yet.</p>
                         </Card>
                     )}
                 </section>

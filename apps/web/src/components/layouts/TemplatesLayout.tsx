@@ -13,10 +13,10 @@ export default function TemplatesLayout() {
             <div className={styles.layout}>
                 <aside className={styles.sidebar}>
                     <div className={styles.sidebarHeader}>
-                        <p className={styles.kicker}>Workout templates</p>
-                        <h1 className={styles.title}>Templates</h1>
+                        <p className={styles.kicker}>Workouts</p>
+                        <h1 className={styles.title}>Workouts</h1>
                         <p className={styles.subtitle}>
-                            Choose a pre-made workout or manage your own templates.
+                            Choose a pre-made workout or manage your own workouts.
                         </p>
                     </div>
 
@@ -40,7 +40,7 @@ export default function TemplatesLayout() {
                                         }`
                                     }
                                 >
-                                    My templates
+                                    My workouts
                                 </NavLink>
 
                                 <NavLink
@@ -50,18 +50,18 @@ export default function TemplatesLayout() {
                                         }`
                                     }
                                 >
-                                    Create template
+                                    Create workout
                                 </NavLink>
                             </>
                         ) : (
                             <>
                                 <div className={styles.disabledLink}>
-                                    My templates
+                                    My workouts
                                     <span>Log in required</span>
                                 </div>
 
                                 <div className={styles.disabledLink}>
-                                    Create templates
+                                    Create workouts
                                     <span>Log in required</span>
                                 </div>
                             </>

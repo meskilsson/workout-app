@@ -66,7 +66,7 @@ export default function MyTemplatesPage() {
     if (isLoading) {
         return (
             <Card className={styles.stateCard}>
-                <p>Loading your templates...</p>
+                <p>Loading your workouts...</p>
             </Card>
         );
     }
@@ -83,9 +83,9 @@ export default function MyTemplatesPage() {
         <section className={styles.section}>
             <div className={styles.sectionHeader}>
                 <div>
-                    <h2 className={styles.sectionTitle}>My templates</h2>
+                    <h2 className={styles.sectionTitle}>My workouts</h2>
                     <p className={styles.sectionText}>
-                        Templates you have created yourself.
+                        Workouts you have created yourself.
                     </p>
                 </div>
 
@@ -94,7 +94,7 @@ export default function MyTemplatesPage() {
                     variant="secondary"
                     onClick={() => navigate("/templates/create")}
                 >
-                    Create template
+                    Create workout
                 </Button>
             </div>
 
@@ -111,7 +111,7 @@ export default function MyTemplatesPage() {
                                 <div className={styles.cardHeader}>
                                     <div>
                                         <p className={styles.templateType}>
-                                            My template
+                                            My workout
                                         </p>
 
                                         <h2 className={styles.templateName}>
@@ -160,7 +160,7 @@ export default function MyTemplatesPage() {
                 </div>
             ) : (
                 <Card className={styles.stateCard}>
-                    <p>You have not created any templates yet.</p>
+                    <p>You have not created any workouts yet.</p>
                 </Card>
             )}
         </section>
