@@ -21,6 +21,8 @@ export const createWorkoutDraftSchema = z.strictObject({
     selectedMuscleGroups: z
         .array(muscleSchema)
         .min(1, "At least one muscle group is required"),
+
+    purpose: z.enum(["workout", "template"]).optional(),
 });
 
 export const updateWorkoutDraftMuscleGroupsSchema = z.strictObject({

@@ -178,10 +178,25 @@ export type CreateWorkoutTemplateInput = {
 
 export type UpdateWorkoutTemplateInput = Partial<CreateWorkoutTemplateInput>;
 
+
+export type WorkoutDraftPurpose = "workout" | "template";
+
+export type CreateWorkoutDraftInput = {
+    selectedMuscleGroups: string[];
+    purpose?: WorkoutDraftPurpose;
+};
+
+export type CreateWorkoutTemplateFromDraftInput = {
+    name: string;
+    description?: string;
+    category?: WorkoutTemplateCategory;
+};
+
 export type StartedWorkoutDraft = {
     _id: string;
     userId: string;
     status: "building" | "active" | "completed" | "abandoned";
+    purpose: "workout" | "template";
     selectedMuscleGroups: string[];
     exercises: {
         exerciseId: string;

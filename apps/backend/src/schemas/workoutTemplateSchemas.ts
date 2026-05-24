@@ -57,6 +57,24 @@ export const updateWorkoutTemplateSchema = z.object({
 });
 
 
+export const workoutDraftIdParamSchema = z.object({
+    draftId: objectIdSchema,
+});
+
+export const createWorkoutTemplateFromDraftSchema = z.object({
+    name: z.string().trim().min(2).max(80),
+    description: z.string().trim().max(500).optional(),
+    category: z
+        .enum(["full_body", "push", "pull", "legs", "upper", "lower", "custom"])
+        .optional(),
+});
+
+export type WorkoutDraftIdParams = z.infer<typeof workoutDraftIdParamSchema>;
+
+export type CreateWorkoutTemplateFromDraftInput = z.infer<
+    typeof createWorkoutTemplateFromDraftSchema
+>;
+
 export const workoutTemplateIdParamSchema = z.object({
     templateId: objectIdSchema,
 });
