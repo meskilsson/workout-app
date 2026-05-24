@@ -1,51 +1,84 @@
-
 import type { UpdateUserBody } from "@workout-app/shared";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api/v1";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
+type UserResponse = {
+    _id: string;
+    name: string;
+    email: string;
+    username: string;
+    profileImage: string | null;
+    role: "user" | "admin";
+};
 
-export async function getAllUsersRequest() {
-    const response = await fetch(`${API_URL}/users`);
+type MessageResponse = {
+    message: string;
+};
 
-    const data = await response.json();
+async function parseUserResponse<T>(
+    response: Response,
+    fallbackMessage: string,
+): Promise<T> {
+    let data: unknown = null;
 
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to get users");
+    try {
+        data = await response.json();
+    } catch {
+        data = null;
     }
 
-    return data;
-}
-
-export async function getUserByIdRequest(id: string) {
-    const response = await fetch(`${API_URL}/users/${id}`);
-
-    const data = await response.json();
-
     if (!response.ok) {
-        throw new Error(data.message || "Failed to get user");
+        const errorData = data as {
+            message?: string;
+            errors?: { field?: string; message?: string }[];
+        } | null;
+
+        const validationMessage = errorData?.errors
+            ?.map((error) =>
+                error.field
+                    ? `${error.field}: ${error.message}`
+                    : error.message,
+            )
+            .filter(Boolean)
+            .join("\n");
+
+        throw new Error(
+            validationMessage ||
+            errorData?.message ||
+            fallbackMessage,
+        );
     }
 
-    return data;
+    return data as T;
 }
 
-
-export async function deleteUserRequest(userId: string) {
-    const response = await fetch(`${API_URL}/api/users/${userId}`, {
-        method: "DELETE",
+export async function getAllUsersRequest(): Promise<UserResponse[]> {
+    const response = await fetch(`${API_URL}/api/users`, {
         credentials: "include",
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to delete account");
-    }
-
-    return data;
+    return parseUserResponse<UserResponse[]>(
+        response,
+        "Failed to get users",
+    );
 }
 
-export async function updateUserRequest(id: string, userData: UpdateUserBody) {
-    const response = await fetch(`${API_URL}/users/${id}`, {
+export async function getUserByIdRequest(id: string): Promise<UserResponse> {
+    const response = await fetch(`${API_URL}/api/users/${id}`, {
+        credentials: "include",
+    });
+
+    return parseUserResponse<UserResponse>(
+        response,
+        "Failed to get user",
+    );
+}
+
+export async function updateUserRequest(
+    id: string,
+    userData: UpdateUserBody,
+): Promise<UserResponse> {
+    const response = await fetch(`${API_URL}/api/users/${id}`, {
         method: "PATCH",
         credentials: "include",
         headers: {
@@ -54,13 +87,10 @@ export async function updateUserRequest(id: string, userData: UpdateUserBody) {
         body: JSON.stringify(userData),
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to update user");
-    }
-
-    return data;
+    return parseUserResponse<UserResponse>(
+        response,
+        "Failed to update user",
+    );
 }
 
 export async function changePasswordRequest(
@@ -68,9 +98,9 @@ export async function changePasswordRequest(
     passwordData: {
         currentPassword: string;
         newPassword: string;
-    }
-) {
-    const response = await fetch(`${API_URL}/users/${id}/password`, {
+    },
+): Promise<MessageResponse> {
+    const response = await fetch(`${API_URL}/api/users/${id}/password`, {
         method: "PATCH",
         credentials: "include",
         headers: {
@@ -79,11 +109,20 @@ export async function changePasswordRequest(
         body: JSON.stringify(passwordData),
     });
 
-    const data = await response.json();
+    return parseUserResponse<MessageResponse>(
+        response,
+        "Failed to update password",
+    );
+}
 
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to update password");
-    }
+export async function deleteUserRequest(userId: string): Promise<MessageResponse> {
+    const response = await fetch(`${API_URL}/api/users/${userId}`, {
+        method: "DELETE",
+        credentials: "include",
+    });
 
-    return data;
+    return parseUserResponse<MessageResponse>(
+        response,
+        "Failed to delete account",
+    );
 }
