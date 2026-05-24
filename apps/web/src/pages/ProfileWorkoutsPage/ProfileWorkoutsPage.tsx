@@ -56,6 +56,17 @@ export default function ProfileWorkoutsPage() {
                     <p className={styles.subtitle}>
                         Review your saved workout sessions.
                     </p>
+
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+                        className={styles.backButton}
+                        onClick={() => navigate(-1)}
+
+                    >
+                        <span className={styles.buttonArrow}>←</span>
+                    </Button>
                 </div>
 
                 <Button variant="secondary" onClick={() => navigate("/workout-select")}>

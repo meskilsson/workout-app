@@ -12,6 +12,8 @@ import Box from "../../components/ui/box/Box";
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 import type { Exercise } from "@workout-app/shared";
 import { usePaginationScroll } from "../../hooks/usePaginationScroll";
+import Button from "../../components/ui/button/Button";
+import { useNavigate } from "react-router-dom";
 
 import styles from "./LibraryPage.module.css";
 
@@ -21,6 +23,7 @@ import { Link } from "react-router-dom";
 
 export default function LibraryPage() {
     const { isAuthenticated } = useAuth();
+    const navigate = useNavigate();
 
 
     const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -124,6 +127,16 @@ export default function LibraryPage() {
             </div>
 
             <div className={styles.searchWrapper}>
+                <Button
+                    type="button"
+                    variant="secondary"
+                    style={{ minWidth: "3.25rem", marginBottom: "1rem" }}
+                    className={styles.backButton}
+                    onClick={() => navigate(-1)}
+
+                >
+                    <span className={styles.buttonArrow}>←</span>
+                </Button>
                 <input
                     className={styles.searchInput}
                     type="text"

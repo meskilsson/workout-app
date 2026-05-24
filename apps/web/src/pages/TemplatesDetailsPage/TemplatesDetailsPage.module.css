@@ -431,6 +431,11 @@
     filter: brightness(1.08);
 }
 
+.buttonArrow {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
 @media (max-width: 1200px) {
     .exerciseCardGrid {
         grid-template-columns: 1fr;

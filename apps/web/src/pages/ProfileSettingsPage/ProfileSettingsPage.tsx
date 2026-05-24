@@ -5,9 +5,11 @@ import ChangePasswordForm from "../../components/forms/ChangePasswordForm";
 import UpdateAccountForm from "../../components/forms/UpdateAccountForm";
 import styles from "./ProfileSettingsPage.module.css";
 import BodyModelSelect from "../../components/bodyModel/BodyModelSelect";
+import { useNavigate } from "react-router-dom";
 
 export default function ProfileSettingsPage() {
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
 
     return (
         <div className={styles.page}>
@@ -18,6 +20,17 @@ export default function ProfileSettingsPage() {
                     <p className={styles.subtitle}>
                         Manage your profile details, password, session, and account deletion.
                     </p>
+
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+                        className={styles.backButton}
+                        onClick={() => navigate(-1)}
+
+                    >
+                        <span className={styles.buttonArrow}>←</span>
+                    </Button>
                 </div>
             </div>
 

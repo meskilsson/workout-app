@@ -83,6 +83,16 @@ export default function WorkoutSelectPage() {
         <p className={styles.subtitle}>
           Pick one or more muscle groups to build your workout session.
         </p>
+        <Button
+          type="button"
+          variant="secondary"
+          style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+          className={styles.backButton}
+          onClick={() => navigate(-1)}
+
+        >
+          <span className={styles.buttonArrow}>←</span>
+        </Button>
       </div>
 
       <Box className={styles.grid}>

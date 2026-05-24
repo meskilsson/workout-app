@@ -292,6 +292,17 @@ export default function CreateTemplatePage() {
                         <p className={styles.subtitle}>
                             Build a reusable workout plan that you can start later.
                         </p>
+
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+                            className={styles.backButton}
+                            onClick={() => navigate(-1)}
+
+                        >
+                            <span className={styles.buttonArrow}>←</span>
+                        </Button>
                     </div>
 
                     <div className={styles.headerActions}>

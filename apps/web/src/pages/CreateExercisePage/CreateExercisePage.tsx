@@ -71,7 +71,19 @@ export default function CreateExercisePage() {
 
     return (
         <Box className={styles.page}>
+
             <Card variant="default" className={styles.card}>
+
+                <Button
+                    type="button"
+                    variant="secondary"
+                    style={{ minWidth: "3.25rem", marginBottom: "1rem" }}
+                    className={styles.backButton}
+                    onClick={() => navigate(-1)}
+
+                >
+                    <span className={styles.buttonArrow}>←</span>
+                </Button>
                 <div className={styles.header}>
                     <h1 className={styles.title}>Create Custom Exercise</h1>
                     <p className={styles.subtitle}>
