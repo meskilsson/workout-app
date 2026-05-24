@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "tsx src/server.ts",
     "seed:exercises": "tsx src/seed/seedExercises.ts",
     "seed:templates": "tsx src/seed/seedWorkoutTemplates.ts"
   },
