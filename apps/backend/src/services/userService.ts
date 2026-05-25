@@ -1,7 +1,12 @@
 import User from "../models/User";
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
 import type { UserRole } from "@workout-app/shared";
-import { ConflictError, NotFoundError, ValidationError } from "../errors/AppError";
+import {
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from "../errors/AppError";
+import type { AppErrorDetail } from "../errors/AppError";
 import { Types } from "mongoose";
 
 
@@ -36,7 +41,7 @@ export async function createUser(userData: CreateUserInput) {
   });
 
   if (existingUser) {
-    const errors = [];
+    const errors: AppErrorDetail[] = [];
 
     if (existingUser.email === email) {
       errors.push({
