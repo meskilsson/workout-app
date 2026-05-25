@@ -6,6 +6,10 @@ import {
     useRestTimerControls,
 } from "@workout-app/shared/timer/rest";
 
+import PlayIcon from "../../assets/icons/play.svg?react";
+import PauseIcon from "../../assets/icons/pause.svg?react";
+import ResetIcon from "../../assets/icons/rotate-ccw.svg?react";
+
 export default function RestTimer() {
     const { state, start, pause, reset, adjustTime } = useRestTimerControls();
 
@@ -40,16 +44,34 @@ export default function RestTimer() {
                 </div>
 
                 <div className={styles.actions}>
-                    <Button type="button" variant="primary" onClick={start}>
-                        Start
+                    <Button
+                        type="button"
+                        variant="primary"
+                        onClick={start}
+                        className={styles.iconButton}
+                        aria-label="Start rest timer"
+                    >
+                        <PlayIcon className={styles.timerIcon} />
                     </Button>
 
-                    <Button type="button" variant="secondary" onClick={pause}>
-                        Pause
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={pause}
+                        className={styles.iconButton}
+                        aria-label="Pause rest timer"
+                    >
+                        <PauseIcon className={styles.timerIcon} />
                     </Button>
 
-                    <Button type="button" variant="ghost" onClick={reset}>
-                        Reset
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={reset}
+                        className={styles.iconButton}
+                        aria-label="Reset rest timer"
+                    >
+                        <ResetIcon className={styles.timerIcon} />
                     </Button>
                 </div>
             </div>
