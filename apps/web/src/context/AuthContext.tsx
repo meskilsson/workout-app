@@ -1,14 +1,11 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { getMeRequest, logoutRequest } from "../services/authApi";
+import {
+    getMeRequest,
+    logoutRequest,
+} from "../services/authApi";
 
-type User = {
-    _id: string;
-    name: string;
-    email: string;
-    username: string;
-    profileImage: string | null;
-    role: "user" | "admin";
-};
+import type { User } from "../services/authApi";
+
 
 type AuthContextType = {
     user: User | null;

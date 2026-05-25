@@ -1,3 +1,5 @@
+import { parseJsonResponse } from "../utils/parseJsonResponse";
+
 type SignupInput = {
     name: string;
     email: string;
@@ -10,9 +12,26 @@ type LoginInput = {
     password: string;
 };
 
+export type User = {
+    _id: string;
+    name: string;
+    email: string;
+    username: string;
+    role: "user" | "admin";
+    profileImage?: string | null;
+};
+
+type AuthResponse = {
+    user: User;
+};
+
+type MessageResponse = {
+    message: string;
+};
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-export async function signupRequest(signupData: SignupInput) {
+export async function signupRequest(signupData: SignupInput): Promise<User> {
     const response = await fetch(`${API_URL}/api/users`, {
         method: "POST",
         headers: {
@@ -22,16 +41,10 @@ export async function signupRequest(signupData: SignupInput) {
         body: JSON.stringify(signupData),
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Signup failed");
-    }
-
-    return data;
+    return parseJsonResponse<User>(response, "Signup failed");
 }
 
-export async function loginRequest(loginData: LoginInput) {
+export async function loginRequest(loginData: LoginInput): Promise<User> {
     const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: {
@@ -41,16 +54,15 @@ export async function loginRequest(loginData: LoginInput) {
         body: JSON.stringify(loginData),
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Login failed");
-    }
+    const data = await parseJsonResponse<AuthResponse>(
+        response,
+        "Login failed",
+    );
 
     return data.user;
 }
 
-export async function getMeRequest() {
+export async function getMeRequest(): Promise<User | null> {
     const response = await fetch(`${API_URL}/api/auth/me`, {
         method: "GET",
         credentials: "include",
@@ -60,26 +72,22 @@ export async function getMeRequest() {
         return null;
     }
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch current user");
-    }
+    const data = await parseJsonResponse<AuthResponse>(
+        response,
+        "Failed to fetch current user",
+    );
 
     return data.user;
 }
 
-export async function logoutRequest() {
+export async function logoutRequest(): Promise<MessageResponse> {
     const response = await fetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Logout failed");
-    }
-
-    return data;
+    return parseJsonResponse<MessageResponse>(
+        response,
+        "Logout failed",
+    );
 }

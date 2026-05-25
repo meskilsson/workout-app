@@ -106,6 +106,7 @@ function SortableWorkoutExerciseCard({
         attributes,
         listeners,
         setNodeRef,
+        setActivatorNodeRef,
         transform,
         transition,
         isDragging,
@@ -123,16 +124,22 @@ function SortableWorkoutExerciseCard({
     return (
         <section
             ref={setNodeRef}
-            style={{
-                ...style,
-                touchAction: "none",
-            }}
-            className={styles.exerciseCard}
-            {...attributes}
-            {...listeners}
+            style={style}
+            className={`${styles.exerciseCard} ${isDragging ? styles.exerciseCardDragging : ""
+                }`}
         >
             <div className={styles.exerciseHeader}>
                 <div className={styles.exerciseTitleRow}>
+                    <button
+                        type="button"
+                        ref={setActivatorNodeRef}
+                        className={styles.dragHandle}
+                        aria-label={`Reorder ${exercise.name}`}
+                        {...attributes}
+                        {...listeners}
+                    >
+                        ⋮⋮
+                    </button>
                     <h2 className={styles.exerciseName}>{exercise.name}</h2>
                 </div>
 

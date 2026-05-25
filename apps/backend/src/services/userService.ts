@@ -1,7 +1,12 @@
 import User from "../models/User";
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
 import type { UserRole } from "@workout-app/shared";
-import { ConflictError, NotFoundError, ValidationError } from "../errors/AppError";
+import {
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from "../errors/AppError";
+import type { AppErrorDetail } from "../errors/AppError";
 import { Types } from "mongoose";
 
 
@@ -36,7 +41,25 @@ export async function createUser(userData: CreateUserInput) {
   });
 
   if (existingUser) {
-    throw new ConflictError("Email or username already in use");
+    const errors: AppErrorDetail[] = [];
+
+    if (existingUser.email === email) {
+      errors.push({
+        location: "body",
+        field: "email",
+        message: "Email is already in use",
+      });
+    }
+
+    if (existingUser.username === username) {
+      errors.push({
+        location: "body",
+        field: "username",
+        message: "Username is already in use",
+      });
+    }
+
+    throw new ValidationError("Check the highlighted fields", errors);
   }
 
   const passwordHash = await bcrypt.hash(userData.password, 10);
