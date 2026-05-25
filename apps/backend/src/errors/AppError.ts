@@ -1,55 +1,56 @@
-// Base class for all expeted application errors
-export class AppError extends Error {
+export type AppErrorDetail = {
+    location?: string;
+    field?: string;
+    message: string;
+};
 
+export class AppError extends Error {
     statusCode: number;
     isOperational: boolean;
-    errors?: unknown[];
+    errors: AppErrorDetail[];
 
-    constructor(message: string, statusCode: number) {
+    constructor(
+        message: string,
+        statusCode: number,
+        errors: AppErrorDetail[] = [],
+    ) {
         super(message);
+
         this.name = this.constructor.name;
         this.statusCode = statusCode;
-        this.isOperational = true; // Differ appliction errors from programtic errors
-        Error.captureStackTrace(this, this.constructor);
+        this.isOperational = true;
+        this.errors = errors;
+
+        Error.captureStackTrace?.(this, this.constructor);
     }
 }
 
-// 400 - Validation error, faulty in-data
 export class ValidationError extends AppError {
-    errors: unknown[];
-    constructor(message = 'Validation Error', errors = []) {
-        super(message, 400);
-        this.errors = errors;
+    constructor(message = "Validation error", errors: AppErrorDetail[] = []) {
+        super(message, 400, errors);
     }
 }
 
-// 401 - Authorization is required (useable in week 7)
 export class UnauthorizedError extends AppError {
-    errors: unknown[];
-    constructor(message = 'Authorization is required', errors = []) {
-        super(message, 401);
-        this.errors = errors;
+    constructor(message = "Unauthorized", errors: AppErrorDetail[] = []) {
+        super(message, 401, errors);
     }
 }
 
-// 403 - Access Denied (usable in week 7)
 export class ForbiddenError extends AppError {
-    constructor(message = 'Access Denied') {
-        super(message, 403);
+    constructor(message = "Forbidden", errors: AppErrorDetail[] = []) {
+        super(message, 403, errors);
     }
 }
 
-// 404 - Not found
 export class NotFoundError extends AppError {
-    constructor(message = 'The resource could not be located') {
-        super(message, 404);
+    constructor(message = "Not found", errors: AppErrorDetail[] = []) {
+        super(message, 404, errors);
     }
 }
 
-// 409 - Conflict Error
 export class ConflictError extends AppError {
-    constructor(message = 'The resource is already present') {
-        super(message, 409);
+    constructor(message = "Conflict", errors: AppErrorDetail[] = []) {
+        super(message, 409, errors);
     }
 }
-
