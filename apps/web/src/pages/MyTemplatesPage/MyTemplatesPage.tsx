@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
+import Modal from "../../components/ui/modal/Modal";
 
 import {
+    deleteWorkoutTemplateRequest,
     getMyWorkoutTemplatesRequest,
     startWorkoutFromTemplateRequest,
 } from "../../services/workoutTemplateApi";
@@ -13,15 +15,28 @@ import type { WorkoutTemplate } from "@workout-app/shared";
 
 import styles from "../TemplatesPage/TemplatesPage.module.css";
 
+function formatCategory(category: string) {
+    return category
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+}
+
 export default function MyTemplatesPage() {
     const navigate = useNavigate();
 
     const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+
     const [startingTemplateId, setStartingTemplateId] = useState<string | null>(
         null,
     );
+
+    const [templateToDelete, setTemplateToDelete] =
+        useState<WorkoutTemplate | null>(null);
+
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         async function fetchMyTemplates() {
@@ -63,6 +78,31 @@ export default function MyTemplatesPage() {
         }
     }
 
+    async function handleConfirmDeleteTemplate() {
+        if (!templateToDelete) return;
+
+        setError("");
+        setIsDeleting(true);
+
+        try {
+            await deleteWorkoutTemplateRequest(templateToDelete._id);
+
+            setTemplates((prev) =>
+                prev.filter((template) => template._id !== templateToDelete._id),
+            );
+
+            setTemplateToDelete(null);
+        } catch (error) {
+            if (error instanceof Error) {
+                setError(error.message);
+            } else {
+                setError("Failed to delete workout template");
+            }
+        } finally {
+            setIsDeleting(false);
+        }
+    }
+
     if (isLoading) {
         return (
             <Card className={styles.stateCard}>
@@ -84,6 +124,7 @@ export default function MyTemplatesPage() {
             <div className={styles.sectionHeader}>
                 <div>
                     <h2 className={styles.sectionTitle}>My workouts</h2>
+
                     <p className={styles.sectionText}>
                         Workouts you have created yourself.
                     </p>
@@ -94,7 +135,6 @@ export default function MyTemplatesPage() {
                         style={{ minWidth: "3.25rem", marginTop: "1rem" }}
                         className={styles.backButton}
                         onClick={() => navigate(-1)}
-
                     >
                         <span className={styles.buttonArrow}>←</span>
                     </Button>
@@ -113,6 +153,7 @@ export default function MyTemplatesPage() {
                 <div className={styles.templateGrid}>
                     {templates.map((template) => {
                         const isStarting = startingTemplateId === template._id;
+                        const exercises = template.exercises ?? [];
 
                         return (
                             <Card
@@ -130,8 +171,7 @@ export default function MyTemplatesPage() {
                                         </h2>
 
                                         <p className={styles.templateDescription}>
-                                            {template.description ||
-                                                "No description."}
+                                            {template.description || "No description."}
                                         </p>
                                     </div>
 
@@ -141,15 +181,25 @@ export default function MyTemplatesPage() {
                                 </div>
 
                                 <div className={styles.exerciseList}>
-                                    {template.exercises.map((exercise) => (
-                                        <div
-                                            key={exercise._id}
-                                            className={styles.exerciseItem}
-                                        >
-                                            <span>{exercise.order + 1}.</span>
-                                            <span>{exercise.exerciseName}</span>
-                                        </div>
-                                    ))}
+                                    {exercises.length > 0 ? (
+                                        exercises.map((exercise, index) => (
+                                            <div
+                                                key={exercise._id ?? `${template._id}-${index}`}
+                                                className={styles.exerciseItem}
+                                            >
+                                                <span>{exercise.order + 1}.</span>
+
+                                                <span>
+                                                    {exercise.exerciseName ||
+                                                        "Missing exercise"}
+                                                </span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className={styles.emptyText}>
+                                            No exercises added.
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className={styles.templateActions}>
@@ -168,9 +218,21 @@ export default function MyTemplatesPage() {
                                     <Button
                                         type="button"
                                         variant="secondary"
-                                        onClick={() => navigate(`templates-details/${template._id}`)}
+                                        onClick={() =>
+                                            navigate(
+                                                `/templates/my/templates-details/${template._id}`,
+                                            )
+                                        }
                                     >
                                         View details
+                                    </Button>
+
+                                    <Button
+                                        type="button"
+                                        variant="danger"
+                                        onClick={() => setTemplateToDelete(template)}
+                                    >
+                                        Delete
                                     </Button>
                                 </div>
                             </Card>
@@ -182,6 +244,43 @@ export default function MyTemplatesPage() {
                     <p>You have not created any workouts yet.</p>
                 </Card>
             )}
+
+            <Modal
+                title="Delete workout template?"
+                isOpen={Boolean(templateToDelete)}
+                onClose={() => {
+                    if (!isDeleting) {
+                        setTemplateToDelete(null);
+                    }
+                }}
+                actions={
+                    <div className={styles.templateActions}>
+                        <Button
+                            type="button"
+                            variant="danger"
+                            onClick={handleConfirmDeleteTemplate}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? "Deleting..." : "Delete"}
+                        </Button>
+
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => setTemplateToDelete(null)}
+                            disabled={isDeleting}
+                        >
+                            Cancel
+                        </Button>
+                    </div>
+                }
+            >
+                <p>
+                    Are you sure you want to delete{" "}
+                    <strong>{templateToDelete?.name}</strong>? This cannot be
+                    undone.
+                </p>
+            </Modal>
         </section>
     );
 }
