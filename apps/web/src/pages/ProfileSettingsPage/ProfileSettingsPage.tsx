@@ -199,7 +199,7 @@ export default function ProfileSettingsPage() {
                 }
             >
                 <p className={styles.modalText}>
-                    Are you sure you want to delete your account? This action cannot be undone.
+                    Are you sure you want to delete your account?
                 </p>
 
                 {deleteError && (
