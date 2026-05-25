@@ -531,3 +531,82 @@
         text-align: center;
     }
 }
+
+@media (max-width: 640px) {
+    .page {
+        padding: 1rem 0.75rem 2rem;
+        gap: 1rem;
+    }
+
+    .exerciseGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .exerciseCard {
+        min-height: auto;
+        padding: 0.75rem;
+    }
+
+    .exerciseCardContent {
+        gap: 0.65rem;
+    }
+
+    .exerciseCardTop {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .exerciseName {
+        font-size: 0.95rem;
+        line-height: 1.15;
+    }
+
+    .exerciseMeta {
+        gap: 0.3rem;
+    }
+
+    .exerciseMeta span {
+        padding: 0.22rem 0.42rem;
+        font-size: 0.68rem;
+    }
+
+    .cardDummy {
+        width: 100%;
+        min-height: 105px;
+        padding: 0.35rem;
+    }
+
+    .muscleInfo {
+        gap: 0.45rem;
+        margin-top: 0;
+    }
+
+    .muscleLabel {
+        margin-bottom: 0.25rem;
+        font-size: 0.68rem;
+    }
+
+    .primaryTag,
+    .secondaryTag {
+        padding: 0.22rem 0.4rem;
+        font-size: 0.68rem;
+    }
+
+    .footer {
+        position: static;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .footer button {
+        width: auto;
+    }
+}
+
+@media (max-width: 380px) {
+    .exerciseGrid {
+        grid-template-columns: 1fr;
+    }
+}
