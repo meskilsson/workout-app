@@ -360,11 +360,11 @@ export default function WorkoutSummaryPage() {
       <div className={styles.header}>
         <div>
           <p className={styles.kicker}>
-            {isTemplateDraft ? "Template builder" : "Workout builder"}
+            {isTemplateDraft ? "Workout builder" : "Workout builder"}
           </p>
 
           <h1 className={styles.title}>
-            {isTemplateDraft ? "Template summary" : "Workout summary"}
+            {isTemplateDraft ? "Workout summary" : "Workout summary"}
           </h1>
 
           <p className={styles.subtitle}>
@@ -384,9 +384,6 @@ export default function WorkoutSummaryPage() {
           </Button>
         </div>
 
-        <Button type="button" variant="secondary" onClick={handleBack}>
-          Back
-        </Button>
       </div>
 
       {actionError && (
@@ -477,9 +474,6 @@ export default function WorkoutSummaryPage() {
         </p>
 
         <div className={styles.actions}>
-          <Button type="button" variant="secondary" onClick={handleBack}>
-            Back
-          </Button>
 
           {isTemplateDraft ? (
             <Button
@@ -490,7 +484,7 @@ export default function WorkoutSummaryPage() {
                 selectedExercises.length === 0 || isSavingTemplate
               }
             >
-              {isSavingTemplate ? "Saving..." : "Save as template"}
+              {isSavingTemplate ? "Saving..." : "Save workout"}
             </Button>
           ) : (
             <Button
