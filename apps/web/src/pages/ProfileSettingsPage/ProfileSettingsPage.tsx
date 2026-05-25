@@ -148,18 +148,14 @@ export default function ProfileSettingsPage() {
                 <div className={styles.sectionHeader}>
                     <div>
                         <h3 className={styles.sectionTitle}>Danger zone</h3>
-                        <p className={styles.sectionText}>
-                            Permanent account actions.
-                        </p>
+
                     </div>
                 </div>
 
                 <Card className={`${styles.settingsCard} ${styles.dangerCard}`}>
                     <div>
                         <h3 className={styles.dangerTitle}>Delete account</h3>
-                        <p className={styles.sectionText}>
-                            Permanently delete your account and all related profile data.
-                        </p>
+
                     </div>
 
                     <Button
