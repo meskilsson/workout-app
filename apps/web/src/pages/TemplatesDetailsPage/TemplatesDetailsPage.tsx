@@ -8,7 +8,6 @@ import {
 import { getExerciseByIdRequest } from "../../services/exerciseApi";
 import { useAuth } from "../../context/AuthContext";
 
-
 import type { WorkoutTemplate, Exercise } from "@workout-app/shared";
 
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
@@ -18,22 +17,29 @@ import Button from "../../components/ui/button/Button";
 
 import styles from "./TemplatesDetailsPage.module.css";
 
-
 type TemplatesDetailsPageProps = {
     templateSource: "public" | "my";
 };
 
-export default function TemplatesDetailsPage({ templateSource }: TemplatesDetailsPageProps) {
+function formatCategory(category: string) {
+    return category
+        .replace(/_/g, " ")
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+}
 
+export default function TemplatesDetailsPage({
+    templateSource,
+}: TemplatesDetailsPageProps) {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
+    const { id } = useParams();
 
     const [template, setTemplate] = useState<WorkoutTemplate | null>(null);
     const [exerciseDetails, setExerciseDetails] = useState<Exercise[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
-
-    const { id } = useParams();
 
     useEffect(() => {
         if (!id) {
@@ -42,14 +48,11 @@ export default function TemplatesDetailsPage({ templateSource }: TemplatesDetail
         }
 
         const templateId = id;
-
         let shouldIgnore = false;
 
         async function loadTemplateDetails() {
             setError("");
             setIsLoading(true);
-
-
 
             try {
                 const templateData =
@@ -59,17 +62,28 @@ export default function TemplatesDetailsPage({ templateSource }: TemplatesDetail
 
                 const uniqueExerciseIds = Array.from(
                     new Set(
-                        templateData.exercises.map(
-                            (templateExercise) => templateExercise.exercise._id,
-                        ),
+                        templateData.exercises
+                            .map((templateExercise) => templateExercise.exercise?._id)
+                            .filter(
+                                (exerciseId): exerciseId is string =>
+                                    typeof exerciseId === "string" &&
+                                    exerciseId.length > 0,
+                            ),
                     ),
                 );
 
-                const fullExerciseData = await Promise.all(
+                const exerciseResults = await Promise.allSettled(
                     uniqueExerciseIds.map((exerciseId) =>
                         getExerciseByIdRequest(exerciseId, isAuthenticated),
                     ),
                 );
+
+                const fullExerciseData = exerciseResults
+                    .filter(
+                        (result): result is PromiseFulfilledResult<Exercise> =>
+                            result.status === "fulfilled",
+                    )
+                    .map((result) => result.value);
 
                 if (shouldIgnore) return;
 
@@ -127,7 +141,6 @@ export default function TemplatesDetailsPage({ templateSource }: TemplatesDetail
         );
     }
 
-
     return (
         <Box className={styles.page}>
             <header className={styles.header}>
@@ -144,7 +157,6 @@ export default function TemplatesDetailsPage({ templateSource }: TemplatesDetail
                 </div>
             </header>
 
-
             <section className={styles.section}>
                 <div className={styles.sectionHeader}>
                     <div>
@@ -153,34 +165,65 @@ export default function TemplatesDetailsPage({ templateSource }: TemplatesDetail
                         <p className={styles.sectionText}>
                             Full exercise overview with muscles, instructions and planned sets.
                         </p>
+
                         <Button
                             type="button"
                             variant="secondary"
                             style={{ minWidth: "3.25rem", marginTop: "1rem" }}
                             className={styles.backButton}
                             onClick={() => navigate(-1)}
-
                         >
                             <span className={styles.buttonArrow}>←</span>
                         </Button>
                     </div>
 
                     <span className={styles.categoryBadge}>
-                        {template.category}
+                        {formatCategory(template.category)}
                     </span>
                 </div>
 
                 <div className={styles.exerciseCardGrid}>
-                    {template.exercises.map((templateExercise) => {
+                    {template.exercises.map((templateExercise, index) => {
                         const exercise = templateExercise.exercise;
 
+                        if (!exercise) {
+                            return (
+                                <Card
+                                    key={templateExercise._id ?? `missing-${index}`}
+                                    className={styles.exerciseCard}
+                                >
+                                    <div className={styles.exerciseContent}>
+                                        <div className={styles.exerciseInfo}>
+                                            <div>
+                                                <p className={styles.exerciseKicker}>
+                                                    Missing exercise
+                                                </p>
+
+                                                <h3 className={styles.exerciseName}>
+                                                    {templateExercise.exerciseName ||
+                                                        "Exercise unavailable"}
+                                                </h3>
+                                            </div>
+
+                                            <p className={styles.emptyText}>
+                                                This exercise no longer exists or is no longer
+                                                available. You may need to edit or recreate this
+                                                workout template.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </Card>
+                            );
+                        }
+
                         const fullExercise = exerciseDetails.find(
-                            (exerciseDetail) =>
-                                exerciseDetail._id === templateExercise.exercise._id,
+                            (exerciseDetail) => exerciseDetail._id === exercise._id,
                         );
 
                         const primaryMuscles =
-                            fullExercise?.primaryMuscles ?? exercise.primaryMuscles ?? [];
+                            fullExercise?.primaryMuscles ??
+                            exercise.primaryMuscles ??
+                            [];
 
                         const secondaryMuscles =
                             fullExercise?.secondaryMuscles ??
@@ -217,6 +260,7 @@ export default function TemplatesDetailsPage({ templateSource }: TemplatesDetail
                                         <div className={styles.metaGrid}>
                                             <div className={styles.metaItem}>
                                                 <span>Equipment</span>
+
                                                 <strong>
                                                     {fullExercise?.equipment ||
                                                         exercise.equipment ||
@@ -226,6 +270,7 @@ export default function TemplatesDetailsPage({ templateSource }: TemplatesDetail
 
                                             <div className={styles.metaItem}>
                                                 <span>Difficulty</span>
+
                                                 <strong>
                                                     {fullExercise?.difficulty ||
                                                         exercise.difficulty ||
@@ -235,7 +280,10 @@ export default function TemplatesDetailsPage({ templateSource }: TemplatesDetail
 
                                             <div className={styles.metaItem}>
                                                 <span>Sets</span>
-                                                <strong>{plannedSets.length || "—"}</strong>
+
+                                                <strong>
+                                                    {plannedSets.length || "—"}
+                                                </strong>
                                             </div>
                                         </div>
 
@@ -306,35 +354,50 @@ export default function TemplatesDetailsPage({ templateSource }: TemplatesDetail
                                                 alt={templateExercise.exerciseName}
                                             />
                                         )}
+
                                         <div className={styles.muscleGroups}>
                                             <div className={styles.muscleGroup}>
-                                                <p className={styles.muscleGroupTitle}>Primary</p>
+                                                <p className={styles.muscleGroupTitle}>
+                                                    Primary
+                                                </p>
 
                                                 <div className={styles.muscleChipList}>
                                                     {primaryMuscles.length > 0 ? (
                                                         primaryMuscles.map((muscle) => (
-                                                            <span key={muscle} className={styles.primaryChip}>
+                                                            <span
+                                                                key={muscle}
+                                                                className={styles.primaryChip}
+                                                            >
                                                                 {muscle}
                                                             </span>
                                                         ))
                                                     ) : (
-                                                        <span className={styles.emptyChip}>None</span>
+                                                        <span className={styles.emptyChip}>
+                                                            None
+                                                        </span>
                                                     )}
                                                 </div>
                                             </div>
 
                                             <div className={styles.muscleGroup}>
-                                                <p className={styles.muscleGroupTitle}>Secondary</p>
+                                                <p className={styles.muscleGroupTitle}>
+                                                    Secondary
+                                                </p>
 
                                                 <div className={styles.muscleChipList}>
                                                     {secondaryMuscles.length > 0 ? (
                                                         secondaryMuscles.map((muscle) => (
-                                                            <span key={muscle} className={styles.secondaryChip}>
+                                                            <span
+                                                                key={muscle}
+                                                                className={styles.secondaryChip}
+                                                            >
                                                                 {muscle}
                                                             </span>
                                                         ))
                                                     ) : (
-                                                        <span className={styles.emptyChip}>None</span>
+                                                        <span className={styles.emptyChip}>
+                                                            None
+                                                        </span>
                                                     )}
                                                 </div>
                                             </div>
@@ -347,6 +410,7 @@ export default function TemplatesDetailsPage({ templateSource }: TemplatesDetail
                                                 />
                                             </div>
                                         </div>
+
                                         {fullExercise?.videoUrl && (
                                             <a
                                                 className={styles.videoLink}
