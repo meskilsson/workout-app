@@ -258,33 +258,32 @@ export async function startWorkoutFromTemplate(
         throw new ValidationError("Cannot start workout from an empty template");
     }
 
-    await WorkoutDraft.updateMany(
-        {
-            userId,
-            purpose: "workout",
-            status: { $in: ["building", "active"] },
-        },
-        {
-            $set: {
-                status: "abandoned",
-            },
-        },
+    const validTemplateExercises = template.exercises.filter(
+        (templateExercise) => templateExercise.exercise,
     );
+
+    if (validTemplateExercises.length === 0) {
+        throw new ValidationError(
+            "Cannot start workout because this template has no available exercises.",
+        );
+    }
 
     const selectedMuscleGroups = new Set<Muscle>();
 
-    for (const templateExercise of template.exercises) {
-        const exercise = templateExercise.exercise as unknown as PopulatedTemplateExercise;
+    for (const templateExercise of validTemplateExercises) {
+        const exercise =
+            templateExercise.exercise as unknown as PopulatedTemplateExercise;
 
         for (const muscle of exercise.primaryMuscles ?? []) {
             selectedMuscleGroups.add(muscle);
         }
     }
 
-    const draftExercises = template.exercises
+    const draftExercises = [...validTemplateExercises]
         .sort((a, b) => a.order - b.order)
         .map((templateExercise) => {
-            const exercise = templateExercise.exercise as unknown as PopulatedTemplateExercise;
+            const exercise =
+                templateExercise.exercise as unknown as PopulatedTemplateExercise;
 
             return {
                 exerciseId: exercise._id,

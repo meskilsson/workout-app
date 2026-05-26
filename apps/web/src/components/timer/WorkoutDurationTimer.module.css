@@ -2,28 +2,41 @@
     width: 100%;
     margin-bottom: 0.85rem;
     padding: 0.9rem 1rem;
-    border: 1px solid var(--color-primary-border);
-    border-radius: var(--radius-lg);
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+
+    color: var(--color-text);
     background:
         radial-gradient(circle at top left,
             var(--color-primary-soft),
             transparent 42%),
         var(--color-surface);
-    color: var(--color-text);
+
+    border: 1px solid var(--color-primary-border);
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
 }
 
 .kicker {
     margin: 0;
+
     color: var(--color-primary);
     font-size: 0.72rem;
     font-weight: 900;
     letter-spacing: 0.12em;
     text-transform: uppercase;
+}
+
+.timeActions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.65rem;
+
+    flex: 0 0 auto;
 }
 
 .time {
@@ -34,10 +47,63 @@
     font-variant-numeric: tabular-nums;
 }
 
+.iconButton.iconButton {
+    width: 2.35rem;
+    min-width: 2.35rem;
+    height: 2.35rem;
+    padding: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.timerIcon {
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 auto;
+}
+
 @media (max-width: 520px) {
     .timerCard {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.45rem;
+        flex-direction: row;
+        align-items: center;
+        padding: 0.75rem 0.8rem;
+        gap: 0.75rem;
+    }
+
+    .kicker {
+        font-size: 0.65rem;
+    }
+
+    .timeActions {
+        gap: 0.5rem;
+    }
+
+    .iconButton.iconButton {
+        width: 2.1rem;
+        min-width: 2.1rem;
+        height: 2.1rem;
+    }
+
+    .timerIcon {
+        width: 0.9rem;
+        height: 0.9rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .timerCard {
+        padding: 0.7rem;
+    }
+
+    .time {
+        font-size: 1.25rem;
+    }
+
+    .iconButton.iconButton {
+        width: 2rem;
+        min-width: 2rem;
+        height: 2rem;
     }
 }

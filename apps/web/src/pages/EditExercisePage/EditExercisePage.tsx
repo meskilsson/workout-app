@@ -15,23 +15,34 @@ import {
     type Muscle,
 } from "@workout-app/shared";
 
-import { getExerciseByIdRequest, updateExerciseRequest } from "../../services/exerciseApi";
+import {
+    getLibraryExerciseByIdRequest,
+    updateExerciseRequest,
+} from "../../services/exerciseApi";
 
 import styles from './EditExercisePage.module.css';
 
-type ExerciseResponse = {
-    _id: string;
-    name: string;
-    description?: string;
-    instructions?: string;
-    exerciseType?: ExerciseType;
-    primaryMuscles?: Muscle[];
-    secondaryMuscles?: Muscle[];
-    equipment?: Equipment;
-    difficulty?: Difficulty;
-    imageUrl?: string;
-    isCustom: boolean;
+function isMuscle(value: string): value is Muscle {
+    return MUSCLE_OPTIONS.includes(value as Muscle);
 }
+
+function normalizeMuscles(muscles: string[] | undefined): Muscle[] {
+    return (muscles ?? []).filter(isMuscle);
+}
+
+function isExerciseType(value: string | undefined): value is ExerciseType {
+    return !!value && EXERCISE_TYPE_OPTIONS.includes(value as ExerciseType);
+}
+
+function isEquipment(value: string | undefined): value is Equipment {
+    return !!value && EQUIPMENT_OPTIONS.includes(value as Equipment);
+}
+
+function isDifficulty(value: string | undefined): value is Difficulty {
+    return !!value && DIFFICULTY_OPTIONS.includes(value as Difficulty);
+}
+
+
 
 export default function EditExercisePage() {
     const navigate = useNavigate();
@@ -53,10 +64,9 @@ export default function EditExercisePage() {
 
 
     useEffect(() => {
-
         if (!id) {
             setError("Exercise id is missing");
-            setIsFetching(true)
+            setIsFetching(false);
             return;
         }
 
@@ -67,24 +77,31 @@ export default function EditExercisePage() {
             setIsFetching(true);
 
             try {
-                const exercise = (await getExerciseByIdRequest(
-                    exerciseId,
-                )) as ExerciseResponse;
+                const exercise = await getLibraryExerciseByIdRequest(exerciseId);
 
                 setName(exercise.name ?? "");
                 setDescription(exercise.description ?? "");
                 setInstructions(exercise.instructions ?? "");
-                setExerciseType(exercise.exerciseType ?? "");
-                setPrimaryMuscles(exercise.primaryMuscles ?? []);
-                setSecondaryMuscles(exercise.secondaryMuscles ?? []);
-                setEquipment(exercise.equipment ?? "");
-                setDifficulty(exercise.difficulty ?? "");
+                setExerciseType(
+                    isExerciseType(exercise.exerciseType) ? exercise.exerciseType : "",
+                );
+
+                setPrimaryMuscles(normalizeMuscles(exercise.primaryMuscles));
+                setSecondaryMuscles(normalizeMuscles(exercise.secondaryMuscles));
+
+                setEquipment(
+                    isEquipment(exercise.equipment) ? exercise.equipment : "",
+                );
+
+                setDifficulty(
+                    isDifficulty(exercise.difficulty) ? exercise.difficulty : "",
+                );
                 setImageUrl(exercise.imageUrl ?? "");
             } catch (err) {
                 if (err instanceof Error) {
                     setError(err.message);
                 } else {
-                    setError("Failed to load exercise")
+                    setError("Failed to load exercise");
                 }
             } finally {
                 setIsFetching(false);
@@ -92,7 +109,7 @@ export default function EditExercisePage() {
         }
 
         loadExercise();
-    }, [id])
+    }, [id]);
 
     function toggleMuscle(
         muscle: Muscle,
