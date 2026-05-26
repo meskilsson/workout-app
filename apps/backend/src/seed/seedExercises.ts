@@ -1,7 +1,9 @@
 import "dotenv/config";
 import mongoose from "mongoose";
 import Exercise from "../models/Exercises";
-import { seededExercises } from "./exercises";
+import { seededExercises } from "./seededExercises.expanded";
+
+//seed
 
 async function seedExercises() {
     try {
@@ -9,14 +11,27 @@ async function seedExercises() {
             dbName: process.env.DB_NAME,
         });
 
-        await Exercise.deleteMany({
-            isCustom: false,
-            createdBy: null,
-        });
+        let seededCount = 0;
 
-        const insertedExercises = await Exercise.insertMany(seededExercises);
+        for (const exercise of seededExercises) {
+            await Exercise.updateOne(
+                {
+                    name: exercise.name,
+                    isCustom: false,
+                    createdBy: null,
+                },
+                {
+                    $set: exercise,
+                },
+                {
+                    upsert: true,
+                },
+            );
 
-        console.log(`Seeded ${insertedExercises.length} exercises successfully.`);
+            seededCount += 1;
+        }
+
+        console.log(`Seeded or updated ${seededCount} exercises successfully.`);
     } catch (error) {
         console.error("Failed to seed exercises", error);
         process.exitCode = 1;

@@ -21,6 +21,14 @@ type TemplatesDetailsPageProps = {
     templateSource: "public" | "my";
 };
 
+function formatCategory(category: string) {
+    return category
+        .replace(/_/g, " ")
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+}
+
 export default function TemplatesDetailsPage({
     templateSource,
 }: TemplatesDetailsPageProps) {
@@ -170,7 +178,7 @@ export default function TemplatesDetailsPage({
                     </div>
 
                     <span className={styles.categoryBadge}>
-                        {template.category}
+                        {formatCategory(template.category)}
                     </span>
                 </div>
 
