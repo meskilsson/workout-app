@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import Exercise from "../models/Exercises";
 import { seededExercises } from "./seededExercises.expanded";
 
+//seed
+
 async function seedExercises() {
     try {
         await mongoose.connect(process.env.MONGODB_URI as string, {
