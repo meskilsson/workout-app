@@ -13,7 +13,7 @@ type RestTimerProviderProps = {
 
 export function RestTimerProvider({
     children,
-    durationMs = secondsToMilliseconds(60),
+    durationMs = secondsToMilliseconds(120),
 }: RestTimerProviderProps) {
     const timer = useRestTimer(durationMs);
 
