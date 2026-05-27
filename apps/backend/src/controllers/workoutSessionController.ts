@@ -92,3 +92,31 @@ export async function repeatWorkoutSession(
         next(error);
     }
 }
+
+export async function deleteWorkoutSession(
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction,
+): Promise<void> {
+    try {
+        const userId = req.user?.id;
+        const { id } = req.params;
+
+        if (!userId) {
+            throw new UnauthorizedError("Unauthorized");
+        }
+
+        if (!id) {
+            throw new ValidationError("Missing workout session id");
+        }
+
+        const session = await workoutSessionService.deleteWorkoutSession(
+            id,
+            userId,
+        );
+
+        res.status(200).json(session);
+    } catch (error) {
+        next(error);
+    }
+}

@@ -232,3 +232,40 @@ export async function repeatWorkoutSession(
 
     return draft;
 }
+
+export async function deleteWorkoutSession(
+    sessionId: string,
+    userId: string,
+) {
+    if (!Types.ObjectId.isValid(sessionId)) {
+        throw new ValidationError("Invalid workout session id");
+    }
+
+    if (!Types.ObjectId.isValid(userId)) {
+        throw new ValidationError("Invalid user id");
+    }
+
+    const session = await WorkoutSession.findOneAndUpdate(
+        {
+            _id: sessionId,
+            userId,
+            deletedAt: null,
+        },
+        {
+            $set: {
+                deletedAt: new Date(),
+                deletedBy: userId,
+                deleteReason: "Deleted by user",
+            },
+        },
+        {
+            new: true,
+        },
+    );
+
+    if (!session) {
+        throw new NotFoundError("Workout session not found");
+    }
+
+    return session;
+}
