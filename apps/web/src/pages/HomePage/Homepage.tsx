@@ -1,13 +1,14 @@
 import { useNavigate } from "react-router-dom";
+
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
-
+import { useAuth } from "../../context/AuthContext";
 
 import styles from "./Homepage.module.css";
 
-
 export default function Homepage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   return (
     <Box component="main" className={styles.page}>
@@ -17,13 +18,23 @@ export default function Homepage() {
         <h1 className={styles.title}>Build and track your workouts.</h1>
 
         <p className={styles.subtitle}>
-          Choose muscles, select exercises, save workout templates, and keep track of your sessions.
+          Choose muscles, select exercises, save workout templates, and keep
+          track of your sessions.
         </p>
 
         <div className={styles.actions}>
           <Button onClick={() => navigate("/workout-select")}>
             Start workout
           </Button>
+
+          {isAuthenticated && (
+            <Button
+              variant="secondary"
+              onClick={() => navigate("/profile/workouts")}
+            >
+              Train a logged workout
+            </Button>
+          )}
 
           <Button variant="ghost" onClick={() => navigate("/library")}>
             Browse exercises
@@ -52,6 +63,17 @@ export default function Homepage() {
               Start a new workout
             </button>
           </li>
+
+          {isAuthenticated && (
+            <li>
+              <button
+                type="button"
+                onClick={() => navigate("/profile/workouts")}
+              >
+                Train a logged workout
+              </button>
+            </li>
+          )}
         </ul>
       </section>
     </Box>

@@ -1,5 +1,10 @@
 import { Types } from "mongoose";
+import type { Muscle } from "@workout-app/shared";
+
 import WorkoutSession from "../models/WorkoutSession";
+import WorkoutDraft from "../models/WorkoutDraft";
+import Exercise from "../models/Exercises";
+
 import { NotFoundError, ValidationError } from "../errors/AppError";
 
 interface CreateWorkoutSessionInput {
@@ -104,4 +109,126 @@ export async function getWorkoutSessionById(sessionId: string, userId: string) {
     }
 
     return workoutSession;
+}
+
+export async function repeatWorkoutSession(
+    sessionId: string,
+    userId: string,
+) {
+    if (!Types.ObjectId.isValid(sessionId)) {
+        throw new ValidationError("Invalid workout session id");
+    }
+
+    if (!Types.ObjectId.isValid(userId)) {
+        throw new ValidationError("Invalid workout session id");
+    }
+
+    const workoutSession = await WorkoutSession.findOne({
+        _id: sessionId,
+        userId,
+        deletedAt: null,
+    });
+
+    if (!workoutSession) {
+        throw new NotFoundError("Workout session not found");
+    }
+
+    if (workoutSession.exercises.length === 0) {
+        throw new ValidationError("Cannot train again from an empty workout");
+    }
+
+    const missingExerciseName = workoutSession.exercises
+        .filter((sessionExercise) => !sessionExercise.exerciseId)
+        .map((sessionExercise) => sessionExercise.exerciseName);
+
+    if (missingExerciseName.length > 0) {
+        throw new ValidationError(`Cannot train again because these exercises are missing an exercise id: ${missingExerciseName.join(", ")}`);
+    }
+
+    const exerciseIds = workoutSession.exercises.map((sessionExercise) =>
+        sessionExercise.exerciseId!.toString(),
+    );
+
+    const avaliableExercises = await Exercise.find({
+        _id: { $in: exerciseIds },
+        deletedAt: null,
+        $or: [
+            {
+                isCustom: false,
+                createdBy: null,
+            },
+            {
+                createdBy: userId,
+            },
+        ],
+    });
+
+    const availableExercisesMap = new Map(
+        avaliableExercises.map((exercise) => [exercise.id, exercise]),
+    );
+
+    const unavailableExerciseNames = workoutSession.exercises
+        .filter((sessionExercise) => {
+            if (!sessionExercise.exerciseId) return true;
+
+            return !availableExercisesMap.has(
+                sessionExercise.exerciseId.toString(),
+            );
+        })
+        .map((sessionExercise) => sessionExercise.exerciseName);
+
+    if (unavailableExerciseNames.length > 0) {
+        throw new ValidationError(`Cannot train again because these exercise no longer exist or are not available: ${unavailableExerciseNames.join(", ")}`);
+    }
+
+    await WorkoutDraft.updateMany(
+        {
+            userId,
+            purpose: "workout",
+            status: { $in: ["building", "active"] },
+        },
+        {
+            $set: {
+                status: "abandoned",
+            },
+        },
+    );
+
+    const selectedMuscleGroups = new Set<Muscle>();
+
+    const draftExercises = workoutSession.exercises.map((sessionExercise) => {
+        const exerciseId = sessionExercise.exerciseId!.toString();
+        const exercise = availableExercisesMap.get(exerciseId);
+
+        if (!exercise) {
+            throw new ValidationError(
+                `Exercise could not be found: ${sessionExercise.exerciseName}`,
+            );
+        }
+
+        for (const muscle of exercise.primaryMuscles ?? []) {
+            selectedMuscleGroups.add(muscle);
+        }
+
+        return {
+            exerciseId: new Types.ObjectId(exercise.id),
+            exerciseName: sessionExercise.exerciseName || exercise.name,
+            sets: sessionExercise.sets.map((set) => ({
+                weight: set.weight ?? null,
+                reps: set.reps ?? null,
+            })),
+        };
+    });
+
+    const draft = await WorkoutDraft.create({
+        userId,
+        status: "building",
+        purpose: "workout",
+        selectedMuscleGroups: Array.from(selectedMuscleGroups),
+        exercises: draftExercises,
+        sourceSessionId: workoutSession._id,
+    });
+
+
+    return draft;
 }

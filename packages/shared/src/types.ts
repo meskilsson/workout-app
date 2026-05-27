@@ -212,3 +212,9 @@ export type StartedWorkoutDraft = {
     createdAt: string;
     updatedAt: string;
 };
+
+export type RepeatWorkoutDraftResponse = {
+    _id: string;
+    status: "building" | "active" | "completed" | "abandoned";
+    purpose: "workout" | "template";
+};

@@ -4,10 +4,16 @@ import { useNavigate } from "react-router-dom";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 
-import { getMyWorkoutSessionsRequest } from "../../services/workoutSessionApi";
+import {
+    getMyWorkoutSessionsRequest,
+    repeatWorkoutSessionRequest,
+} from "../../services/workoutSessionApi";
+
 import { formatCompletedDate } from "../../utils/formatCompletedDate";
 import { formatEndTime } from "../../utils/formatEndTime";
+
 import type { WorkoutSession } from "@workout-app/shared";
+
 import styles from "./ProfileWorkoutsPage.module.css";
 
 export default function ProfileWorkoutsPage() {
@@ -16,6 +22,10 @@ export default function ProfileWorkoutsPage() {
     const [sessions, setSessions] = useState<WorkoutSession[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
+    const [actionError, setActionError] = useState("");
+    const [repeatingSessionId, setRepeatingSessionId] = useState<string | null>(
+        null,
+    );
 
     useEffect(() => {
         async function loadWorkoutHistory() {
@@ -39,6 +49,24 @@ export default function ProfileWorkoutsPage() {
         loadWorkoutHistory();
     }, []);
 
+    async function handleTrainAgain(sessionId: string) {
+        setActionError("");
+        setRepeatingSessionId(sessionId);
+
+        try {
+            const draft = await repeatWorkoutSessionRequest(sessionId);
+            navigate(`/workout-summary/${draft._id}`);
+        } catch (error) {
+            if (error instanceof Error) {
+                setActionError(error.message);
+            } else {
+                setActionError("Failed to prepare workout.");
+            }
+        } finally {
+            setRepeatingSessionId(null);
+        }
+    }
+
     if (isLoading) {
         return (
             <Card className={styles.stateCard}>
@@ -52,7 +80,9 @@ export default function ProfileWorkoutsPage() {
             <div className={styles.header}>
                 <div>
                     <p className={styles.kicker}>History</p>
+
                     <h2 className={styles.title}>Workout history</h2>
+
                     <p className={styles.subtitle}>
                         Review your saved workout sessions.
                     </p>
@@ -63,13 +93,16 @@ export default function ProfileWorkoutsPage() {
                         style={{ minWidth: "3.25rem", marginTop: "1rem" }}
                         className={styles.backButton}
                         onClick={() => navigate(-1)}
-
                     >
                         <span className={styles.buttonArrow}>←</span>
                     </Button>
                 </div>
 
-                <Button variant="secondary" onClick={() => navigate("/workout-select")}>
+                <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => navigate("/workout-select")}
+                >
                     Start workout
                 </Button>
             </div>
@@ -77,6 +110,12 @@ export default function ProfileWorkoutsPage() {
             {error && (
                 <Card className={styles.stateCard}>
                     <p className={styles.errorText}>{error}</p>
+                </Card>
+            )}
+
+            {actionError && (
+                <Card className={styles.stateCard}>
+                    <p className={styles.errorText}>{actionError}</p>
                 </Card>
             )}
 
@@ -94,6 +133,8 @@ export default function ProfileWorkoutsPage() {
 
                         const completedDate = formatCompletedDate(session.endedAt);
                         const endTime = formatEndTime(session.endedAt);
+                        const isRepeatingThisSession =
+                            repeatingSessionId === session._id;
 
                         return (
                             <Card key={session._id} className={styles.sessionCard}>
@@ -108,16 +149,37 @@ export default function ProfileWorkoutsPage() {
                                         </p>
                                     </div>
 
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() =>
-                                            navigate(`/profile/workouts/${session._id}`, {
-                                                state: { workoutSession: session },
-                                            })
-                                        }
-                                    >
-                                        View Details
-                                    </Button>
+                                    <div className={styles.sessionActions}>
+                                        <Button
+                                            type="button"
+                                            variant="primary"
+                                            disabled={Boolean(repeatingSessionId)}
+                                            onClick={() =>
+                                                handleTrainAgain(session._id)
+                                            }
+                                        >
+                                            {isRepeatingThisSession
+                                                ? "Preparing..."
+                                                : "Train again"}
+                                        </Button>
+
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            onClick={() =>
+                                                navigate(
+                                                    `/profile/workouts/${session._id}`,
+                                                    {
+                                                        state: {
+                                                            workoutSession: session,
+                                                        },
+                                                    },
+                                                )
+                                            }
+                                        >
+                                            View Details
+                                        </Button>
+                                    </div>
                                 </div>
 
                                 <div className={styles.summaryGrid}>

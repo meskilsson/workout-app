@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import * as workoutSessionService from '../services/workoutSessionService';
-import { UnauthorizedError } from "../errors/AppError";
+import { UnauthorizedError, ValidationError } from "../errors/AppError";
+
 
 export async function createWorkoutSession(
     req: Request,
@@ -59,6 +60,34 @@ export async function getWorkoutSessionById(
         );
 
         res.status(200).json(session);
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function repeatWorkoutSession(
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction,
+): Promise<void> {
+    try {
+        const userId = req.user?.id;
+        const { id } = req.params;
+
+        if (!userId) {
+            throw new UnauthorizedError("Unauthorized");
+        }
+
+        if (!id) {
+            throw new ValidationError("Missing workout session id");
+        }
+
+        const draft = await workoutSessionService.repeatWorkoutSession(
+            id,
+            userId,
+        );
+
+        res.status(201).json(draft);
     } catch (error) {
         next(error);
     }
