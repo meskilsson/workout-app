@@ -1,5 +1,8 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+import type { RepeatWorkoutDraftResponse } from "@workout-app/shared";
+import { parseJsonResponse } from "../utils/parseJsonResponse";
+
 type WorkoutSessionSet = {
     weight: string | number;
     reps: string | number;
@@ -64,4 +67,20 @@ export async function getWorkoutSessionByIdRequest(sessionId: string) {
     }
 
     return data;
+}
+
+export async function repeatWorkoutSessionRequest(
+    sessionId: string,
+): Promise<RepeatWorkoutDraftResponse> {
+    const response = await fetch(`${API_URL}/api/workout-sessions/${sessionId}/repeat`,
+        {
+            method: "POST",
+            credentials: "include",
+        }
+    );
+
+    return parseJsonResponse<RepeatWorkoutDraftResponse>(
+        response,
+        "Failed to prepare workout",
+    );
 }

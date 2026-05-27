@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { getWorkoutSessionByIdRequest } from "../../services/workoutSessionApi";
+
+import {
+    getWorkoutSessionByIdRequest,
+    repeatWorkoutSessionRequest,
+} from "../../services/workoutSessionApi";
+
 import { getExerciseLibraryRequest } from "../../services/exerciseApi";
 import formatDuration from "../../utils/formatDuration";
 import { formatCompletedDate } from "../../utils/formatCompletedDate";
 import { formatEndTime } from "../../utils/formatEndTime";
 
 import type { WorkoutSession } from "@workout-app/shared";
+
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
 import Card from "../../components/ui/cards/Card";
@@ -36,11 +42,18 @@ export default function WorkoutHistoryDetailPage() {
         state?.workoutSession ?? null,
     );
 
-    const [exerciseLibrary, setExerciseLibrary] = useState<ExerciseLibraryItem[]>([]);
+    const [exerciseLibrary, setExerciseLibrary] = useState<ExerciseLibraryItem[]>(
+        [],
+    );
+
     const [isLoading, setIsLoading] = useState(!state?.workoutSession);
     const [isLoadingMuscles, setIsLoadingMuscles] = useState(false);
+
     const [error, setError] = useState("");
     const [muscleError, setMuscleError] = useState("");
+    const [actionError, setActionError] = useState("");
+
+    const [isRepeatingWorkout, setIsRepeatingWorkout] = useState(false);
 
     useEffect(() => {
         if (session) return;
@@ -82,11 +95,10 @@ export default function WorkoutHistoryDetailPage() {
             setIsLoadingMuscles(true);
 
             try {
-
                 const options = {
                     page: 1,
                     limit: 100,
-                }
+                };
 
                 const data = await getExerciseLibraryRequest(options);
                 setExerciseLibrary(data.exercises);
@@ -103,6 +115,29 @@ export default function WorkoutHistoryDetailPage() {
 
         loadExerciseLibrary();
     }, [session]);
+
+    async function handleTrainAgain() {
+        if (!session?._id) {
+            setActionError("Workout session id is missing.");
+            return;
+        }
+
+        setActionError("");
+        setIsRepeatingWorkout(true);
+
+        try {
+            const draft = await repeatWorkoutSessionRequest(session._id);
+            navigate(`/workout-summary/${draft._id}`);
+        } catch (error) {
+            if (error instanceof Error) {
+                setActionError(error.message);
+            } else {
+                setActionError("Failed to prepare workout.");
+            }
+        } finally {
+            setIsRepeatingWorkout(false);
+        }
+    }
 
     const trainedMuscles = useMemo(() => {
         if (!session) {
@@ -179,7 +214,7 @@ export default function WorkoutHistoryDetailPage() {
                         variant="secondary"
                         onClick={() => navigate("/profile/workouts")}
                     >
-                        Back to workout history
+                        Back to history
                     </Button>
                 </Card>
             </Box>
@@ -201,20 +236,39 @@ export default function WorkoutHistoryDetailPage() {
             <div className={styles.header}>
                 <div>
                     <p className={styles.kicker}>Workout history</p>
+
                     <h1 className={styles.title}>Workout details</h1>
+
                     <p className={styles.subtitle}>
                         A full breakdown of this saved workout session.
                     </p>
                 </div>
 
-                <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => navigate("/profile/workouts")}
-                >
-                    Back to history
-                </Button>
+                <div className={styles.headerActions}>
+                    <Button
+                        type="button"
+                        variant="primary"
+                        onClick={handleTrainAgain}
+                        disabled={isRepeatingWorkout}
+                    >
+                        {isRepeatingWorkout ? "Preparing..." : "Train again"}
+                    </Button>
+
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => navigate("/profile/workouts")}
+                    >
+                        Back to history
+                    </Button>
+                </div>
             </div>
+
+            {actionError && (
+                <Card className={styles.actionErrorCard}>
+                    <p className={styles.errorText}>{actionError}</p>
+                </Card>
+            )}
 
             <Card className={styles.summaryCard}>
                 <div className={styles.summaryGrid}>
@@ -249,6 +303,7 @@ export default function WorkoutHistoryDetailPage() {
                 <div className={styles.muscleCardContent}>
                     <div className={styles.muscleInfo}>
                         <p className={styles.kicker}>Muscle profile</p>
+
                         <h2 className={styles.sectionTitle}>Muscles trained</h2>
 
                         <p className={styles.sectionText}>
@@ -298,6 +353,7 @@ export default function WorkoutHistoryDetailPage() {
                 <div className={styles.sectionHeader}>
                     <div>
                         <h2 className={styles.sectionTitle}>Exercises</h2>
+
                         <p className={styles.sectionText}>
                             Sets, reps, and weight recorded during this workout.
                         </p>

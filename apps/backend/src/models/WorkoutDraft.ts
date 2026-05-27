@@ -27,6 +27,7 @@ export interface IWorkoutDraft {
     startedAt?: Date | null;
     completedSessionId?: Types.ObjectId | null;
     sourceTemplateId?: Types.ObjectId | null;
+    sourceSessionId?: Types.ObjectId | null;
 }
 
 export type WorkoutDraftPurpose = "workout" | "template";
@@ -109,6 +110,11 @@ const workoutDraftSchema = new Schema<IWorkoutDraft>(
             type: Schema.Types.ObjectId,
             ref: "WorkoutTemplate",
             default: null,
+        },
+        sourceSessionId: {
+            type: Schema.Types.ObjectId,
+            ref: "WorkoutSession",
+            default: null
         },
     },
     {
