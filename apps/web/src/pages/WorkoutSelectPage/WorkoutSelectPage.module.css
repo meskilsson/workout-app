@@ -103,7 +103,18 @@
     }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 600px) {
+    .page {
+        padding: 2rem 1rem 3rem;
+    }
+
+    .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+@media (max-width: 380px) {
     .grid {
         grid-template-columns: 1fr;
     }
