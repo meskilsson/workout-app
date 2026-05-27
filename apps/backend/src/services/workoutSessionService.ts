@@ -91,7 +91,14 @@ export async function createWorkoutSession(
 }
 
 export async function getMyWorkoutSessions(userId: string) {
-    return WorkoutSession.find({ userId }).sort({ endedAt: -1 });
+    if (!Types.ObjectId.isValid(userId)) {
+        throw new ValidationError("Invalid user id");
+    }
+
+    return WorkoutSession.find({
+        userId,
+        deletedAt: null,
+    }).sort({ endedAt: -1 });
 }
 
 export async function getWorkoutSessionById(sessionId: string, userId: string) {
@@ -99,9 +106,14 @@ export async function getWorkoutSessionById(sessionId: string, userId: string) {
         throw new ValidationError("Invalid workout session id");
     }
 
+    if (!Types.ObjectId.isValid(userId)) {
+        throw new ValidationError("Invalid user id");
+    }
+
     const workoutSession = await WorkoutSession.findOne({
         _id: sessionId,
         userId,
+        deletedAt: null,
     });
 
     if (!workoutSession) {
