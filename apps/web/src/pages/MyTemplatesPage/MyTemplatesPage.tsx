@@ -253,6 +253,14 @@ export default function MyTemplatesPage() {
                                     <div className={styles.templateActionStack}>
                                         <Button
                                             type="button"
+                                            variant="danger"
+                                            disabled={isBusy}
+                                            onClick={() => setTemplateToDelete(template)}
+                                        >
+                                            Delete
+                                        </Button>
+                                        <Button
+                                            type="button"
                                             variant="secondary"
                                             disabled={isBusy}
                                             onClick={() => handleEditTemplate(template._id)}
@@ -260,14 +268,6 @@ export default function MyTemplatesPage() {
                                             {isEditing ? "Preparing..." : "Edit"}
                                         </Button>
 
-                                        <Button
-                                            type="button"
-                                            variant="danger"
-                                            disabled={isBusy}
-                                            onClick={() => setTemplateToDelete(template)}
-                                        >
-                                            Delete
-                                        </Button>
                                     </div>
                                 </div>
                             </Card>
