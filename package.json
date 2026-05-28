@@ -9,6 +9,7 @@
     "dev:web": "npm run dev --workspace=web",
     "dev:backend": "npm run dev --workspace=backend",
     "dev:both": "concurrently \"npm run dev:web\" \"npm run dev:backend\"",
+    "dev:all": "concurrently \"npm run dev:web\" \"npm run dev:backend\" \"npm run dev:native\"",
     "dev:native": "npm run start --workspace=native",
     "build:web": "npm run build --workspace=web",
     "lint": "npm run lint --workspaces --if-present"
