@@ -8,7 +8,6 @@ import Button from "../../components/ui/button/Button";
 import { useAuth } from "../../context/AuthContext";
 
 import {
-    getMyWorkoutTemplatesRequest,
     getPublicWorkoutTemplatesRequest,
     startWorkoutFromTemplateRequest,
 } from "../../services/workoutTemplateApi";
@@ -22,30 +21,23 @@ export default function TemplatesPage() {
     const { isAuthenticated } = useAuth();
 
     const [publicTemplates, setPublicTemplates] = useState<WorkoutTemplate[]>([]);
-    const [myTemplates, setMyTemplates] = useState<WorkoutTemplate[]>([]);
 
     const [error, setError] = useState("");
     const [actionError, setActionError] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+
     const [startingTemplateId, setStartingTemplateId] = useState<string | null>(
         null,
     );
 
     useEffect(() => {
-        async function fetchTemplates() {
+        async function fetchPublicTemplates() {
             setError("");
             setIsLoading(true);
 
             try {
                 const publicData = await getPublicWorkoutTemplatesRequest();
                 setPublicTemplates(publicData);
-
-                if (isAuthenticated) {
-                    const myData = await getMyWorkoutTemplatesRequest();
-                    setMyTemplates(myData);
-                } else {
-                    setMyTemplates([]);
-                }
             } catch (error) {
                 if (error instanceof Error) {
                     setError(error.message);
@@ -57,8 +49,8 @@ export default function TemplatesPage() {
             }
         }
 
-        fetchTemplates();
-    }, [isAuthenticated]);
+        fetchPublicTemplates();
+    }, []);
 
     async function handleStartTemplate(templateId: string) {
         if (!isAuthenticated) {
@@ -71,7 +63,6 @@ export default function TemplatesPage() {
 
         try {
             const draft = await startWorkoutFromTemplateRequest(templateId);
-
             navigate(`/workout-summary/${draft._id}`);
         } catch (error) {
             if (error instanceof Error) {
@@ -84,23 +75,18 @@ export default function TemplatesPage() {
         }
     }
 
-
-
-    function renderTemplateCard(template: WorkoutTemplate, label: string, templateSource: "public" | "my") {
+    function renderTemplateCard(template: WorkoutTemplate) {
         const isStarting = startingTemplateId === template._id;
-
-        const detailsPath =
-            templateSource === "my"
-                ? `/templates/my/templates-details/${template._id}`
-                : `/templates/pre-made/templates-details/${template._id}`;
 
         return (
             <Card key={template._id} className={styles.templateCard}>
                 <div className={styles.cardHeader}>
                     <div>
-                        <p className={styles.templateType}>{label}</p>
+                        <p className={styles.templateType}>Pre-made</p>
 
-                        <h2 className={styles.templateName}>{template.name}</h2>
+                        <h2 className={styles.templateName}>
+                            {template.name}
+                        </h2>
 
                         <p className={styles.templateDescription}>
                             {template.description || "No description."}
@@ -113,12 +99,22 @@ export default function TemplatesPage() {
                 </div>
 
                 <div className={styles.exerciseList}>
-                    {template.exercises.map((exercise) => (
-                        <div key={exercise._id} className={styles.exerciseItem}>
-                            <span>{exercise.order + 1}.</span>
-                            <span>{exercise.exerciseName}</span>
-                        </div>
-                    ))}
+                    {template.exercises.length > 0 ? (
+                        template.exercises.map((exercise, index) => (
+                            <div
+                                key={exercise._id ?? `${template._id}-${index}`}
+                                className={styles.exerciseItem}
+                            >
+                                <span>{exercise.order + 1}.</span>
+
+                                <span>
+                                    {exercise.exerciseName || "Missing exercise"}
+                                </span>
+                            </div>
+                        ))
+                    ) : (
+                        <p className={styles.emptyText}>No exercises added.</p>
+                    )}
                 </div>
 
                 <div className={styles.templateActions}>
@@ -133,13 +129,15 @@ export default function TemplatesPage() {
                     <Button
                         type="button"
                         variant="secondary"
-                        onClick={() => navigate(detailsPath)}
+                        onClick={() =>
+                            navigate(
+                                `/templates/pre-made/templates-details/${template._id}`,
+                            )
+                        }
                     >
                         View details
                     </Button>
-
                 </div>
-
             </Card>
         );
     }
@@ -148,7 +146,7 @@ export default function TemplatesPage() {
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>
-                    <p>Loading workouts...</p>
+                    <p>Loading pre-made workouts...</p>
                 </Card>
             </Box>
         );
@@ -167,7 +165,9 @@ export default function TemplatesPage() {
     return (
         <Box className={styles.page}>
             <header className={styles.header}>
-                <h1 className={styles.kicker}>Workouts</h1>
+                <p className={styles.kicker}>Pre-made workouts</p>
+
+                <h1 className={styles.title}>Browse workouts</h1>
 
                 <p className={styles.subtitle}>
                     Browse pre-made workouts and choose what you want to train.
@@ -175,8 +175,8 @@ export default function TemplatesPage() {
 
                 {!isAuthenticated && (
                     <p className={styles.loginHint}>
-                        You can browse workouts while logged out, but you need to log in
-                        to start a workout or create your own workouts.
+                        You can browse workouts while logged out, but you need to
+                        log in to start a workout.
                     </p>
                 )}
             </header>
@@ -190,10 +190,14 @@ export default function TemplatesPage() {
             <section className={styles.section}>
                 <div className={styles.sectionHeader}>
                     <div>
-                        <h2 className={styles.sectionTitle}>Pre-made workouts</h2>
+                        <h2 className={styles.sectionTitle}>
+                            Pre-made workouts
+                        </h2>
+
                         <p className={styles.sectionText}>
                             Workouts available for everyone to browse.
                         </p>
+
                         <Button
                             type="button"
                             variant="secondary"
@@ -201,7 +205,6 @@ export default function TemplatesPage() {
                             iconOnly
                             className={styles.backButton}
                             onClick={() => navigate(-1)}
-
                         >
                             <span className={styles.buttonArrow}>←</span>
                         </Button>
@@ -211,48 +214,15 @@ export default function TemplatesPage() {
                 {publicTemplates.length > 0 ? (
                     <div className={styles.templateGrid}>
                         {publicTemplates.map((template) =>
-                            renderTemplateCard(template, "Pre-made", "public"),
+                            renderTemplateCard(template),
                         )}
                     </div>
                 ) : (
                     <Card className={styles.stateCard}>
-                        <p>No public workouts found.</p>
+                        <p>No pre-made workouts found.</p>
                     </Card>
                 )}
             </section>
-
-            {isAuthenticated && (
-                <section className={styles.section}>
-                    <div className={styles.sectionHeader}>
-                        <div>
-                            <h2 className={styles.sectionTitle}>My workouts</h2>
-                            <p className={styles.sectionText}>
-                                Workouts you have created yourself.
-                            </p>
-                        </div>
-
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() => navigate("/templates/create")}
-                        >
-                            Create workout
-                        </Button>
-                    </div>
-
-                    {myTemplates.length > 0 ? (
-                        <div className={styles.templateGrid}>
-                            {myTemplates.map((template) =>
-                                renderTemplateCard(template, "My template", "my"),
-                            )}
-                        </div>
-                    ) : (
-                        <Card className={styles.stateCard}>
-                            <p>You have not created any workouts yet.</p>
-                        </Card>
-                    )}
-                </section>
-            )}
         </Box>
     );
 }
