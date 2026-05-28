@@ -356,3 +356,67 @@ export async function createWorkoutTemplateFromDraft(
 
     return template;
 }
+
+export async function createTemplateEditDraft(
+    templateId: string,
+    userId: string,
+) {
+    assertValidObjectId(templateId, "template id");
+    assertValidObjectId(userId, "user id");
+
+    const template = await WorkoutTemplate.findOne({
+        _id: templateId,
+        isPublic: false,
+        createdBy: userId,
+    }).populate(
+        "exercises.exercise", "name primaryMuscles secondaryMuscles equipment difficulty exerciseType",
+    );
+
+    if (!template) {
+        throw new NotFoundError("Workout template not found");
+    }
+
+    if (template.exercises.length === 0) {
+        throw new ValidationError("Cannot edit an empty template");
+    }
+
+    const selectedMuscleGroups = new Set<Muscle>();
+
+
+    const draftExercises = [...template.exercises]
+        .sort((a, b) => a.order - b.order)
+        .map((templateExercise) => {
+            const exercise =
+                templateExercise.exercise as unknown as PopulatedTemplateExercise | null;
+
+            if (!exercise) {
+                throw new ValidationError(
+                    `Cannot edit template because an exercise is missing: ${templateExercise.exerciseName}`,
+                );
+            }
+
+            for (const muscle of exercise.primaryMuscles ?? []) {
+                selectedMuscleGroups.add(muscle);
+            }
+
+            return {
+                exerciseId: exercise._id,
+                exerciseName: templateExercise.exerciseName,
+                sets: templateExercise.plannedSets.map((set) => ({
+                    weight: set.weight ?? null,
+                    reps: set.reps ?? null,
+                })),
+            };
+        });
+
+    const draft = await WorkoutDraft.create({
+        userId,
+        status: "building",
+        purpose: "template",
+        selectedMuscleGroups: Array.from(selectedMuscleGroups),
+        exercises: draftExercises,
+        sourceTemplateId: template._id,
+    });
+
+    return draft;
+}
