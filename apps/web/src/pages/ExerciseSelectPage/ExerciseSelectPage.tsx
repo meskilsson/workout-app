@@ -2,10 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
+
 import {
+    getExerciseByIdRequest,
     getExerciseLibraryRequest,
     getPublicExercisesRequest,
 } from "../../services/exerciseApi";
+
 import {
     getWorkoutDraftByIdRequest,
     updateWorkoutDraftExercisesRequest,
@@ -21,6 +24,7 @@ import "../../components/ui/box/box.css";
 import "../../components/ui/cards/card.css";
 
 import styles from "./ExerciseSelectPage.module.css";
+
 import type { Exercise } from "@workout-app/shared";
 
 import { usePaginationScroll } from "../../hooks/usePaginationScroll";
@@ -44,6 +48,12 @@ type WorkoutDraft = {
     }[];
 };
 
+type ExerciseGroup = {
+    id: string;
+    title: string;
+    count: number;
+    exercises: Exercise[];
+};
 
 function formatMuscleTitle(muscle: string) {
     return muscle.charAt(0).toUpperCase() + muscle.slice(1);
@@ -54,11 +64,15 @@ export default function ExerciseSelectPage() {
     const { draftId } = useParams();
     const navigate = useNavigate();
 
-
     const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<
         SelectedMuscleGroup[]
     >([]);
+
     const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
+    const [selectedExerciseDetails, setSelectedExerciseDetails] = useState<
+        Exercise[]
+    >([]);
+
     const [exercises, setExercises] = useState<Exercise[]>([]);
 
     const [isLoadingExercises, setIsLoadingExercises] = useState(false);
@@ -87,7 +101,7 @@ export default function ExerciseSelectPage() {
         return selectedMuscleGroups.map((group) => group.id).join(",");
     }, [selectedMuscleGroups]);
 
-
+    const isEditingExistingDraft = selectedExerciseDetails.length > 0;
 
     useEffect(() => {
         async function loadExercises() {
@@ -115,7 +129,9 @@ export default function ExerciseSelectPage() {
                 setTotalPages(data.totalPages);
             } catch (err) {
                 setExerciseError(
-                    err instanceof Error ? err.message : "Failed to load exercises",
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to load exercises",
                 );
             } finally {
                 setIsLoadingExercises(false);
@@ -143,7 +159,30 @@ export default function ExerciseSelectPage() {
             setIsLoadingDraft(true);
 
             try {
-                const data: WorkoutDraft = await getWorkoutDraftByIdRequest(draftId);
+                const data: WorkoutDraft = await getWorkoutDraftByIdRequest(
+                    draftId,
+                );
+
+                const draftExerciseIds = data.exercises.map(
+                    (exercise) => exercise.exerciseId,
+                );
+
+                const uniqueExerciseIds = Array.from(
+                    new Set(draftExerciseIds),
+                );
+
+                const exerciseResults = await Promise.allSettled(
+                    uniqueExerciseIds.map((exerciseId) =>
+                        getExerciseByIdRequest(exerciseId, isAuthenticated),
+                    ),
+                );
+
+                const fullExerciseDetails = exerciseResults
+                    .filter(
+                        (result): result is PromiseFulfilledResult<Exercise> =>
+                            result.status === "fulfilled",
+                    )
+                    .map((result) => result.value);
 
                 setSelectedMuscleGroups(
                     data.selectedMuscleGroups.map((muscle) => ({
@@ -152,9 +191,8 @@ export default function ExerciseSelectPage() {
                     })),
                 );
 
-                setSelectedExercises(
-                    data.exercises.map((exercise) => exercise.exerciseId),
-                );
+                setSelectedExercises(draftExerciseIds);
+                setSelectedExerciseDetails(fullExerciseDetails);
             } catch (err) {
                 setDraftError(
                     err instanceof Error
@@ -167,7 +205,7 @@ export default function ExerciseSelectPage() {
         }
 
         loadDraft();
-    }, [draftId, navigate]);
+    }, [draftId, navigate, isAuthenticated]);
 
     useEffect(() => {
         if (!isLoadingExercises && !isLoadingDraft) {
@@ -186,35 +224,86 @@ export default function ExerciseSelectPage() {
         };
     }, [searchTerm, setPage]);
 
-    function handleToggleExercise(exerciseId: string) {
+    function handleToggleExercise(exercise: Exercise) {
         if (isSavingExercises) {
             return;
         }
 
-        setSelectedExercises((prev) =>
-            prev.includes(exerciseId)
-                ? prev.filter((id) => id !== exerciseId)
-                : [...prev, exerciseId],
-        );
-    }
+        const isAlreadySelected = selectedExercises.includes(exercise._id);
 
+        if (isAlreadySelected) {
+            setSelectedExercises((prev) =>
+                prev.filter((id) => id !== exercise._id),
+            );
+
+            return;
+        }
+
+        setSelectedExercises((prev) => [...prev, exercise._id]);
+
+        setSelectedExerciseDetails((prev) => {
+            const alreadyExists = prev.some(
+                (selectedExercise) => selectedExercise._id === exercise._id,
+            );
+
+            if (alreadyExists) {
+                return prev;
+            }
+
+            return [...prev, exercise];
+        });
+    }
 
     const exerciseGroupTitle =
         selectedMuscleGroups.length > 0
             ? selectedMuscleGroups.map((group) => group.title).join(" and ")
             : "Exercises";
 
-    const groupedExercises = [
-        {
-            id: "matching-exercises",
-            title: debouncedSearchTerm
-                ? `Search results for "${debouncedSearchTerm}"`
-                : exerciseGroupTitle,
-            exercises,
-        },
-    ];
+    const currentWorkoutExerciseCards = useMemo(() => {
+        const exerciseMap = new Map<string, Exercise>();
 
+        for (const exercise of selectedExerciseDetails) {
+            exerciseMap.set(exercise._id, exercise);
+        }
 
+        for (const exercise of exercises) {
+            if (exerciseMap.has(exercise._id)) {
+                exerciseMap.set(exercise._id, exercise);
+            }
+        }
+
+        return selectedExerciseDetails
+            .map((exercise) => exerciseMap.get(exercise._id))
+            .filter((exercise): exercise is Exercise => Boolean(exercise));
+    }, [selectedExerciseDetails, exercises]);
+
+    const groupedExercises: ExerciseGroup[] = debouncedSearchTerm
+        ? [
+            {
+                id: "matching-exercises",
+                title: `Search results for "${debouncedSearchTerm}"`,
+                count: total,
+                exercises,
+            },
+        ]
+        : [
+            ...(isEditingExistingDraft || currentWorkoutExerciseCards.length > 0
+                ? [
+                    {
+                        id: "current-workout-exercises",
+                        title: "Current workout exercises",
+                        count: currentWorkoutExerciseCards.length,
+                        exercises: currentWorkoutExerciseCards,
+                    },
+                ]
+                : []),
+            {
+                id: "matching-exercises",
+                title: exerciseGroupTitle,
+                count: total,
+                exercises,
+            },
+        ];
 
     async function handleContinue() {
         if (!draftId) {
@@ -240,6 +329,99 @@ export default function ExerciseSelectPage() {
         } finally {
             setIsSavingExercises(false);
         }
+    }
+
+    function renderExerciseCard(exercise: Exercise) {
+        const isSelected = selectedExercises.includes(exercise._id);
+
+        return (
+            <Card
+                key={exercise._id}
+                className={`${styles.exerciseCard} ${isSelected ? styles.selectedCard : ""
+                    }`}
+                onClick={() => handleToggleExercise(exercise)}
+            >
+                <div className={styles.exerciseCardContent}>
+                    <div className={styles.exerciseCardTop}>
+                        <div className={styles.exerciseMainInfo}>
+                            <h3 className={styles.exerciseName}>
+                                {exercise.name}
+                            </h3>
+
+                            <div className={styles.exerciseMeta}>
+                                {exercise.equipment && (
+                                    <span>{exercise.equipment}</span>
+                                )}
+
+                                {exercise.difficulty && (
+                                    <span>{exercise.difficulty}</span>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className={styles.cardDummy}>
+                            <MuscleDummy
+                                variant="mini"
+                                primaryMuscles={exercise.primaryMuscles ?? []}
+                                secondaryMuscles={
+                                    exercise.secondaryMuscles ?? []
+                                }
+                            />
+                        </div>
+                    </div>
+
+                    <div className={styles.muscleInfo}>
+                        {exercise.primaryMuscles &&
+                            exercise.primaryMuscles.length > 0 && (
+                                <div>
+                                    <p className={styles.muscleLabel}>
+                                        Primary
+                                    </p>
+
+                                    <div className={styles.muscleTags}>
+                                        {exercise.primaryMuscles.map(
+                                            (muscle) => (
+                                                <span
+                                                    key={muscle}
+                                                    className={
+                                                        styles.primaryTag
+                                                    }
+                                                >
+                                                    {muscle}
+                                                </span>
+                                            ),
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                        {exercise.secondaryMuscles &&
+                            exercise.secondaryMuscles.length > 0 && (
+                                <div>
+                                    <p className={styles.muscleLabel}>
+                                        Secondary
+                                    </p>
+
+                                    <div className={styles.muscleTags}>
+                                        {exercise.secondaryMuscles.map(
+                                            (muscle) => (
+                                                <span
+                                                    key={muscle}
+                                                    className={
+                                                        styles.secondaryTag
+                                                    }
+                                                >
+                                                    {muscle}
+                                                </span>
+                                            ),
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                    </div>
+                </div>
+            </Card>
+        );
     }
 
     if (isLoading && !hasLoadedOnce) {
@@ -271,17 +453,23 @@ export default function ExerciseSelectPage() {
             <div ref={pageTopRef} className={styles.header}>
                 <div>
                     <p className={styles.kicker}>Exercise library</p>
-                    <h1 className={styles.title}>Select exercises</h1>
+
+                    <h1 className={styles.title}>
+                        {isEditingExistingDraft
+                            ? "Edit exercises"
+                            : "Select exercises"}
+                    </h1>
+
                     <p className={styles.subtitle}>
                         Choose exercises for the muscle groups you selected.
                     </p>
+
                     <Button
                         type="button"
                         variant="secondary"
                         style={{ minWidth: "3.25rem", marginTop: "1.5rem" }}
                         className={styles.backButton}
                         onClick={() => navigate(-1)}
-
                     >
                         <span className={styles.buttonArrow}>←</span>
                     </Button>
@@ -312,139 +500,26 @@ export default function ExerciseSelectPage() {
                 {groupedExercises.map((group) => (
                     <section key={group.id} className={styles.exerciseGroup}>
                         <div className={styles.groupHeader}>
-                            <h2 className={styles.groupTitle}>{group.title}</h2>
+                            <h2 className={styles.groupTitle}>
+                                {group.title}
+                            </h2>
+
                             <p className={styles.groupCount}>
-                                {total} exercises
+                                {group.count}{" "}
+                                {group.count === 1 ? "exercise" : "exercises"}
                             </p>
                         </div>
 
                         <Box className={styles.exerciseGrid}>
                             {group.exercises.length > 0 ? (
-                                group.exercises.map((exercise) => {
-                                    const isSelected = selectedExercises.includes(
-                                        exercise._id,
-                                    );
-
-                                    return (
-                                        <Card
-                                            key={exercise._id}
-                                            className={`${styles.exerciseCard} ${isSelected ? styles.selectedCard : ""
-                                                }`}
-                                            onClick={() =>
-                                                handleToggleExercise(exercise._id)
-                                            }
-                                        >
-                                            <div className={styles.exerciseCardContent}>
-                                                <div className={styles.exerciseCardTop}>
-                                                    <div className={styles.exerciseMainInfo}>
-                                                        <h3 className={styles.exerciseName}>
-                                                            {exercise.name}
-                                                        </h3>
-
-                                                        <div className={styles.exerciseMeta}>
-                                                            {exercise.equipment && (
-                                                                <span>
-                                                                    {exercise.equipment}
-                                                                </span>
-                                                            )}
-
-                                                            {exercise.difficulty && (
-                                                                <span>
-                                                                    {exercise.difficulty}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className={styles.cardDummy}>
-                                                        <MuscleDummy
-                                                            variant="mini"
-                                                            primaryMuscles={
-                                                                exercise.primaryMuscles ??
-                                                                []
-                                                            }
-                                                            secondaryMuscles={
-                                                                exercise.secondaryMuscles ??
-                                                                []
-                                                            }
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div className={styles.muscleInfo}>
-                                                    {exercise.primaryMuscles &&
-                                                        exercise.primaryMuscles.length >
-                                                        0 && (
-                                                            <div>
-                                                                <p
-                                                                    className={
-                                                                        styles.muscleLabel
-                                                                    }
-                                                                >
-                                                                    Primary
-                                                                </p>
-
-                                                                <div
-                                                                    className={
-                                                                        styles.muscleTags
-                                                                    }
-                                                                >
-                                                                    {exercise.primaryMuscles.map(
-                                                                        (muscle) => (
-                                                                            <span
-                                                                                key={muscle}
-                                                                                className={
-                                                                                    styles.primaryTag
-                                                                                }
-                                                                            >
-                                                                                {muscle}
-                                                                            </span>
-                                                                        ),
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        )}
-
-                                                    {exercise.secondaryMuscles &&
-                                                        exercise.secondaryMuscles.length >
-                                                        0 && (
-                                                            <div>
-                                                                <p
-                                                                    className={
-                                                                        styles.muscleLabel
-                                                                    }
-                                                                >
-                                                                    Secondary
-                                                                </p>
-
-                                                                <div
-                                                                    className={
-                                                                        styles.muscleTags
-                                                                    }
-                                                                >
-                                                                    {exercise.secondaryMuscles.map(
-                                                                        (muscle) => (
-                                                                            <span
-                                                                                key={muscle}
-                                                                                className={
-                                                                                    styles.secondaryTag
-                                                                                }
-                                                                            >
-                                                                                {muscle}
-                                                                            </span>
-                                                                        ),
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                </div>
-                                            </div>
-                                        </Card>
-                                    );
-                                })
+                                group.exercises.map((exercise) =>
+                                    renderExerciseCard(exercise),
+                                )
                             ) : (
                                 <p className={styles.emptyText}>
-                                    No matching exercises found.
+                                    {group.id === "selected-exercises"
+                                        ? "Selected exercises will appear here."
+                                        : "No matching exercises found."}
                                 </p>
                             )}
                         </Box>
@@ -463,7 +538,9 @@ export default function ExerciseSelectPage() {
                 <Button
                     variant="primary"
                     onClick={handleContinue}
-                    disabled={selectedExercises.length === 0 || isSavingExercises}
+                    disabled={
+                        selectedExercises.length === 0 || isSavingExercises
+                    }
                 >
                     {isSavingExercises ? "Saving..." : "Continue"}
                 </Button>
