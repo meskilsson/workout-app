@@ -36,8 +36,6 @@ Current focus:
 - Building a reliable workout creation flow
 - Connecting frontend and backend features
 - Saving user-created exercises and completed workouts
-- Improving the user experience before MVP
-- Preparing the project for deployment and portfolio presentation
 
 ## Features
 
@@ -84,6 +82,7 @@ Current focus:
 - Workout detail page for previous sessions
 - Basic trained-muscle summary using exercise metadata
 
+
 ### UI and experience
 
 - Responsive React frontend
@@ -125,7 +124,7 @@ Current focus:
 
 ### Mobile / native
 
-The repository also contains an Expo app under `apps/native`. At the moment, the main product focus appears to be the web app and backend. The native app can be developed further later if mobile support becomes part of the MVP roadmap.
+React native is currently the main focus to be able to deploy a working app.
 
 ## Monorepo structure
 
@@ -236,6 +235,7 @@ Backend-specific:
 
 ```bash
 npm run seed:exercises --workspace=backend
+npm run seed:templates --workspace=backend
 npm run build --workspace=backend
 npm run start --workspace=backend
 ```
@@ -280,7 +280,7 @@ This project is still in active development. Some areas are intentionally unfini
 
 Known limitations / planned improvements:
 
-- Templates page is still a placeholder
+
 - Admin dashboard is still a placeholder
 - Native app is currently a scaffold
 - Training stats are planned but not fully implemented
@@ -288,20 +288,6 @@ Known limitations / planned improvements:
 - Automated tests are not added yet
 - Some UI copy, loading states, and edge cases still need polish
 
-## Roadmap toward MVP
-
-Potential next steps before presenting this as MVP-ready:
-
-- Keep screenshot galleries updated as the UI changes
-- Add a deployed demo link
-- Polish responsive layout on mobile and tablet
-- Finish workout templates
-- Improve profile training statistics
-- Add automated tests for important backend services and frontend flows
-- Add clearer validation feedback in forms
-- Review environment variable handling before deployment
-- Add production deployment instructions
-- Add a short demo video or GIF
 
 ## Notes for portfolio reviewers
 
