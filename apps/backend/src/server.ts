@@ -34,6 +34,7 @@ function parseCorsOrigins(value?: string) {
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:4173",
+  "https://eskil-workout.app",
   ...parseCorsOrigins(process.env.CORS_ORIGIN),
   ...parseCorsOrigins(process.env.CORS_ORIGINS),
 ];
