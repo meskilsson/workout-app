@@ -1,5 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
+import Button from './src/components/Button/Button'
 
 export default function App() {
     return (
@@ -15,6 +16,13 @@ export default function App() {
             </Text>
 
             <StatusBar style="light" />
+
+            <Button
+                variant="primary"
+                onPress={() => console.log("pressed")}
+            >
+                Press me
+            </Button>
         </View>
     );
 }
@@ -49,4 +57,17 @@ const styles = StyleSheet.create({
         lineHeight: 22,
         textAlign: "center",
     },
+    button: {
+        color: "blue",
+        borderWidth: 2,
+        borderColor: "blue",
+        borderRadius: 8,
+        padding: 12,
+    },
+    buttonPressed: {
+        borderColor: "red",
+    },
+    buttonText: {
+        color: "white",
+    }
 });
