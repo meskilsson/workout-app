@@ -142,6 +142,12 @@
     text-decoration: underline;
 }
 
+.buttonLoader {
+    width: 18px;
+    height: 18px;
+    border-width: 3px;
+}
+
 @media (max-width: 480px) {
     .page {
         align-items: flex-start;

@@ -8,6 +8,7 @@ import { loginRequest } from "../../services/authApi";
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
 import Card from "../../components/ui/cards/Card";
+import LoadingWheel from "../../components/Loading/LoadingWheel";
 
 import styles from "./LoginPage.module.css";
 
@@ -92,7 +93,14 @@ export default function LoginPage() {
                         )}
 
                         <Button type="submit" disabled={isLoading}>
-                            {isLoading ? "Logging in..." : "Log in"}
+                            {isLoading ? (
+                                <>
+                                    Logging in...
+                                    <LoadingWheel
+                                        size="small"
+                                    />
+                                </>
+                            ) : "Log in"}
                         </Button>
                     </form>
                 </Card>
