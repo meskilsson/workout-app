@@ -166,10 +166,6 @@
     min-height: 0;
     padding: 0.5rem;
 
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-surface-light);
-
     overflow: hidden;
 }
 
