@@ -35,6 +35,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:4173",
   "https://eskil-workout.app",
+  "http://localhost:8081",
   ...parseCorsOrigins(process.env.CORS_ORIGIN),
   ...parseCorsOrigins(process.env.CORS_ORIGINS),
 ];
