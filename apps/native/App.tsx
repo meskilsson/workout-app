@@ -1,73 +1,110 @@
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
-import Button from './src/components/Button/Button'
+import Button from "./src/components/Button/Button";
+import { exercisePublicExercisesRequest } from "./src/services/exerciseApi";
+import { useEffect, useState } from "react";
+
+export type Exercise = {
+  _id: string;
+  name: string;
+  description?: string;
+  instructions?: string;
+  exerciseType?: "strength" | "cardio" | "mobility";
+  primaryMuscles?: string[];
+  secondaryMuscles?: string[];
+  equipment?: string;
+  difficulty?: "beginner" | "intermediate" | "advanced";
+  videoUrl?: string;
+  imageUrl?: string;
+  isCustom: boolean;
+  createdBy?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
 
 export default function App() {
-    return (
-        <View style={styles.container}>
-            <Text style={styles.kicker}>Workout App</Text>
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  console.log(exercises);
 
-            <Text style={styles.title}>
-                Native app is running.
-            </Text>
+  useEffect(() => {
+    async function getExercise() {
+      const exercise = await exercisePublicExercisesRequest();
+      setExercises(exercise.exercises);
+    }
+    getExercise();
+  }, []);
 
-            <Text style={styles.subtitle}>
-                This is now the clean starting point for the mobile version.
-            </Text>
+  return (
+    <View style={styles.container}>
+      <View>
+        {exercises.map((exercise) => (
+          <Text key={exercise._id}>
+            <Text style={styles.subtitle}>{exercise.name}</Text>
+            <Text style={styles.subtitle}>{exercise.exerciseType}</Text>
+            <Text style={styles.subtitle}>{exercise.primaryMuscles}</Text>
+            <Text style={styles.subtitle}>{exercise.secondaryMuscles}</Text>
+          </Text>
+        ))}
+      </View>
 
-            <StatusBar style="light" />
+      <Text style={styles.kicker}>Workout App</Text>
 
-            <Button
-                variant="primary"
-                onPress={() => console.log("pressed")}
-            >
-                Press me
-            </Button>
-        </View>
-    );
+      <Text style={styles.title}>Native app is running.</Text>
+
+      <Text style={styles.subtitle}>
+        This is now the clean starting point for the mobile version.
+      </Text>
+
+      <StatusBar style="light" />
+
+      <Button variant="primary" onPress={() => console.log("pressed")}>
+        Press me
+      </Button>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-        backgroundColor: "#101010",
-    },
-    kicker: {
-        marginBottom: 8,
-        color: "#f97316",
-        fontSize: 13,
-        fontWeight: "800",
-        letterSpacing: 1.4,
-        textTransform: "uppercase",
-    },
-    title: {
-        color: "#ffffff",
-        fontSize: 28,
-        fontWeight: "900",
-        textAlign: "center",
-    },
-    subtitle: {
-        marginTop: 12,
-        maxWidth: 320,
-        color: "#a3a3a3",
-        fontSize: 16,
-        lineHeight: 22,
-        textAlign: "center",
-    },
-    button: {
-        color: "blue",
-        borderWidth: 2,
-        borderColor: "blue",
-        borderRadius: 8,
-        padding: 12,
-    },
-    buttonPressed: {
-        borderColor: "red",
-    },
-    buttonText: {
-        color: "white",
-    }
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    backgroundColor: "#101010",
+  },
+  kicker: {
+    marginBottom: 8,
+    color: "#f97316",
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+  },
+  title: {
+    color: "#ffffff",
+    fontSize: 28,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+  subtitle: {
+    marginTop: 12,
+    maxWidth: 320,
+    color: "#a3a3a3",
+    fontSize: 16,
+    lineHeight: 22,
+    textAlign: "center",
+  },
+  button: {
+    color: "blue",
+    borderWidth: 2,
+    borderColor: "blue",
+    borderRadius: 8,
+    padding: 12,
+  },
+  buttonPressed: {
+    borderColor: "red",
+  },
+  buttonText: {
+    color: "white",
+  },
 });
