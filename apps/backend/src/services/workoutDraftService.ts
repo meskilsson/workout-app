@@ -349,6 +349,70 @@ export async function updateWorkoutDraftExercises(
     return draft;
 }
 
+export async function addWorkoutDraftExercises(
+    draftId: string,
+    exerciseData: UpdateExercisesInput,
+    userId: string,
+) {
+    const draft = await getOwnedDraft(draftId, userId);
+
+    ensureDraftIsActive(draft.status);
+
+    const exerciseIds = normalizeExerciseIds(exerciseData.exerciseIds);
+
+    const existingExerciseIdSet = new Set(
+        draft.exercises.map((exercise) => exercise.exerciseId.toString()),
+    );
+
+    const newExerciseIds = exerciseIds.filter(
+        (exerciseId) => !existingExerciseIdSet.has(exerciseId),
+    );
+
+    if (newExerciseIds.length === 0) {
+        return draft;
+    }
+
+    const exercises = await Exercise.find({
+        _id: { $in: newExerciseIds },
+        $or: [{ isCustom: false, createdBy: null }, { createdBy: userId }],
+    });
+
+    if (exercises.length !== newExerciseIds.length) {
+        throw new ValidationError(
+            "One or more exercises were not found or are not available to you",
+        );
+    }
+
+    const exerciseById = new Map(
+        exercises.map((exercise) => [
+            (exercise._id as Types.ObjectId).toString(),
+            exercise,
+        ]),
+    );
+
+    const exercisesToAdd = newExerciseIds.map((exerciseId) => {
+        const exercise = exerciseById.get(exerciseId);
+
+        if (!exercise) {
+            throw new ValidationError("Exercise not found");
+        }
+
+        return {
+            exerciseId: exercise._id as Types.ObjectId,
+            exerciseName: exercise.name,
+            sets: [],
+        };
+    });
+
+    draft.exercises.push(...exercisesToAdd);
+
+    await draft.save();
+
+    return draft;
+
+}
+
+
 export async function startWorkoutDraft(draftId: string, userId: string) {
     const draft = await WorkoutDraft.findOne({
         _id: draftId,

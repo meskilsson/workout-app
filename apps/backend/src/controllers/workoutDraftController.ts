@@ -126,6 +126,30 @@ export async function updateWorkoutDraftExercises(
     }
 }
 
+export async function addWorkoutDraftExercises(
+    req: Request<{ draftId: string }>,
+    res: Response,
+    next: NextFunction,
+): Promise<void> {
+    try {
+        const userId = getUserId(req, res);
+
+        if (!userId) {
+            return;
+        }
+
+        const draft = await workoutDraftService.addWorkoutDraftExercises(
+            req.params.draftId,
+            req.body,
+            userId,
+        );
+
+        res.status(200).json(draft);
+    } catch (error) {
+        next(error);
+    }
+}
+
 export async function startWorkoutDraft(
     req: Request<{ draftId: string }>,
     res: Response,

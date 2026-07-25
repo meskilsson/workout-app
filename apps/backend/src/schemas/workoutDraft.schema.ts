@@ -37,6 +37,12 @@ export const updateWorkoutDraftExercisesSchema = z.strictObject({
         .min(1, "At least one exercise is required"),
 });
 
+export const addWorkoutDraftExercisesSchema = z.strictObject({
+    exerciseIds: z
+        .array(objectIdSchema)
+        .min(1, "At least one exercise is required"),
+});
+
 const draftSetValueSchema = z.union([
     z.string(),
     z.number(),
@@ -82,4 +88,8 @@ export type UpdateWorkoutDraftSetsInput = z.infer<
 
 export type ReorderWorkoutDraftExercisesInput = z.infer<
     typeof reorderWorkoutDraftExercisesSchema
+>;
+
+export type AddWorkoutDraftExercisesInput = z.infer<
+    typeof addWorkoutDraftExercisesSchema
 >;
