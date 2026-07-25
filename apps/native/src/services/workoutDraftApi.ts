@@ -71,3 +71,14 @@ export async function updateWorkoutDraftExercisesRequest(
         }),
     });
 }
+
+export async function startWorkoutDraftRequest(
+    token: string,
+    draftId: string,
+) {
+    return apiFetch<WorkoutDraft>(`/api/workout-drafts/${draftId}/start`, {
+        method: "PATCH",
+        token,
+    });
+}
+

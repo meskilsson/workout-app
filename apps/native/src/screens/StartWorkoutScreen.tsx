@@ -1,9 +1,12 @@
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View, } from "react-native";
 import Button from "../components/UI/Button/Button";
 import { useAuth } from "../context/AuthContext";
+import { exerciseLibraryRequest, type Exercise } from "../services/exerciseApi";
 import {
     createWorkoutDraftRequest,
     getCurrentWorkoutDraftRequest,
+    updateWorkoutDraftExercisesRequest,
+    startWorkoutDraftRequest,
     type Muscle,
     type WorkoutDraft,
 } from "../services/workoutDraftApi";
@@ -32,6 +35,9 @@ export default function StartWorkoutScreen() {
     const [selectedMuscles, setSelectedMuscles] = useState<Muscle[]>([]);
     const [draft, setDraft] = useState<WorkoutDraft | null>(null);
 
+    const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
+    const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
+
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState("");
 
@@ -46,6 +52,35 @@ export default function StartWorkoutScreen() {
             return [...currentMuscles, muscle];
         });
     }
+
+    function toggleExercise(exerciseId: string) {
+        setSelectedExerciseIds((currentExerciseIds) => {
+            const isAlreadySelected = currentExerciseIds.includes(exerciseId);
+
+            if (isAlreadySelected) {
+                return currentExerciseIds.filter(
+                    (currentExerciseIds) => currentExerciseIds !== exerciseId,
+                );
+            }
+
+            return [...currentExerciseIds, exerciseId];
+        });
+    }
+
+    async function loadExercisesForMuscles(muscles: Muscle[]) {
+        if (!token) {
+            return;
+        }
+
+        const result = await exerciseLibraryRequest(token, {
+            muscles,
+            limit: 50,
+        });
+
+        setAvailableExercises(result.exercises);
+    }
+
+
 
     async function handleCreateDraft() {
         try {
@@ -68,6 +103,9 @@ export default function StartWorkoutScreen() {
             );
 
             setDraft(createdDraft);
+
+            setSelectedExerciseIds([]);
+            await loadExercisesForMuscles(createdDraft.selectedMuscleGroups);
             setMessage("Workout draft created.");
         } catch (error) {
             console.log(error);
@@ -91,11 +129,120 @@ export default function StartWorkoutScreen() {
             const currentDraft = await getCurrentWorkoutDraftRequest(token);
 
             setDraft(currentDraft);
-            setMessage(currentDraft ? "Current draft loaded." : "No current draft.");
+
+            if (currentDraft) {
+                setSelectedMuscles(currentDraft.selectedMuscleGroups);
+
+                setSelectedExerciseIds(
+                    currentDraft.exercises.map((exercise) => exercise.exerciseId),
+                );
+
+                await loadExercisesForMuscles(currentDraft.selectedMuscleGroups);
+
+                setMessage("Current draft loaded.");
+            } else {
+                setSelectedExerciseIds([]);
+                setAvailableExercises([]);
+                setMessage("No current draft.");
+            }
         } catch (error) {
             console.log(error);
             setMessage("Failed to load current draft.");
             Alert.alert("Error", "Could not load current draft.");
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    async function handleSaveExercises() {
+        try {
+            if (!token) {
+                Alert.alert("Not logged in", "You need to log in first.");
+                return;
+            }
+
+            if (!draft) {
+                Alert.alert("No draft", "Create a workout draft first.");
+                return;
+            }
+
+            if (draft.status !== "building") {
+                Alert.alert(
+                    "Workout already started",
+                    "This exercise picker is only for building a workout before it starts.",
+                );
+                return;
+            }
+
+            if (selectedExerciseIds.length === 0) {
+                Alert.alert("Choose exercises", "Select at least one exercise.");
+                return;
+            }
+
+            setIsLoading(true);
+            setMessage("Saving exercises...");
+
+            const updatedDraft = await updateWorkoutDraftExercisesRequest(
+                token,
+                draft._id,
+                selectedExerciseIds,
+            );
+
+            setDraft(updatedDraft);
+
+            setSelectedExerciseIds(
+                updatedDraft.exercises.map((exercise) => exercise.exerciseId),
+            );
+
+            setMessage("Exercises saved to draft.");
+        } catch (error) {
+            console.log(error);
+            setMessage("Failed to save exercises.");
+            Alert.alert("Error", "Could not save exercises to the draft.");
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    async function handleStartWorkout() {
+        try {
+            if (!token) {
+                Alert.alert("Not logged in.", "You need to log in first.");
+                return;
+            }
+
+            if (!draft) {
+                Alert.alert("No draft", "Create a workout draft first.");
+                return;
+            }
+
+            if (draft.status !== "building") {
+                Alert.alert(
+                    "Workout already started",
+                    "This workout has already been started.",
+                );
+                return;
+            }
+
+            if (draft.exercises.length === 0) {
+                Alert.alert(
+                    "No exercises",
+                    "Add at least one exercise before starting the workout.",
+                );
+                return;
+            }
+
+            setIsLoading(true);
+            setMessage("Starting workout...");
+
+            const startedDraft = await startWorkoutDraftRequest(token, draft._id);
+
+            setDraft(startedDraft);
+            setMessage("Workout started.");
+        } catch (error) {
+            console.log(error);
+            setMessage("Failed to start workout.");
+            Alert.alert("Error", "Could not start the workout.");
         } finally {
             setIsLoading(false);
         }
@@ -158,14 +305,103 @@ export default function StartWorkoutScreen() {
 
             {message && <Text style={styles.message}>{message}</Text>}
 
+            {draft && draft.status === "building" && availableExercises.length > 0 && (
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Choose exercises</Text>
+
+                    <Text style={styles.description}>
+                        Select the exercises you want in this workout.
+                    </Text>
+
+                    <View style={styles.exerciseList}>
+                        {availableExercises.map((exercise) => {
+                            const isSelected = selectedExerciseIds.includes(exercise._id);
+
+                            return (
+                                <Pressable
+                                    key={exercise._id}
+                                    onPress={() => toggleExercise(exercise._id)}
+                                    style={[
+                                        styles.exerciseCard,
+                                        isSelected && styles.exerciseCardSelected,
+                                    ]}
+                                >
+                                    <View style={styles.exerciseHeader}>
+                                        <Text
+                                            style={[
+                                                styles.exerciseName,
+                                                isSelected && styles.exerciseNameSelected,
+                                            ]}
+                                        >
+                                            {exercise.name}
+                                        </Text>
+
+                                        <Text
+                                            style={[
+                                                styles.selectBadge,
+                                                isSelected && styles.selectBadgeSelected,
+                                            ]}
+                                        >
+                                            {isSelected ? "Selected" : "Tap to add"}
+                                        </Text>
+                                    </View>
+
+                                    <Text style={styles.exerciseMeta}>
+                                        {exercise.primaryMuscles?.join(", ") || "No primary muscles"}
+                                    </Text>
+
+                                    {exercise.equipment && (
+                                        <Text style={styles.exerciseMeta}>
+                                            Equipment: {exercise.equipment}
+                                        </Text>
+                                    )}
+                                </Pressable>
+                            );
+                        })}
+                    </View>
+
+                    <Button
+                        variant="primary"
+                        onPress={handleSaveExercises}
+                        disabled={isLoading}
+                    >
+                        Save selected exercises
+                    </Button>
+                </View>
+            )}
+
+            {draft && draft.status === "building" && draft.exercises.length > 0 && (
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Ready?</Text>
+
+                    <Text style={styles.description}>
+                        You have selected {draft.exercises.length} exercises. Start the workout
+                        when you are ready to begin tracking sets.
+                    </Text>
+
+                    <Button
+                        variant="primary"
+                        onPress={handleStartWorkout}
+                        disabled={isLoading}
+                    >
+                        Start workout
+                    </Button>
+                </View>
+            )}
+
             {draft && (
                 <View style={styles.draftCard}>
-                    <Text style={styles.cardTitle}>Current draft</Text>
+                    <Text style={styles.cardTitle}>
+                        {draft.status === "active" ? "Active workout" : "Current draft"}
+                    </Text>
 
                     <Text>Status: {draft.status}</Text>
                     <Text>Purpose: {draft.purpose}</Text>
                     <Text>Muscles: {draft.selectedMuscleGroups.join(", ")}</Text>
                     <Text>Exercises: {draft.exercises.length}</Text>
+
+                    {draft.startedAt && <Text>Started: {draft.startedAt}</Text>}
+
                     <Text numberOfLines={1}>Draft ID: {draft._id}</Text>
                 </View>
             )}
@@ -241,5 +477,67 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: "800",
         marginBottom: 4,
+    },
+
+    section: {
+        gap: 12,
+        marginTop: 8,
+    },
+
+    sectionTitle: {
+        fontSize: 22,
+        fontWeight: "800",
+    },
+
+    exerciseList: {
+        gap: 10,
+    },
+
+    exerciseCard: {
+        padding: 16,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: "#e5e7eb",
+        backgroundColor: "#ffffff",
+    },
+
+    exerciseCardSelected: {
+        borderColor: "#2563eb",
+        backgroundColor: "#dbeafe",
+    },
+
+    exerciseHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: 12,
+    },
+
+    exerciseName: {
+        flex: 1,
+        fontSize: 16,
+        fontWeight: "800",
+        color: "#111827",
+    },
+
+    exerciseNameSelected: {
+        color: "#1d4ed8",
+    },
+
+    exerciseMeta: {
+        marginTop: 6,
+        fontSize: 14,
+        color: "#6b7280",
+        textTransform: "capitalize",
+    },
+
+    selectBadge: {
+        fontSize: 12,
+        fontWeight: "800",
+        color: "#6b7280",
+    },
+
+    selectBadgeSelected: {
+        color: "#1d4ed8",
     },
 });
