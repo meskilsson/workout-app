@@ -57,3 +57,17 @@ export async function getCurrentWorkoutDraftRequest(token: string) {
         token,
     });
 }
+
+export async function updateWorkoutDraftExercisesRequest(
+    token: string,
+    draftId: string,
+    exerciseIds: string[],
+) {
+    return apiFetch<WorkoutDraft>(`/api/workout-drafts/${draftId}/exercises`, {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({
+            exerciseIds,
+        }),
+    });
+}
