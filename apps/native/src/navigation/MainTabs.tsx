@@ -2,8 +2,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
 import HomeScreen from "../screens/HomeScreen";
-import ExercisesScreen from "../screens/ExercisesScreen";
 import WorkoutsScreen from "../screens/WorkoutsScreen";
+import StartWorkoutScreen from "../screens/StartWorkoutScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -13,6 +13,8 @@ export default function MainTabs() {
             screenOptions={({ route }) => ({
                 headerShown: false,
 
+
+
                 tabBarIcon: ({ color, size }) => {
                     let iconName: keyof typeof Ionicons.glyphMap = "home-outline";
 
@@ -20,12 +22,12 @@ export default function MainTabs() {
                         iconName = "home-outline";
                     }
 
-                    if (route.name === "Exercises") {
-                        iconName = "barbell-outline";
-                    }
-
                     if (route.name === "Workouts") {
                         iconName = "fitness-outline";
+                    }
+
+                    if (route.name === "Train") {
+                        iconName = "barbell-sharp"
                     }
 
                     return <Ionicons name={iconName} size={size} color={color} />;
@@ -33,7 +35,7 @@ export default function MainTabs() {
             })}
         >
             <Tab.Screen name="Home" component={HomeScreen} />
-            <Tab.Screen name="Exercises" component={ExercisesScreen} />
+            <Tab.Screen name="Train" component={StartWorkoutScreen} />
             <Tab.Screen name="Workouts" component={WorkoutsScreen} />
         </Tab.Navigator>
     );
