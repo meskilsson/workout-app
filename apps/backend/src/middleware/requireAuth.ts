@@ -2,13 +2,29 @@ import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "../utils/jwt";
 import User from "../models/User";
 
+function getTokenFromRequest(req: Request): string | null {
+    const cookieToken = req.cookies?.token;
+
+    if (cookieToken) {
+        return cookieToken;
+    }
+
+    const authHeader = req.headers.authorization;
+
+    if (authHeader?.startsWith("Bearer ")) {
+        return authHeader.replace("Bearer ", "");
+    }
+
+    return null;
+}
+
 export async function requireAuth(
     req: Request,
     res: Response,
     next: NextFunction,
 ): Promise<void> {
     try {
-        const token = req.cookies?.token;
+        const token = getTokenFromRequest(req);
 
         if (!token) {
             res.status(401).json({ message: "Unauthorized" });

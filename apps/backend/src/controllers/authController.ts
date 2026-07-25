@@ -35,7 +35,7 @@ export async function loginUser(
             maxAge: 1000 * 60 * 60 * 24,
         });
 
-        res.status(200).json({ user });
+        res.status(200).json({ user, token });
     } catch (error) {
         next(error);
     }
