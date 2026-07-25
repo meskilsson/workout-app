@@ -2,6 +2,7 @@ import { Text, View } from "react-native";
 import createGlobalStyles from "../styles/globalStyles";
 import { darkTheme, lightTheme } from "../styles/themes";
 import { useColorScheme } from "react-native";
+import Button from "../components/UI/Button/Button";
 
 export default function HomeScreen({ navigation }: any) {
     const colorScheme = useColorScheme();
@@ -17,6 +18,11 @@ export default function HomeScreen({ navigation }: any) {
             <Text style={styles.subtitle}>
                 This is now the clean starting point for the mobile version.
             </Text>
+
+            <Button
+                variant="primary"
+                onPress={() => navigation.navigate("Exercises")}
+            >Exercises</Button>
         </View>
     );
 }

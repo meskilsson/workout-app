@@ -1,23 +1,29 @@
-import { Platform } from "react-native";
+import { apiFetch } from "./apiClient";
 
-const API_URL =
-  Platform.OS === "web"
-    ? process.env.EXPO_PUBLIC_API_URL_WEB
-    : process.env.EXPO_PUBLIC_API_URL_NATIVE;
+export type Exercise = {
+  _id: string;
+  name: string;
+  description?: string;
+  instructions?: string;
+  exerciseType?: "strength" | "cardio" | "mobility";
+  primaryMuscles?: string[];
+  secondaryMuscles?: string[];
+  equipment?: string;
+  difficulty?: "beginner" | "intermediate" | "advanced";
+  videoUrl?: string;
+  imageUrl?: string;
+  isCustom: boolean;
+  createdBy?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type ExercisesResponse = {
+  exercises: Exercise[];
+};
 
 export async function exercisePublicExercisesRequest() {
-  console.log("API_URL:", API_URL);
-  console.log("Full URL:", `${API_URL}/api/exercises`);
-
-  const response = await fetch(`${API_URL}/api/exercises`, {
+  return apiFetch<ExercisesResponse>("/api/exercises", {
     method: "GET",
   });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data?.message || "Failed to fetch exercises");
-  }
-
-  return data;
 }

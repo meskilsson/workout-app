@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import MainTabs from "./MainTabs";
 import ProfileScreen from "../screens/ProfileScreen";
+import ExercisesScreen from "../screens/ExercisesScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -32,6 +33,12 @@ export default function AppNavigator() {
                     options={{
                         title: "Profile",
                     }}
+                />
+
+                <Stack.Screen
+                    name="Exercises"
+                    component={ExercisesScreen}
+                    options={{ title: "Exercises" }}
                 />
             </Stack.Navigator>
         </NavigationContainer>
