@@ -37,6 +37,27 @@ export type WorkoutDraft = {
     updatedAt: string;
 };
 
+export type WorkoutSessionSet = {
+    weight: number;
+    reps: number;
+};
+
+export type WorkoutSessionExercise = {
+    exerciseId: string | null;
+    exerciseName: string;
+    sets: WorkoutSessionSet[];
+};
+
+export type WorkoutSession = {
+    _id: string;
+    userId: string;
+    exercises: WorkoutSessionExercise[];
+    startedAt: string;
+    endedAt: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
 export async function createWorkoutDraftRequest(
     token: string,
     selectedMuscleGroups: Muscle[],
@@ -81,4 +102,31 @@ export async function startWorkoutDraftRequest(
         token,
     });
 }
+
+export async function updateWorkoutDraftSetsRequest(
+    token: string,
+    draftId: string,
+    exerciseId: string,
+    sets: WorkoutDraftSet[],
+) {
+    return apiFetch<WorkoutDraft>(`/api/workout-drafts/${draftId}/sets`, {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({
+            exerciseId,
+            sets,
+        }),
+    });
+}
+
+export async function completeWorkoutDraftRequest(
+    token: string,
+    draftId: string,
+) {
+    return apiFetch<WorkoutSession>(`/api/workout-drafts/${draftId}/complete`, {
+        method: "POST",
+        token,
+    });
+}
+
 

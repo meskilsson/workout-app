@@ -1,18 +1,29 @@
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View, } from "react-native";
+import { useState } from "react";
+import {
+    Alert,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
+} from "react-native";
+
 import Button from "../components/UI/Button/Button";
 import { useAuth } from "../context/AuthContext";
 import { exerciseLibraryRequest, type Exercise } from "../services/exerciseApi";
 import {
+    completeWorkoutDraftRequest,
     createWorkoutDraftRequest,
     getCurrentWorkoutDraftRequest,
-    updateWorkoutDraftExercisesRequest,
     startWorkoutDraftRequest,
+    updateWorkoutDraftExercisesRequest,
+    updateWorkoutDraftSetsRequest,
     type Muscle,
     type WorkoutDraft,
+    type WorkoutDraftSet,
+    type WorkoutSession,
 } from "../services/workoutDraftApi";
-
-import { useState } from "react";
-
 
 const MUSCLE_OPTIONS: Muscle[] = [
     "chest",
@@ -29,11 +40,12 @@ const MUSCLE_OPTIONS: Muscle[] = [
 ];
 
 export default function StartWorkoutScreen() {
-
     const { token } = useAuth();
 
     const [selectedMuscles, setSelectedMuscles] = useState<Muscle[]>([]);
     const [draft, setDraft] = useState<WorkoutDraft | null>(null);
+    const [completedSession, setCompletedSession] =
+        useState<WorkoutSession | null>(null);
 
     const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
     const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
@@ -41,12 +53,33 @@ export default function StartWorkoutScreen() {
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState("");
 
+    // ======= HELPERS =======
+
+    function isValidCompletedSet(set: WorkoutDraftSet) {
+        return (
+            typeof set.weight === "number" &&
+            typeof set.reps === "number" &&
+            Number.isFinite(set.weight) &&
+            Number.isFinite(set.reps) &&
+            set.weight >= 0 &&
+            set.reps >= 1
+        );
+    }
+
+    function getExercisesWithoutValidSets(draftToCheck: WorkoutDraft) {
+        return draftToCheck.exercises.filter((exercise) => {
+            return !exercise.sets.some(isValidCompletedSet);
+        });
+    }
+
     function toggleMuscle(muscle: Muscle) {
         setSelectedMuscles((currentMuscles) => {
             const isAlreadySelected = currentMuscles.includes(muscle);
 
             if (isAlreadySelected) {
-                return currentMuscles.filter((currentMuscles) => currentMuscles !== muscle);
+                return currentMuscles.filter(
+                    (currentMuscle) => currentMuscle !== muscle,
+                );
             }
 
             return [...currentMuscles, muscle];
@@ -59,7 +92,7 @@ export default function StartWorkoutScreen() {
 
             if (isAlreadySelected) {
                 return currentExerciseIds.filter(
-                    (currentExerciseIds) => currentExerciseIds !== exerciseId,
+                    (currentExerciseId) => currentExerciseId !== exerciseId,
                 );
             }
 
@@ -80,7 +113,92 @@ export default function StartWorkoutScreen() {
         setAvailableExercises(result.exercises);
     }
 
+    function addSetToExercise(exerciseId: string) {
+        if (!draft) {
+            return;
+        }
 
+        const updatedExercises = draft.exercises.map((exercise) => {
+            if (exercise.exerciseId !== exerciseId) {
+                return exercise;
+            }
+
+            return {
+                ...exercise,
+                sets: [...exercise.sets, { weight: null, reps: null }],
+            };
+        });
+
+        setDraft({
+            ...draft,
+            exercises: updatedExercises,
+        });
+    }
+
+    function removeSetFromExercise(exerciseId: string, setIndex: number) {
+        if (!draft) {
+            return;
+        }
+
+        const updatedExercises = draft.exercises.map((exercise) => {
+            if (exercise.exerciseId !== exerciseId) {
+                return exercise;
+            }
+
+            return {
+                ...exercise,
+                sets: exercise.sets.filter((_, index) => index !== setIndex),
+            };
+        });
+
+        setDraft({
+            ...draft,
+            exercises: updatedExercises,
+        });
+    }
+
+    function updateExerciseSetValue(
+        exerciseId: string,
+        setIndex: number,
+        field: keyof WorkoutDraftSet,
+        value: string,
+    ) {
+        if (!draft) {
+            return;
+        }
+
+        const normalizedValue = value.replace(",", ".");
+        const numberValue = normalizedValue === "" ? null : Number(normalizedValue);
+
+        const updatedExercises = draft.exercises.map((exercise) => {
+            if (exercise.exerciseId !== exerciseId) {
+                return exercise;
+            }
+
+            const updatedSets = exercise.sets.map((set, index) => {
+                if (index !== setIndex) {
+                    return set;
+                }
+
+                return {
+                    ...set,
+                    [field]: Number.isNaN(numberValue) ? null : numberValue,
+                };
+            });
+
+            return {
+                ...exercise,
+                sets: updatedSets,
+            };
+        });
+
+        setDraft({
+            ...draft,
+            exercises: updatedExercises,
+        });
+    }
+
+    // ======= HANDLERS =======
 
     async function handleCreateDraft() {
         try {
@@ -103,9 +221,11 @@ export default function StartWorkoutScreen() {
             );
 
             setDraft(createdDraft);
-
+            setCompletedSession(null);
             setSelectedExerciseIds([]);
+
             await loadExercisesForMuscles(createdDraft.selectedMuscleGroups);
+
             setMessage("Workout draft created.");
         } catch (error) {
             console.log(error);
@@ -131,6 +251,7 @@ export default function StartWorkoutScreen() {
             setDraft(currentDraft);
 
             if (currentDraft) {
+                setCompletedSession(null);
                 setSelectedMuscles(currentDraft.selectedMuscleGroups);
 
                 setSelectedExerciseIds(
@@ -141,6 +262,7 @@ export default function StartWorkoutScreen() {
 
                 setMessage("Current draft loaded.");
             } else {
+                setSelectedMuscles([]);
                 setSelectedExerciseIds([]);
                 setAvailableExercises([]);
                 setMessage("No current draft.");
@@ -207,7 +329,7 @@ export default function StartWorkoutScreen() {
     async function handleStartWorkout() {
         try {
             if (!token) {
-                Alert.alert("Not logged in.", "You need to log in first.");
+                Alert.alert("Not logged in", "You need to log in first.");
                 return;
             }
 
@@ -238,6 +360,7 @@ export default function StartWorkoutScreen() {
             const startedDraft = await startWorkoutDraftRequest(token, draft._id);
 
             setDraft(startedDraft);
+            setCompletedSession(null);
             setMessage("Workout started.");
         } catch (error) {
             console.log(error);
@@ -248,10 +371,105 @@ export default function StartWorkoutScreen() {
         }
     }
 
+    async function handleSaveExerciseSets(
+        exerciseId: string,
+        sets: WorkoutDraftSet[],
+    ) {
+        try {
+            if (!token) {
+                Alert.alert("Not logged in", "You need to log in first.");
+                return;
+            }
+
+            if (!draft) {
+                Alert.alert("No workout", "Load or start a workout first.");
+                return;
+            }
+
+            if (draft.status !== "active") {
+                Alert.alert(
+                    "Workout not active",
+                    "You can only save sets after starting the workout.",
+                );
+                return;
+            }
+
+            setIsLoading(true);
+            setMessage("Saving sets...");
+
+            const updatedDraft = await updateWorkoutDraftSetsRequest(
+                token,
+                draft._id,
+                exerciseId,
+                sets,
+            );
+
+            setDraft(updatedDraft);
+            setMessage("Sets saved.");
+        } catch (error) {
+            console.log(error);
+            setMessage("Failed to save sets.");
+            Alert.alert("Error", "Could not save sets.");
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    async function handleCompleteWorkout() {
+        try {
+            if (!token) {
+                Alert.alert("Not logged in", "You need to log in first.");
+                return;
+            }
+
+            if (!draft) {
+                Alert.alert("No workout", "Load or start a workout first.");
+                return;
+            }
+
+            if (draft.status !== "active") {
+                Alert.alert(
+                    "Workout not active",
+                    "You can only complete an active workout.",
+                );
+                return;
+            }
+
+            const exercisesWithoutValidSets = getExercisesWithoutValidSets(draft);
+
+            if (exercisesWithoutValidSets.length > 0) {
+                Alert.alert(
+                    "Missing sets",
+                    `Add at least one valid set for: ${exercisesWithoutValidSets
+                        .map((exercise) => exercise.exerciseName)
+                        .join(", ")}`,
+                );
+                return;
+            }
+
+            setIsLoading(true);
+            setMessage("Completing workout...");
+
+            const session = await completeWorkoutDraftRequest(token, draft._id);
+
+            setCompletedSession(session);
+            setDraft(null);
+            setAvailableExercises([]);
+            setSelectedExerciseIds([]);
+            setSelectedMuscles([]);
+
+            setMessage("Workout completed.");
+        } catch (error) {
+            console.log(error);
+            setMessage("Failed to complete workout.");
+            Alert.alert("Error", "Could not complete workout.");
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
     return (
-        <ScrollView
-            contentContainerStyle={styles.container}
-        >
+        <ScrollView contentContainerStyle={styles.container}>
             <Text style={styles.kicker}>Train</Text>
             <Text style={styles.title}>Start a workout</Text>
 
@@ -291,7 +509,8 @@ export default function StartWorkoutScreen() {
                     variant="primary"
                     onPress={handleCreateDraft}
                     disabled={isLoading}
-                >{isLoading ? "Working..." : "Create workout draft"}
+                >
+                    {isLoading ? "Working..." : "Create workout draft"}
                 </Button>
 
                 <Button
@@ -347,7 +566,8 @@ export default function StartWorkoutScreen() {
                                     </View>
 
                                     <Text style={styles.exerciseMeta}>
-                                        {exercise.primaryMuscles?.join(", ") || "No primary muscles"}
+                                        {exercise.primaryMuscles?.join(", ") ||
+                                            "No primary muscles"}
                                     </Text>
 
                                     {exercise.equipment && (
@@ -375,8 +595,8 @@ export default function StartWorkoutScreen() {
                     <Text style={styles.sectionTitle}>Ready?</Text>
 
                     <Text style={styles.description}>
-                        You have selected {draft.exercises.length} exercises. Start the workout
-                        when you are ready to begin tracking sets.
+                        You have selected {draft.exercises.length} exercises. Start the
+                        workout when you are ready to begin tracking sets.
                     </Text>
 
                     <Button
@@ -405,10 +625,150 @@ export default function StartWorkoutScreen() {
                     <Text numberOfLines={1}>Draft ID: {draft._id}</Text>
                 </View>
             )}
+
+            {draft && draft.status === "active" && (
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Active workout</Text>
+
+                    <Text style={styles.description}>
+                        Add sets for each exercise. Save each exercise when you are done
+                        entering its sets.
+                    </Text>
+
+                    <View style={styles.activeExerciseList}>
+                        {draft.exercises.map((exercise) => (
+                            <View key={exercise.exerciseId} style={styles.activeExerciseCard}>
+                                <Text style={styles.activeExerciseName}>
+                                    {exercise.exerciseName}
+                                </Text>
+
+                                {exercise.sets.length === 0 && (
+                                    <Text style={styles.exerciseMeta}>
+                                        No sets yet. Add your first set.
+                                    </Text>
+                                )}
+
+                                {exercise.sets.map((set, setIndex) => (
+                                    <View key={setIndex} style={styles.setRow}>
+                                        <Text style={styles.setNumber}>Set {setIndex + 1}</Text>
+
+                                        <TextInput
+                                            value={set.weight === null ? "" : String(set.weight)}
+                                            onChangeText={(value) =>
+                                                updateExerciseSetValue(
+                                                    exercise.exerciseId,
+                                                    setIndex,
+                                                    "weight",
+                                                    value,
+                                                )
+                                            }
+                                            keyboardType="decimal-pad"
+                                            placeholder="kg"
+                                            style={styles.setInput}
+                                        />
+
+                                        <TextInput
+                                            value={set.reps === null ? "" : String(set.reps)}
+                                            onChangeText={(value) =>
+                                                updateExerciseSetValue(
+                                                    exercise.exerciseId,
+                                                    setIndex,
+                                                    "reps",
+                                                    value,
+                                                )
+                                            }
+                                            keyboardType="number-pad"
+                                            placeholder="reps"
+                                            style={styles.setInput}
+                                        />
+
+                                        <Pressable
+                                            onPress={() =>
+                                                removeSetFromExercise(exercise.exerciseId, setIndex)
+                                            }
+                                            style={styles.removeSetButton}
+                                        >
+                                            <Text style={styles.removeSetButtonText}>×</Text>
+                                        </Pressable>
+                                    </View>
+                                ))}
+
+                                <View style={styles.setActions}>
+                                    <Button
+                                        variant="secondary"
+                                        onPress={() => addSetToExercise(exercise.exerciseId)}
+                                        disabled={isLoading}
+                                    >
+                                        Add set
+                                    </Button>
+
+                                    <Button
+                                        variant="primary"
+                                        onPress={() =>
+                                            handleSaveExerciseSets(exercise.exerciseId, exercise.sets)
+                                        }
+                                        disabled={isLoading}
+                                    >
+                                        Save sets
+                                    </Button>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+
+                    <View style={styles.completeSection}>
+                        <Text style={styles.sectionTitle}>Finish workout</Text>
+
+                        <Text style={styles.description}>
+                            Complete the workout when every exercise has at least one valid
+                            set.
+                        </Text>
+
+                        <Button
+                            variant="primary"
+                            onPress={handleCompleteWorkout}
+                            disabled={isLoading}
+                        >
+                            Complete workout
+                        </Button>
+                    </View>
+                </View>
+            )}
+
+            {completedSession && (
+                <View style={styles.completedCard}>
+                    <Text style={styles.cardTitle}>Workout completed</Text>
+
+                    <Text style={styles.description}>
+                        You completed {completedSession.exercises.length} exercises.
+                    </Text>
+
+                    {completedSession.exercises.map((exercise, exerciseIndex) => (
+                        <View
+                            key={`${exercise.exerciseId ?? exercise.exerciseName}-${exerciseIndex}`}
+                            style={styles.completedExercise}
+                        >
+                            <Text style={styles.activeExerciseName}>
+                                {exercise.exerciseName}
+                            </Text>
+
+                            <Text style={styles.exerciseMeta}>
+                                {exercise.sets.length} set
+                                {exercise.sets.length === 1 ? "" : "s"}
+                            </Text>
+
+                            {exercise.sets.map((set, setIndex) => (
+                                <Text key={setIndex} style={styles.completedSetText}>
+                                    Set {setIndex + 1}: {set.weight} kg x {set.reps} reps
+                                </Text>
+                            ))}
+                        </View>
+                    ))}
+                </View>
+            )}
         </ScrollView>
     );
 }
-
 
 const styles = StyleSheet.create({
     container: {
@@ -417,6 +777,7 @@ const styles = StyleSheet.create({
         gap: 16,
         backgroundColor: "#f3f4f6",
     },
+
     kicker: {
         fontSize: 14,
         fontWeight: "800",
@@ -424,20 +785,24 @@ const styles = StyleSheet.create({
         textTransform: "uppercase",
         letterSpacing: 1,
     },
+
     title: {
         fontSize: 32,
         fontWeight: "800",
     },
+
     description: {
         fontSize: 16,
         lineHeight: 22,
         color: "#4b5563",
     },
+
     muscleGrid: {
         flexDirection: "row",
         flexWrap: "wrap",
         gap: 10,
     },
+
     muscleButton: {
         paddingVertical: 10,
         paddingHorizontal: 14,
@@ -446,33 +811,40 @@ const styles = StyleSheet.create({
         borderColor: "#d1d5db",
         backgroundColor: "#ffffff",
     },
+
     muscleButtonSelected: {
         borderColor: "#2563eb",
         backgroundColor: "#dbeafe",
     },
+
     muscleButtonText: {
         fontSize: 14,
         fontWeight: "700",
         color: "#374151",
         textTransform: "capitalize",
     },
+
     muscleButtonTextSelected: {
         color: "#1d4ed8",
     },
+
     actions: {
         gap: 12,
         marginTop: 8,
     },
+
     message: {
         fontSize: 16,
         fontWeight: "600",
     },
+
     draftCard: {
         gap: 6,
         padding: 18,
         borderRadius: 16,
         backgroundColor: "#ffffff",
     },
+
     cardTitle: {
         fontSize: 20,
         fontWeight: "800",
@@ -539,5 +911,93 @@ const styles = StyleSheet.create({
 
     selectBadgeSelected: {
         color: "#1d4ed8",
+    },
+
+    activeExerciseList: {
+        gap: 14,
+    },
+
+    activeExerciseCard: {
+        gap: 12,
+        padding: 18,
+        borderRadius: 16,
+        backgroundColor: "#ffffff",
+    },
+
+    activeExerciseName: {
+        fontSize: 20,
+        fontWeight: "800",
+        color: "#111827",
+    },
+
+    setRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+    },
+
+    setNumber: {
+        width: 48,
+        fontSize: 14,
+        fontWeight: "700",
+        color: "#374151",
+    },
+
+    setInput: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: "#d1d5db",
+        borderRadius: 10,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        fontSize: 16,
+        backgroundColor: "#ffffff",
+    },
+
+    removeSetButton: {
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#fee2e2",
+    },
+
+    removeSetButtonText: {
+        fontSize: 24,
+        fontWeight: "800",
+        color: "#dc2626",
+        lineHeight: 26,
+    },
+
+    setActions: {
+        gap: 10,
+    },
+
+    completeSection: {
+        gap: 12,
+        marginTop: 10,
+        padding: 18,
+        borderRadius: 16,
+        backgroundColor: "#ffffff",
+    },
+
+    completedCard: {
+        gap: 14,
+        padding: 18,
+        borderRadius: 16,
+        backgroundColor: "#ffffff",
+    },
+
+    completedExercise: {
+        gap: 4,
+        paddingTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: "#e5e7eb",
+    },
+
+    completedSetText: {
+        fontSize: 15,
+        color: "#374151",
     },
 });
