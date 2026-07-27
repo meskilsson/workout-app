@@ -8,8 +8,7 @@ import { loginRequest } from "../../services/authApi";
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
 import Card from "../../components/ui/cards/Card";
-import LoadingWheel from "../../components/Loading/LoadingWheel";
-
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 import styles from "./LoginPage.module.css";
 
 export default function LoginPage() {
@@ -96,9 +95,7 @@ export default function LoginPage() {
                             {isLoading ? (
                                 <>
                                     Logging in...
-                                    <LoadingWheel
-                                        size="small"
-                                    />
+                                    <LoadingPredator />
                                 </>
                             ) : "Log in"}
                         </Button>
