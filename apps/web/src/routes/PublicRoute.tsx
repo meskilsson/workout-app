@@ -1,5 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import LoadingPredator from "../components/Loading/LoadingPredator";
+import Card from "../components/ui/cards/Card";
 
 export default function PublicRoute({
     children,
@@ -9,7 +11,9 @@ export default function PublicRoute({
     const { isAuthenticated, loading } = useAuth();
 
     if (loading) {
-        return <p>Loading...</p>;
+        return <Card>
+            <LoadingPredator />
+            Loading...</Card>;
     }
 
     if (isAuthenticated) {

@@ -1,5 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Card from "../components/ui/cards/Card";
+import LoadingPredator from "../components/Loading/LoadingPredator";
 
 export default function ProtectedRoute({
     children,
@@ -9,7 +11,9 @@ export default function ProtectedRoute({
     const { isAuthenticated, loading } = useAuth();
 
     if (loading) {
-        return <p>Loading...</p>;
+        return <Card>
+            <LoadingPredator />
+            Loading...</Card>;
     }
 
     if (!isAuthenticated) {
