@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Modal from "../../components/ui/modal/Modal";
 import { deleteUserRequest } from "../../services/userApi";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 export default function ProfileSettingsPage() {
     const { user, logout } = useAuth();
@@ -193,7 +194,16 @@ export default function ProfileSettingsPage() {
                             onClick={handleConfirmDeleteAccount}
                             disabled={isDeletingAccount}
                         >
-                            {isDeletingAccount ? "Deleting..." : "Delete account"}
+                            {isDeletingAccount ? (
+                                <LoadingPredator
+                                    size="small"
+                                    color="currentColor"
+                                    label="Deleting..."
+                                    showLabel
+                                />
+                            ) : (
+                                "Delete account"
+                            )}
                         </Button>
                     </>
                 }

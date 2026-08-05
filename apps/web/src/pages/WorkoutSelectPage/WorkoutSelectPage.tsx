@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import { createWorkoutDraftRequest } from "../../services/workoutDraftApi";
 
@@ -145,7 +146,16 @@ export default function WorkoutSelectPage() {
           onClick={handleContinue}
           disabled={selectedGroups.length === 0 || isCreatingDraft}
         >
-          {isCreatingDraft ? "Creating draft..." : "Continue"}
+          {isCreatingDraft ? (
+            <LoadingPredator
+              size="small"
+              color="currentColor"
+              label="Creating draft..."
+              showLabel
+            />
+          ) : (
+            "Continue"
+          )}
         </Button>
       </div>
     </Box>

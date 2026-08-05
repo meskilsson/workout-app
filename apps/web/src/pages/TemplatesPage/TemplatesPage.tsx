@@ -5,6 +5,7 @@ import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import LoadingState from "../../components/Loading/LoadingState";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import { useAuth } from "../../context/AuthContext";
 
@@ -124,7 +125,16 @@ export default function TemplatesPage() {
                         disabled={!isAuthenticated || isStarting}
                         onClick={() => handleStartTemplate(template._id)}
                     >
-                        {isStarting ? "Starting..." : "Start workout"}
+                        {isStarting ? (
+                            <LoadingPredator
+                                size="small"
+                                color="currentColor"
+                                label="Starting..."
+                                showLabel
+                            />
+                        ) : (
+                            "Start workout"
+                        )}
                     </Button>
 
                     <Button

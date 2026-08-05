@@ -144,6 +144,13 @@ export default function LibraryPage() {
                 />
             </div>
 
+            {isLoading && hasLoadedOnce && (
+                <LoadingState
+                    variant="inline"
+                    message="Updating exercises..."
+                />
+            )}
+
             {exercises.length > 0 ? (
                 <div className={styles.exerciseGrid}>
                     {exercises.map((exercise) => (

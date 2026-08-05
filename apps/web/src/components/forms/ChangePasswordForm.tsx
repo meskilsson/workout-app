@@ -2,6 +2,7 @@ import { changePasswordRequest } from "../../services/userApi";
 import { useAuth } from "../../context/AuthContext";
 import { useState } from "react";
 import Button from "../ui/button/Button";
+import LoadingPredator from "../Loading/LoadingPredator";
 
 export default function ChangePasswordForm() {
     const { user: authUser } = useAuth();
@@ -90,7 +91,16 @@ export default function ChangePasswordForm() {
                 {success && <p>{success}</p>}
 
                 <Button variant="primary" type="submit" disabled={isLoading}>
-                    {isLoading ? "Updating..." : "Update password"}
+                    {isLoading ? (
+                        <LoadingPredator
+                            size="small"
+                            color="currentColor"
+                            label="Updating..."
+                            showLabel
+                        />
+                    ) : (
+                        "Update password"
+                    )}
                 </Button>
             </form>
         </section>

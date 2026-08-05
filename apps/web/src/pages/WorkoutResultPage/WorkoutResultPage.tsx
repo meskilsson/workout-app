@@ -257,9 +257,11 @@ export default function WorkoutResultPage() {
                         </p>
 
                         {isLoadingMuscles && (
-                            <p className={styles.stateText}>
-                                Loading muscle profile...
-                            </p>
+                            <LoadingState
+                                variant="inline"
+                                message="Loading muscle profile..."
+                                color="var(--color-success)"
+                            />
                         )}
 
                         {muscleError && (

@@ -93,11 +93,15 @@ export default function LoginPage() {
 
                         <Button type="submit" disabled={isLoading}>
                             {isLoading ? (
-                                <>
-                                    Logging in...
-                                    <LoadingPredator />
-                                </>
-                            ) : "Log in"}
+                                <LoadingPredator
+                                    size="small"
+                                    color="currentColor"
+                                    label="Logging in..."
+                                    showLabel
+                                />
+                            ) : (
+                                "Log in"
+                            )}
                         </Button>
                     </form>
                 </Card>

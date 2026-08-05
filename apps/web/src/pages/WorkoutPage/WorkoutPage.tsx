@@ -34,6 +34,7 @@ import Modal from "../../components/ui/modal/Modal";
 import Button from "../../components/ui/button/Button";
 import WorkoutDurationTimer from "../../components/timer/WorkoutDurationTimer";
 import LoadingState from "../../components/Loading/LoadingState";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import {
     completeWorkoutDraftRequest,
@@ -1052,9 +1053,16 @@ export default function WorkoutPage() {
                             isSaving
                         }
                     >
-                        {isOpeningExerciseSelect
-                            ? "Saving..."
-                            : "+ Add exercise"}
+                        {isOpeningExerciseSelect ? (
+                            <LoadingPredator
+                                size="small"
+                                color="currentColor"
+                                label="Saving..."
+                                showLabel
+                            />
+                        ) : (
+                            "+ Add exercise"
+                        )}
                     </Button>
                 </div>
 
@@ -1191,9 +1199,16 @@ export default function WorkoutPage() {
                                     isRemovingExercise
                                 }
                             >
-                                {isRemovingExercise
-                                    ? "Removing..."
-                                    : "Remove exercise"}
+                                {isRemovingExercise ? (
+                                    <LoadingPredator
+                                        size="small"
+                                        color="currentColor"
+                                        label="Removing..."
+                                        showLabel
+                                    />
+                                ) : (
+                                    "Remove exercise"
+                                )}
                             </Button>
 
                             <Button
@@ -1244,9 +1259,16 @@ export default function WorkoutPage() {
                                 }
                                 disabled={isSaving}
                             >
-                                {isSaving
-                                    ? "Saving..."
-                                    : "End Workout"}
+                                {isSaving ? (
+                                    <LoadingPredator
+                                        size="small"
+                                        color="currentColor"
+                                        label="Saving..."
+                                        showLabel
+                                    />
+                                ) : (
+                                    "End Workout"
+                                )}
                             </Button>
 
                             <Button

@@ -6,6 +6,7 @@ import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import Modal from "../../components/ui/modal/Modal";
 import LoadingState from "../../components/Loading/LoadingState";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import {
   closestCenter,
@@ -488,7 +489,16 @@ export default function WorkoutSummaryPage() {
                 selectedExercises.length === 0 || isSavingTemplate
               }
             >
-              {isSavingTemplate ? "Saving..." : "Save workout"}
+              {isSavingTemplate ? (
+                <LoadingPredator
+                  size="small"
+                  color="currentColor"
+                  label="Saving..."
+                  showLabel
+                />
+              ) : (
+                "Save workout"
+              )}
             </Button>
           ) : (
             <Button
@@ -500,7 +510,16 @@ export default function WorkoutSummaryPage() {
                 isStartingWorkout
               }
             >
-              {isStartingWorkout ? "Starting..." : "Start workout"}
+              {isStartingWorkout ? (
+                <LoadingPredator
+                  size="small"
+                  color="currentColor"
+                  label="Starting..."
+                  showLabel
+                />
+              ) : (
+                "Start workout"
+              )}
             </Button>
           )}
         </div>
@@ -526,7 +545,16 @@ export default function WorkoutSummaryPage() {
               form="save-template-form"
               disabled={isSavingTemplate}
             >
-              {isSavingTemplate ? "Saving..." : "Save template"}
+              {isSavingTemplate ? (
+                <LoadingPredator
+                  size="small"
+                  color="currentColor"
+                  label="Saving..."
+                  showLabel
+                />
+              ) : (
+                "Save template"
+              )}
             </Button>
           </>
         }

@@ -4,6 +4,7 @@ import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import LoadingState from "../../components/Loading/LoadingState";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import {
     DIFFICULTY_OPTIONS,
@@ -313,7 +314,16 @@ export default function EditExercisePage() {
                         </Button>
 
                         <Button type="submit" disabled={isSaving}>
-                            {isSaving ? "Saving..." : "Save Changes"}
+                            {isSaving ? (
+                                <LoadingPredator
+                                    size="small"
+                                    color="currentColor"
+                                    label="Saving..."
+                                    showLabel
+                                />
+                            ) : (
+                                "Save Changes"
+                            )}
                         </Button>
                     </div>
                 </form>

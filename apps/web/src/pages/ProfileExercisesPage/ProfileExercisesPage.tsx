@@ -5,6 +5,7 @@ import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import Modal from "../../components/ui/modal/Modal";
 import LoadingState from "../../components/Loading/LoadingState";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import {
     deleteExerciseRequest,
@@ -237,7 +238,16 @@ export default function ProfileExercisesPage() {
                             onClick={handleConfirmDeleteExercise}
                             disabled={isDeleting}
                         >
-                            {isDeleting ? "Deleting..." : "Delete"}
+                            {isDeleting ? (
+                                <LoadingPredator
+                                    size="small"
+                                    color="currentColor"
+                                    label="Deleting..."
+                                    showLabel
+                                />
+                            ) : (
+                                "Delete"
+                            )}
                         </Button>
                     </>
                 }

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import LoadingState from "../../components/Loading/LoadingState";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import {
     getMyWorkoutSessionsRequest,
@@ -199,9 +200,16 @@ export default function ProfileWorkoutsPage() {
                                                 handleTrainAgain(session._id)
                                             }
                                         >
-                                            {isRepeatingThisSession
-                                                ? "Preparing..."
-                                                : "Train again"}
+                                            {isRepeatingThisSession ? (
+                                                <LoadingPredator
+                                                    size="small"
+                                                    color="currentColor"
+                                                    label="Preparing..."
+                                                    showLabel
+                                                />
+                                            ) : (
+                                                "Train again"
+                                            )}
                                         </Button>
 
                                         <Button
@@ -278,7 +286,16 @@ export default function ProfileWorkoutsPage() {
                                         disabled={isDeleting || Boolean(repeatingSessionId)}
                                         onClick={() => handleDeleteSession(session._id)}
                                     >
-                                        {isDeletingThisSession ? "Deleting..." : "Delete"}
+                                        {isDeletingThisSession ? (
+                                            <LoadingPredator
+                                                size="small"
+                                                color="currentColor"
+                                                label="Deleting..."
+                                                showLabel
+                                            />
+                                        ) : (
+                                            "Delete"
+                                        )}
                                     </Button>
                                 </div>
                             </Card>

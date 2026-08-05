@@ -20,6 +20,7 @@ import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 import LoadingState from "../../components/Loading/LoadingState";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import "../../components/ui/button/button.css";
 import "../../components/ui/box/box.css";
@@ -627,9 +628,10 @@ export default function ExerciseSelectPage() {
             </div>
 
             {isLoadingExercises && hasLoadedOnce && (
-                <p className={styles.loadingText}>
-                    Updating exercises...
-                </p>
+                <LoadingState
+                    variant="inline"
+                    message="Updating exercises..."
+                />
             )}
 
             {actionError && (
@@ -696,11 +698,22 @@ export default function ExerciseSelectPage() {
                         isSavingExercises
                     }
                 >
-                    {isSavingExercises
-                        ? "Saving..."
-                        : isActiveWorkout
-                            ? "Add to workout"
-                            : "Continue"}
+                    {isSavingExercises ? (
+                        <LoadingPredator
+                            size="small"
+                            color="currentColor"
+                            label={
+                                isActiveWorkout
+                                    ? "Adding exercises..."
+                                    : "Saving..."
+                            }
+                            showLabel
+                        />
+                    ) : isActiveWorkout ? (
+                        "Add to workout"
+                    ) : (
+                        "Continue"
+                    )}
                 </Button>
             </div>
 

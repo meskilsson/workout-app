@@ -5,6 +5,7 @@ import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import Modal from "../../components/ui/modal/Modal";
 import LoadingState from "../../components/Loading/LoadingState";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import {
     createTemplateEditDraftRequest,
@@ -239,7 +240,16 @@ export default function MyTemplatesPage() {
                                             disabled={isBusy}
                                             onClick={() => handleStartTemplate(template._id)}
                                         >
-                                            {isStarting ? "Starting..." : "Start workout"}
+                                            {isStarting ? (
+                                                <LoadingPredator
+                                                    size="small"
+                                                    color="currentColor"
+                                                    label="Starting..."
+                                                    showLabel
+                                                />
+                                            ) : (
+                                                "Start workout"
+                                            )}
                                         </Button>
 
                                         <Button
@@ -261,7 +271,16 @@ export default function MyTemplatesPage() {
                                             disabled={isBusy}
                                             onClick={() => handleEditTemplate(template._id)}
                                         >
-                                            {isEditing ? "Preparing..." : "Edit"}
+                                            {isEditing ? (
+                                                <LoadingPredator
+                                                    size="small"
+                                                    color="currentColor"
+                                                    label="Preparing..."
+                                                    showLabel
+                                                />
+                                            ) : (
+                                                "Edit"
+                                            )}
                                         </Button>
 
                                         <Button
@@ -300,7 +319,16 @@ export default function MyTemplatesPage() {
                             onClick={handleConfirmDeleteTemplate}
                             disabled={isDeleting}
                         >
-                            {isDeleting ? "Deleting..." : "Delete"}
+                            {isDeleting ? (
+                                <LoadingPredator
+                                    size="small"
+                                    color="currentColor"
+                                    label="Deleting..."
+                                    showLabel
+                                />
+                            ) : (
+                                "Delete"
+                            )}
                         </Button>
 
                         <Button
