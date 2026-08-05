@@ -412,6 +412,39 @@ export async function addWorkoutDraftExercises(
 
 }
 
+export async function removeWorkoutDraftExercise(
+    draftId: string,
+    exerciseId: string,
+    userId: string,
+) {
+    const draft = await getOwnedDraft(draftId, userId);
+
+    ensureDraftIsActive(draft.status);
+
+    const exerciseObjectId = normalizeObjectId(exerciseId, "exercise id");
+
+    const exerciseIndex = draft.exercises.findIndex(
+        (exercise) =>
+            exercise.exerciseId.toString() === exerciseObjectId.toString(),
+    );
+
+    if (exerciseIndex === -1) {
+        throw new NotFoundError("Exercise is not part of this draft");
+    }
+
+    if (draft.exercises.length === 1) {
+        throw new ConflictError(
+            "Add another exercise before removing the final exercise",
+        );
+    }
+
+    draft.exercises.splice(exerciseIndex, 1);
+
+    await draft.save();
+
+    return draft;
+}
+
 
 export async function startWorkoutDraft(draftId: string, userId: string) {
     const draft = await WorkoutDraft.findOne({
