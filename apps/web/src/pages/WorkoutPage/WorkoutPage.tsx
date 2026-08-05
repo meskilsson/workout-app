@@ -33,6 +33,7 @@ import { useCurrentWorkout } from "@workout-app/shared/currentWorkoutContext";
 import Modal from "../../components/ui/modal/Modal";
 import Button from "../../components/ui/button/Button";
 import WorkoutDurationTimer from "../../components/timer/WorkoutDurationTimer";
+import LoadingState from "../../components/Loading/LoadingState";
 
 import {
     completeWorkoutDraftRequest,
@@ -1022,13 +1023,11 @@ export default function WorkoutPage() {
 
     if (isLoadingDraft) {
         return (
-            <div className={styles.page}>
-                <div className={styles.container}>
-                    <p className={styles.errorText}>
-                        Loading workout...
-                    </p>
-                </div>
-            </div>
+            <LoadingState
+                title="Active workout"
+                message="Loading workout..."
+                color="var(--color-success)"
+            />
         );
     }
 

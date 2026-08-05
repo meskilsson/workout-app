@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
+import LoadingState from "../../components/Loading/LoadingState";
 
 import {
     DIFFICULTY_OPTIONS,
@@ -160,12 +161,10 @@ export default function EditExercisePage() {
 
     if (isFetching) {
         return (
-            <Box className={styles.page}>
-                <Card className={styles.card}>
-                    <h1 className={styles.title}>Edit Exercise</h1>
-                    <p className={styles.subtitle}>Loading exercise...</p>
-                </Card>
-            </Box>
+            <LoadingState
+                title="Edit exercise"
+                message="Loading exercise..."
+            />
         );
     }
 

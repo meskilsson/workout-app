@@ -1,5 +1,8 @@
 import { Navigate } from "react-router-dom";
+
 import { useAuth } from "../context/AuthContext";
+
+import LoadingState from "../components/Loading/LoadingState";
 
 type AllowedRole = "user" | "admin";
 
@@ -10,10 +13,19 @@ export default function RoleRoute({
     children: React.ReactNode;
     allowedRoles: AllowedRole[];
 }) {
-    const { user, isAuthenticated, loading } = useAuth();
+    const {
+        user,
+        isAuthenticated,
+        loading,
+    } = useAuth();
 
     if (loading) {
-        return <p>Loading...</p>;
+        return (
+            <LoadingState
+                title="Workout App"
+                message="Checking permissions..."
+            />
+        );
     }
 
     if (!isAuthenticated || !user) {

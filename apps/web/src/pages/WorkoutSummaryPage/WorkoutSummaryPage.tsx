@@ -5,6 +5,7 @@ import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import Modal from "../../components/ui/modal/Modal";
+import LoadingState from "../../components/Loading/LoadingState";
 
 import {
   closestCenter,
@@ -333,15 +334,14 @@ export default function WorkoutSummaryPage() {
 
   if (isLoadingDraft) {
     return (
-      <Box className={styles.page}>
-        <Card className={styles.stateCard}>
-          <p className={styles.kicker}>Workout builder</p>
-          <h1 className={styles.title}>Workout summary</h1>
-          <p className={styles.stateText}>Loading workout summary...</p>
-        </Card>
-      </Box>
+      <LoadingState
+        title="Workout builder"
+        message="Loading workout summary..."
+      />
     );
   }
+
+
 
   if (error) {
     return (

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import Modal from "../../components/ui/modal/Modal";
+import LoadingState from "../../components/Loading/LoadingState";
 
 import {
     createTemplateEditDraftRequest,
@@ -121,9 +122,11 @@ export default function MyTemplatesPage() {
 
     if (isLoading) {
         return (
-            <Card className={styles.stateCard}>
-                <p>Loading your workouts...</p>
-            </Card>
+            <LoadingState
+                variant="card"
+                title="Your templates"
+                message="Loading your workout templates..."
+            />
         );
     }
 

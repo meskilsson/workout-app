@@ -1,7 +1,8 @@
 import { Navigate } from "react-router-dom";
+
 import { useAuth } from "../context/AuthContext";
-import Card from "../components/ui/cards/Card";
-import LoadingPredator from "../components/Loading/LoadingPredator";
+
+import LoadingState from "../components/Loading/LoadingState";
 
 export default function ProtectedRoute({
     children,
@@ -11,9 +12,12 @@ export default function ProtectedRoute({
     const { isAuthenticated, loading } = useAuth();
 
     if (loading) {
-        return <Card>
-            <LoadingPredator />
-            Loading...</Card>;
+        return (
+            <LoadingState
+                title="Workout App"
+                message="Checking your session..."
+            />
+        );
     }
 
     if (!isAuthenticated) {

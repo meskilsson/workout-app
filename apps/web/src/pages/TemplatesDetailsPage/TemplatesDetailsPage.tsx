@@ -14,6 +14,7 @@ import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
+import LoadingState from "../../components/Loading/LoadingState";
 
 import styles from "./TemplatesDetailsPage.module.css";
 
@@ -113,11 +114,10 @@ export default function TemplatesDetailsPage({
 
     if (isLoading) {
         return (
-            <Box className={styles.page}>
-                <Card className={styles.stateCard}>
-                    <p>Loading workout...</p>
-                </Card>
-            </Box>
+            <LoadingState
+                title="Workout template"
+                message="Loading workout details..."
+            />
         );
     }
 

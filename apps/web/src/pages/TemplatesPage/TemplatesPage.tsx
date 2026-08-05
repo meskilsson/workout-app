@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
+import LoadingState from "../../components/Loading/LoadingState";
 
 import { useAuth } from "../../context/AuthContext";
 
@@ -144,11 +145,10 @@ export default function TemplatesPage() {
 
     if (isLoading) {
         return (
-            <Box className={styles.page}>
-                <Card className={styles.stateCard}>
-                    <p>Loading pre-made workouts...</p>
-                </Card>
-            </Box>
+            <LoadingState
+                title="Pre-made workouts"
+                message="Loading workout templates..."
+            />
         );
     }
 

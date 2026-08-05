@@ -1,81 +1,129 @@
+.wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    color: inherit;
+    vertical-align: middle;
+}
+
+.withLabel {
+    gap: 0.6rem;
+}
+
+.visualShell {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+}
+
 .loadingPredator {
-    --predator-color: #ff1f2d;
-    /* brighter, stronger red */
-    --bar-length: 15px;
-    --bar-thickness: 2px;
+    --predator-color: var(--color-primary);
 
     position: relative;
-    display: inline-block;
-    flex: 0 0 auto;
 
     width: 24px;
     height: 21px;
-    vertical-align: middle;
+
+    transform-origin: center;
+}
+
+.small .visualShell {
+    width: 18px;
+    height: 16px;
+}
+
+.small .loadingPredator {
+    transform: scale(0.72);
+}
+
+.medium .visualShell {
+    width: 24px;
+    height: 21px;
+}
+
+.large .visualShell {
+    width: 42px;
+    height: 36px;
+}
+
+.large .loadingPredator {
+    transform: scale(1.7);
 }
 
 .laser {
     position: absolute;
 
-    width: var(--bar-length);
-    height: var(--bar-thickness);
+    width: 15px;
+    height: 2px;
 
     border-radius: 999px;
     background-color: var(--predator-color);
 
-    opacity: 0.25;
+    opacity: 0.22;
     filter: brightness(0.85);
 
     box-shadow:
         0 0 3px var(--predator-color),
-        0 0 7px rgb(255 31 45 / 70%),
-        0 0 12px rgb(255 31 45 / 45%);
+        0 0 7px color-mix(in srgb,
+            var(--predator-color) 70%,
+            transparent),
+        0 0 12px color-mix(in srgb,
+            var(--predator-color) 45%,
+            transparent);
 
     animation: predatorTick 3s linear infinite;
 }
 
-/* Left side */
 .leftLaser {
     top: 9px;
     left: 7px;
 
     transform: translate(-50%, -50%) rotate(-60deg);
-    animation-delay: 0ms;
-}
-
-/* Right side */
-.leftLaser {
-    top: 9px;
-    left: 7px;
-    transform: translate(-50%, -50%) rotate(-60deg);
-
     animation-delay: 0s;
 }
 
 .rightLaser {
     top: 9px;
     left: 17px;
-    transform: translate(-50%, -50%) rotate(60deg);
 
+    transform: translate(-50%, -50%) rotate(60deg);
     animation-delay: 1s;
 }
 
 .bottomLaser {
     top: 17px;
     left: 12px;
-    transform: translate(-50%, -50%);
 
+    transform: translate(-50%, -50%);
     animation-delay: 2s;
+}
+
+.label {
+    color: inherit;
+
+    font: inherit;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 @keyframes predatorTick {
     0% {
         opacity: 1;
         filter: brightness(2.8);
+
         box-shadow:
             0 0 4px var(--predator-color),
-            0 0 10px rgb(255 31 45 / 95%),
-            0 0 18px rgb(255 31 45 / 80%),
-            0 0 26px rgb(255 31 45 / 55%);
+            0 0 10px color-mix(in srgb,
+                var(--predator-color) 95%,
+                transparent),
+            0 0 18px color-mix(in srgb,
+                var(--predator-color) 80%,
+                transparent),
+            0 0 26px color-mix(in srgb,
+                var(--predator-color) 55%,
+                transparent);
     }
 
     10% {
@@ -85,12 +133,17 @@
 
     18%,
     100% {
-        opacity: 0.25;
+        opacity: 0.22;
         filter: brightness(0.85);
+
         box-shadow:
             0 0 3px var(--predator-color),
-            0 0 7px rgb(255 31 45 / 70%),
-            0 0 12px rgb(255 31 45 / 45%);
+            0 0 7px color-mix(in srgb,
+                var(--predator-color) 70%,
+                transparent),
+            0 0 12px color-mix(in srgb,
+                var(--predator-color) 45%,
+                transparent);
     }
 }
 

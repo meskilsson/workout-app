@@ -19,6 +19,7 @@ import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
+import LoadingState from "../../components/Loading/LoadingState";
 
 import "../../components/ui/button/button.css";
 import "../../components/ui/box/box.css";
@@ -532,21 +533,14 @@ export default function ExerciseSelectPage() {
 
     if (isLoading && !hasLoadedOnce) {
         return (
-            <Box className={styles.page}>
-                <div className={styles.stateCard}>
-                    <p className={styles.kicker}>
-                        Exercise library
-                    </p>
-
-                    <h1 className={styles.title}>
-                        Select exercises
-                    </h1>
-
-                    <p className={styles.stateText}>
-                        Loading workout draft...
-                    </p>
-                </div>
-            </Box>
+            <LoadingState
+                title="Exercise library"
+                message={
+                    isActiveWorkout
+                        ? "Loading exercises you can add..."
+                        : "Loading workout draft and exercises..."
+                }
+            />
         );
     }
 

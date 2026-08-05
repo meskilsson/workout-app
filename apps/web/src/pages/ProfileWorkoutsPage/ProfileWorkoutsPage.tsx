@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
+import LoadingState from "../../components/Loading/LoadingState";
 
 import {
     getMyWorkoutSessionsRequest,
@@ -99,9 +100,11 @@ export default function ProfileWorkoutsPage() {
 
     if (isLoading) {
         return (
-            <Card className={styles.stateCard}>
-                <p className={styles.stateText}>Loading workout history...</p>
-            </Card>
+            <LoadingState
+                variant="card"
+                title="Workout history"
+                message="Loading your workouts..."
+            />
         );
     }
 
