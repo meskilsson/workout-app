@@ -1,6 +1,11 @@
-import type { RestTimerAction, RestTimerState } from "./restTimer.types";
+import type {
+    RestTimerAction,
+    RestTimerState,
+} from "./restTimer.types";
 
-export function createRestTimerInitialState(durationMs: number): RestTimerState {
+export function createRestTimerInitialState(
+    durationMs: number,
+): RestTimerState {
     return {
         timeLeft: durationMs,
         isRunning: false,
@@ -15,11 +20,16 @@ export function restTimerReducer(
 ): RestTimerState {
     switch (action.type) {
         case "START": {
-            if (state.isRunning) return state;
+            if (state.isRunning) {
+                return state;
+            }
 
             const currentTime = Date.now();
+
             const remainingAmount =
-                state.timeLeft > 0 ? state.timeLeft : state.duration;
+                state.timeLeft > 0
+                    ? state.timeLeft
+                    : state.duration;
 
             return {
                 ...state,
@@ -31,10 +41,14 @@ export function restTimerReducer(
 
         case "PAUSE": {
             const currentTime = Date.now();
+
             const remainingTime =
                 state.endTime === null
                     ? state.timeLeft
-                    : Math.max(0, state.endTime - currentTime);
+                    : Math.max(
+                        0,
+                        state.endTime - currentTime,
+                    );
 
             return {
                 ...state,
@@ -45,15 +59,21 @@ export function restTimerReducer(
         }
 
         case "RESET": {
-            return createRestTimerInitialState(state.duration);
+            return createRestTimerInitialState(
+                state.duration,
+            );
         }
 
         case "ADJUST_TIME": {
             const currentTime = Date.now();
 
             const currentTimeLeft =
-                state.isRunning && state.endTime !== null
-                    ? Math.max(0, state.endTime - currentTime)
+                state.isRunning &&
+                    state.endTime !== null
+                    ? Math.max(
+                        0,
+                        state.endTime - currentTime,
+                    )
                     : state.timeLeft;
 
             const adjustedTimeLeft = Math.max(
@@ -64,27 +84,35 @@ export function restTimerReducer(
             return {
                 ...state,
                 timeLeft: adjustedTimeLeft,
-                isRunning: adjustedTimeLeft > 0 ? state.isRunning : false,
+                isRunning:
+                    adjustedTimeLeft > 0
+                        ? state.isRunning
+                        : false,
                 endTime:
-                    state.isRunning && adjustedTimeLeft > 0
-                        ? currentTime + adjustedTimeLeft
+                    state.isRunning &&
+                        adjustedTimeLeft > 0
+                        ? currentTime +
+                        adjustedTimeLeft
                         : null,
             };
         }
 
         case "TICK": {
-            if (state.endTime === null) return state;
+            if (state.endTime === null) {
+                return state;
+            }
 
             const currentTime = Date.now();
-            const remainingTime = Math.max(0, state.endTime - currentTime);
+
+            const remainingTime = Math.max(
+                0,
+                state.endTime - currentTime,
+            );
 
             if (remainingTime === 0) {
-                return {
-                    ...state,
-                    timeLeft: 0,
-                    isRunning: false,
-                    endTime: null,
-                };
+                return createRestTimerInitialState(
+                    state.duration,
+                );
             }
 
             return {
