@@ -107,6 +107,40 @@ export async function updateWorkoutDraftSetsRequest(
     return handleResponse(response, "Failed to update workout draft sets");
 }
 
+export async function addWorkoutDraftExercisesRequest(
+    draftId: string,
+    exerciseData: UpdateWorkoutDraftExercisesInput,
+) {
+    const response = await fetch(
+        `${API_URL}/api/workout-drafts/${draftId}/exercises/add`,
+        {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify(exerciseData),
+        },
+    );
+
+    return handleResponse(response, "Failed to add exercises to workout");
+}
+
+export async function removeWorkoutDraftExerciseRequest(
+    draftId: string,
+    exerciseId: string,
+) {
+    const response = await fetch(
+        `${API_URL}/api/workout-drafts/${draftId}/exercises/${exerciseId}`,
+        {
+            method: "DELETE",
+            credentials: "include",
+        },
+    );
+
+    return handleResponse(response, "Failed to remove exercise from workout");
+}
+
 export async function completeWorkoutDraftRequest(draftId: string) {
     const response = await fetch(
         `${API_URL}/api/workout-drafts/${draftId}/complete`,
