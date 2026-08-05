@@ -10,6 +10,7 @@ import {
 } from "../../services/exerciseApi";
 
 import {
+    addWorkoutDraftExercisesRequest,
     getWorkoutDraftByIdRequest,
     updateWorkoutDraftExercisesRequest,
 } from "../../services/workoutDraftApi";
@@ -68,7 +69,14 @@ export default function ExerciseSelectPage() {
         SelectedMuscleGroup[]
     >([]);
 
+    const [draftStatus, setDraftStatus] = useState<
+        WorkoutDraft["status"] | null
+    >(null);
+
+    const [existingExerciseIds, setExistingExerciseIds] = useState<string[]>([]);
+
     const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
+
     const [selectedExerciseDetails, setSelectedExerciseDetails] = useState<
         Exercise[]
     >([]);
@@ -97,15 +105,17 @@ export default function ExerciseSelectPage() {
     const isLoading = isLoadingExercises || isLoadingDraft;
     const error = draftError || exerciseError || actionError;
 
+    const isActiveWorkout = draftStatus === "active";
+
     const selectedMuscleQuery = useMemo(() => {
         return selectedMuscleGroups.map((group) => group.id).join(",");
     }, [selectedMuscleGroups]);
 
-    const isEditingExistingDraft = selectedExerciseDetails.length > 0;
+    const isEditingExistingDraft = existingExerciseIds.length > 0;
 
     useEffect(() => {
         async function loadExercises() {
-            if (!selectedMuscleQuery) {
+            if (!isActiveWorkout && !selectedMuscleQuery) {
                 return;
             }
 
@@ -117,7 +127,9 @@ export default function ExerciseSelectPage() {
                     page,
                     limit,
                     search: debouncedSearchTerm,
-                    muscles: selectedMuscleQuery.split(","),
+                    muscles: isActiveWorkout
+                        ? []
+                        : selectedMuscleQuery.split(","),
                 };
 
                 const data = isAuthenticated
@@ -146,6 +158,7 @@ export default function ExerciseSelectPage() {
         limit,
         debouncedSearchTerm,
         selectedMuscleQuery,
+        isActiveWorkout,
     ]);
 
     useEffect(() => {
@@ -159,9 +172,8 @@ export default function ExerciseSelectPage() {
             setIsLoadingDraft(true);
 
             try {
-                const data: WorkoutDraft = await getWorkoutDraftByIdRequest(
-                    draftId,
-                );
+                const data: WorkoutDraft =
+                    await getWorkoutDraftByIdRequest(draftId);
 
                 const draftExerciseIds = data.exercises.map(
                     (exercise) => exercise.exerciseId,
@@ -173,16 +185,24 @@ export default function ExerciseSelectPage() {
 
                 const exerciseResults = await Promise.allSettled(
                     uniqueExerciseIds.map((exerciseId) =>
-                        getExerciseByIdRequest(exerciseId, isAuthenticated),
+                        getExerciseByIdRequest(
+                            exerciseId,
+                            isAuthenticated,
+                        ),
                     ),
                 );
 
                 const fullExerciseDetails = exerciseResults
                     .filter(
-                        (result): result is PromiseFulfilledResult<Exercise> =>
+                        (
+                            result,
+                        ): result is PromiseFulfilledResult<Exercise> =>
                             result.status === "fulfilled",
                     )
                     .map((result) => result.value);
+
+                setDraftStatus(data.status);
+                setExistingExerciseIds(draftExerciseIds);
 
                 setSelectedMuscleGroups(
                     data.selectedMuscleGroups.map((muscle) => ({
@@ -191,7 +211,10 @@ export default function ExerciseSelectPage() {
                     })),
                 );
 
-                setSelectedExercises(draftExerciseIds);
+                setSelectedExercises(
+                    data.status === "active" ? [] : draftExerciseIds,
+                );
+
                 setSelectedExerciseDetails(fullExerciseDetails);
             } catch (err) {
                 setDraftError(
@@ -229,34 +252,53 @@ export default function ExerciseSelectPage() {
             return;
         }
 
-        const isAlreadySelected = selectedExercises.includes(exercise._id);
+        const isAlreadyInWorkout =
+            isActiveWorkout &&
+            existingExerciseIds.includes(exercise._id);
+
+        if (isAlreadyInWorkout) {
+            return;
+        }
+
+        const isAlreadySelected = selectedExercises.includes(
+            exercise._id,
+        );
 
         if (isAlreadySelected) {
-            setSelectedExercises((prev) =>
-                prev.filter((id) => id !== exercise._id),
+            setSelectedExercises((previousExercises) =>
+                previousExercises.filter(
+                    (exerciseId) => exerciseId !== exercise._id,
+                ),
             );
 
             return;
         }
 
-        setSelectedExercises((prev) => [...prev, exercise._id]);
+        setSelectedExercises((previousExercises) => [
+            ...previousExercises,
+            exercise._id,
+        ]);
 
-        setSelectedExerciseDetails((prev) => {
-            const alreadyExists = prev.some(
-                (selectedExercise) => selectedExercise._id === exercise._id,
+        setSelectedExerciseDetails((previousExercises) => {
+            const alreadyExists = previousExercises.some(
+                (selectedExercise) =>
+                    selectedExercise._id === exercise._id,
             );
 
             if (alreadyExists) {
-                return prev;
+                return previousExercises;
             }
 
-            return [...prev, exercise];
+            return [...previousExercises, exercise];
         });
     }
 
-    const exerciseGroupTitle =
-        selectedMuscleGroups.length > 0
-            ? selectedMuscleGroups.map((group) => group.title).join(" and ")
+    const exerciseGroupTitle = isActiveWorkout
+        ? "All exercises"
+        : selectedMuscleGroups.length > 0
+            ? selectedMuscleGroups
+                .map((group) => group.title)
+                .join(" and ")
             : "Exercises";
 
     const currentWorkoutExerciseCards = useMemo(() => {
@@ -272,10 +314,23 @@ export default function ExerciseSelectPage() {
             }
         }
 
-        return selectedExerciseDetails
-            .map((exercise) => exerciseMap.get(exercise._id))
-            .filter((exercise): exercise is Exercise => Boolean(exercise));
-    }, [selectedExerciseDetails, exercises]);
+        const exerciseIdsToShow = isActiveWorkout
+            ? existingExerciseIds
+            : selectedExercises;
+
+        return exerciseIdsToShow
+            .map((exerciseId) => exerciseMap.get(exerciseId))
+            .filter(
+                (exercise): exercise is Exercise =>
+                    Boolean(exercise),
+            );
+    }, [
+        existingExerciseIds,
+        exercises,
+        isActiveWorkout,
+        selectedExerciseDetails,
+        selectedExercises,
+    ]);
 
     const groupedExercises: ExerciseGroup[] = debouncedSearchTerm
         ? [
@@ -287,13 +342,16 @@ export default function ExerciseSelectPage() {
             },
         ]
         : [
-            ...(isEditingExistingDraft || currentWorkoutExerciseCards.length > 0
+            ...(isEditingExistingDraft ||
+                currentWorkoutExerciseCards.length > 0
                 ? [
                     {
                         id: "current-workout-exercises",
                         title: "Current workout exercises",
-                        count: currentWorkoutExerciseCards.length,
-                        exercises: currentWorkoutExerciseCards,
+                        count:
+                            currentWorkoutExerciseCards.length,
+                        exercises:
+                            currentWorkoutExerciseCards,
                     },
                 ]
                 : []),
@@ -315,6 +373,15 @@ export default function ExerciseSelectPage() {
         setIsSavingExercises(true);
 
         try {
+            if (isActiveWorkout) {
+                await addWorkoutDraftExercisesRequest(draftId, {
+                    exerciseIds: selectedExercises,
+                });
+
+                navigate(`/workout/${draftId}`);
+                return;
+            }
+
             await updateWorkoutDraftExercisesRequest(draftId, {
                 exerciseIds: selectedExercises,
             });
@@ -334,12 +401,20 @@ export default function ExerciseSelectPage() {
     function renderExerciseCard(exercise: Exercise) {
         const isSelected = selectedExercises.includes(exercise._id);
 
+        const isAlreadyInWorkout =
+            isActiveWorkout &&
+            existingExerciseIds.includes(exercise._id);
+
         return (
             <Card
                 key={exercise._id}
                 className={`${styles.exerciseCard} ${isSelected ? styles.selectedCard : ""
+                    } ${isAlreadyInWorkout
+                        ? styles.existingCard
+                        : ""
                     }`}
                 onClick={() => handleToggleExercise(exercise)}
+                aria-disabled={isAlreadyInWorkout}
             >
                 <div className={styles.exerciseCardContent}>
                     <div className={styles.exerciseCardTop}>
@@ -348,13 +423,25 @@ export default function ExerciseSelectPage() {
                                 {exercise.name}
                             </h3>
 
+                            {isAlreadyInWorkout && (
+                                <span
+                                    className={styles.existingBadge}
+                                >
+                                    Already added
+                                </span>
+                            )}
+
                             <div className={styles.exerciseMeta}>
                                 {exercise.equipment && (
-                                    <span>{exercise.equipment}</span>
+                                    <span>
+                                        {exercise.equipment}
+                                    </span>
                                 )}
 
                                 {exercise.difficulty && (
-                                    <span>{exercise.difficulty}</span>
+                                    <span>
+                                        {exercise.difficulty}
+                                    </span>
                                 )}
                             </div>
                         </div>
@@ -362,7 +449,9 @@ export default function ExerciseSelectPage() {
                         <div className={styles.cardDummy}>
                             <MuscleDummy
                                 variant="mini"
-                                primaryMuscles={exercise.primaryMuscles ?? []}
+                                primaryMuscles={
+                                    exercise.primaryMuscles ?? []
+                                }
                                 secondaryMuscles={
                                     exercise.secondaryMuscles ?? []
                                 }
@@ -374,11 +463,19 @@ export default function ExerciseSelectPage() {
                         {exercise.primaryMuscles &&
                             exercise.primaryMuscles.length > 0 && (
                                 <div>
-                                    <p className={styles.muscleLabel}>
+                                    <p
+                                        className={
+                                            styles.muscleLabel
+                                        }
+                                    >
                                         Primary
                                     </p>
 
-                                    <div className={styles.muscleTags}>
+                                    <div
+                                        className={
+                                            styles.muscleTags
+                                        }
+                                    >
                                         {exercise.primaryMuscles.map(
                                             (muscle) => (
                                                 <span
@@ -396,13 +493,22 @@ export default function ExerciseSelectPage() {
                             )}
 
                         {exercise.secondaryMuscles &&
-                            exercise.secondaryMuscles.length > 0 && (
+                            exercise.secondaryMuscles.length >
+                            0 && (
                                 <div>
-                                    <p className={styles.muscleLabel}>
+                                    <p
+                                        className={
+                                            styles.muscleLabel
+                                        }
+                                    >
                                         Secondary
                                     </p>
 
-                                    <div className={styles.muscleTags}>
+                                    <div
+                                        className={
+                                            styles.muscleTags
+                                        }
+                                    >
                                         {exercise.secondaryMuscles.map(
                                             (muscle) => (
                                                 <span
@@ -428,9 +534,17 @@ export default function ExerciseSelectPage() {
         return (
             <Box className={styles.page}>
                 <div className={styles.stateCard}>
-                    <p className={styles.kicker}>Exercise library</p>
-                    <h1 className={styles.title}>Select exercises</h1>
-                    <p className={styles.stateText}>Loading workout draft...</p>
+                    <p className={styles.kicker}>
+                        Exercise library
+                    </p>
+
+                    <h1 className={styles.title}>
+                        Select exercises
+                    </h1>
+
+                    <p className={styles.stateText}>
+                        Loading workout draft...
+                    </p>
                 </div>
             </Box>
         );
@@ -440,8 +554,14 @@ export default function ExerciseSelectPage() {
         return (
             <Box className={styles.page}>
                 <div className={styles.stateCard}>
-                    <p className={styles.kicker}>Exercise library</p>
-                    <h1 className={styles.title}>Select exercises</h1>
+                    <p className={styles.kicker}>
+                        Exercise library
+                    </p>
+
+                    <h1 className={styles.title}>
+                        Select exercises
+                    </h1>
+
                     <p className={styles.errorText}>{error}</p>
                 </div>
             </Box>
@@ -452,31 +572,51 @@ export default function ExerciseSelectPage() {
         <Box className={styles.page}>
             <div ref={pageTopRef} className={styles.header}>
                 <div>
-                    <p className={styles.kicker}>Exercise library</p>
+                    <p className={styles.kicker}>
+                        Exercise library
+                    </p>
 
                     <h1 className={styles.title}>
-                        {isEditingExistingDraft
-                            ? "Edit exercises"
-                            : "Select exercises"}
+                        {isActiveWorkout
+                            ? "Add exercises"
+                            : isEditingExistingDraft
+                                ? "Edit exercises"
+                                : "Select exercises"}
                     </h1>
 
                     <p className={styles.subtitle}>
-                        Choose exercises for the muscle groups you selected.
+                        {isActiveWorkout
+                            ? "Choose new exercises to add to your active workout."
+                            : "Choose exercises for the muscle groups you selected."}
                     </p>
 
                     <Button
                         type="button"
                         variant="secondary"
-                        style={{ minWidth: "3.25rem", marginTop: "1.5rem" }}
+                        style={{
+                            minWidth: "3.25rem",
+                            marginTop: "1.5rem",
+                        }}
                         className={styles.backButton}
-                        onClick={() => navigate(-1)}
+                        onClick={() =>
+                            isActiveWorkout
+                                ? navigate(
+                                    `/workout/${draftId}`,
+                                )
+                                : navigate(-1)
+                        }
                     >
-                        <span className={styles.buttonArrow}>←</span>
+                        <span className={styles.buttonArrow}>
+                            ←
+                        </span>
                     </Button>
                 </div>
 
                 <div className={styles.selectedBadge}>
-                    {selectedExercises.length} selected
+                    {selectedExercises.length}{" "}
+                    {isActiveWorkout
+                        ? "new selected"
+                        : "selected"}
                 </div>
             </div>
 
@@ -486,19 +626,30 @@ export default function ExerciseSelectPage() {
                     type="text"
                     placeholder="Search exercises, muscles, or equipment..."
                     value={searchTerm}
-                    onChange={(event) => setSearchTerm(event.target.value)}
+                    onChange={(event) =>
+                        setSearchTerm(event.target.value)
+                    }
                 />
             </div>
 
             {isLoadingExercises && hasLoadedOnce && (
-                <p className={styles.loadingText}>Updating exercises...</p>
+                <p className={styles.loadingText}>
+                    Updating exercises...
+                </p>
             )}
 
-            {actionError && <p className={styles.errorText}>{actionError}</p>}
+            {actionError && (
+                <p className={styles.errorText}>
+                    {actionError}
+                </p>
+            )}
 
             <Box className={styles.groupList}>
                 {groupedExercises.map((group) => (
-                    <section key={group.id} className={styles.exerciseGroup}>
+                    <section
+                        key={group.id}
+                        className={styles.exerciseGroup}
+                    >
                         <div className={styles.groupHeader}>
                             <h2 className={styles.groupTitle}>
                                 {group.title}
@@ -506,20 +657,23 @@ export default function ExerciseSelectPage() {
 
                             <p className={styles.groupCount}>
                                 {group.count}{" "}
-                                {group.count === 1 ? "exercise" : "exercises"}
+                                {group.count === 1
+                                    ? "exercise"
+                                    : "exercises"}
                             </p>
                         </div>
 
                         <Box className={styles.exerciseGrid}>
                             {group.exercises.length > 0 ? (
-                                group.exercises.map((exercise) =>
-                                    renderExerciseCard(exercise),
+                                group.exercises.map(
+                                    (exercise) =>
+                                        renderExerciseCard(
+                                            exercise,
+                                        ),
                                 )
                             ) : (
                                 <p className={styles.emptyText}>
-                                    {group.id === "selected-exercises"
-                                        ? "Selected exercises will appear here."
-                                        : "No matching exercises found."}
+                                    No matching exercises found.
                                 </p>
                             )}
                         </Box>
@@ -530,19 +684,29 @@ export default function ExerciseSelectPage() {
             <div className={styles.footer}>
                 <p className={styles.footerText}>
                     {selectedExercises.length === 0
-                        ? "Select at least one exercise to continue."
-                        : `${selectedExercises.length} exercise${selectedExercises.length === 1 ? "" : "s"
+                        ? isActiveWorkout
+                            ? "Select at least one new exercise."
+                            : "Select at least one exercise to continue."
+                        : `${selectedExercises.length} exercise${selectedExercises.length === 1
+                            ? ""
+                            : "s"
                         } ready.`}
                 </p>
 
                 <Button
+                    type="button"
                     variant="primary"
                     onClick={handleContinue}
                     disabled={
-                        selectedExercises.length === 0 || isSavingExercises
+                        selectedExercises.length === 0 ||
+                        isSavingExercises
                     }
                 >
-                    {isSavingExercises ? "Saving..." : "Continue"}
+                    {isSavingExercises
+                        ? "Saving..."
+                        : isActiveWorkout
+                            ? "Add to workout"
+                            : "Continue"}
                 </Button>
             </div>
 
@@ -552,7 +716,9 @@ export default function ExerciseSelectPage() {
                         type="button"
                         className={styles.pageButton}
                         disabled={page === 1}
-                        onClick={() => handlePageChange(page - 1)}
+                        onClick={() =>
+                            handlePageChange(page - 1)
+                        }
                     >
                         Previous
                     </button>
@@ -565,7 +731,9 @@ export default function ExerciseSelectPage() {
                         type="button"
                         className={styles.pageButton}
                         disabled={page === totalPages}
-                        onClick={() => handlePageChange(page + 1)}
+                        onClick={() =>
+                            handlePageChange(page + 1)
+                        }
                     >
                         Next
                     </button>
