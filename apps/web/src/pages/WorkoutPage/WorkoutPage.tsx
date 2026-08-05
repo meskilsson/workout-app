@@ -844,6 +844,7 @@ export default function WorkoutPage() {
                 }),
             );
 
+            resetRestTimer();
             startRestTimer();
         } catch (err) {
             setError(
