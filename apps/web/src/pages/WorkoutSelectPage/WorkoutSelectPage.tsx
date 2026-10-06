@@ -21,6 +21,7 @@ const muscleGroupCards = [
   { id: "legs", title: "Legs" },
   { id: "chest", title: "Chest" },
   { id: "triceps", title: "Triceps" },
+  { id: "core", title: "Abs" },
 ];
 
 const backendMuscleGroupMap: Record<string, string[]> = {
@@ -30,6 +31,7 @@ const backendMuscleGroupMap: Record<string, string[]> = {
   legs: ["quads", "hamstrings", "glutes", "calves"],
   chest: ["chest"],
   triceps: ["triceps"],
+  core: ["core"],
 };
 
 export default function WorkoutSelectPage() {

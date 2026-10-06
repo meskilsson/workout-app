@@ -67,6 +67,10 @@
     box-shadow: none;
 }
 
+.muscleGroupCard:last-child:nth-child(3n + 1) {
+    grid-column: 2;
+}
+
 .selectedCard {
     border-color: var(--color-accent) !important;
     background: var(--color-accent-soft) !important;
@@ -101,6 +105,10 @@
 
     .grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .muscleGroupCard:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
     }
 }
 
