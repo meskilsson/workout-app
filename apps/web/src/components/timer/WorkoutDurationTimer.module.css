@@ -9,11 +9,7 @@
     gap: 1rem;
 
     color: var(--color-text);
-    background:
-        radial-gradient(circle at top left,
-            var(--color-accent-soft),
-            transparent 42%),
-        var(--color-surface);
+    background: var(--color-accent-soft);
 
     border: 1px solid var(--color-accent-border);
     border-radius: var(--radius-lg);

@@ -28,6 +28,7 @@
 .button--primary {
     background: var(--color-primary);
     color: var(--color-on-primary);
+    border-color: var(--color-primary-border);
 }
 
 .button--primary:hover {
@@ -35,9 +36,9 @@
 }
 
 .button--secondary {
-    background: var(--color-surface-light);
-    color: var(--color-text);
-    border-color: var(--color-border);
+    background: var(--color-blue-soft);
+    color: var(--color-blue-text);
+    border-color: var(--blue-700);
 }
 
 .button--secondary:hover {
@@ -122,5 +123,5 @@
 
 .button { min-height: var(--control-height); transition-duration: 150ms; }
 .button--medium { padding: 0.7rem 1rem; }
-.button--secondary:hover:not(:disabled) { background: var(--color-primary-soft); }
+.button--secondary:hover:not(:disabled) { background: var(--color-blue-hover); border-color: var(--blue-700); }
 .button--small { min-height: 44px; }

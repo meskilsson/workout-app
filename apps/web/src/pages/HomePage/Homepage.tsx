@@ -29,11 +29,11 @@ export default function Homepage() {
                     <div><p className={styles.kicker}>Active session</p><h2>Your workout is ready to continue.</h2>
                         <p className={styles.sessionTime}>{formatElapsedMilliseconds(state.elapsedTime)} <span>{state.isRunning ? "elapsed" : "paused"}</span></p>
                     </div>
-                    <Button onClick={() => navigate(`/workout/${currentWorkoutId}`)} icon={ArrowRight}>Resume workout</Button>
+                    <Button variant="secondary" onClick={() => navigate(`/workout/${currentWorkoutId}`)} icon={ArrowRight}>Resume workout</Button>
                 </div>}
                 <div className={styles.newSession}>
                     <div><h2>Start a workout</h2><p>Choose your exercises and build a session.</p></div>
-                    <Button onClick={() => navigate("/workout-select")} icon={Plus}>New workout</Button>
+                    <Button variant="secondary" onClick={() => navigate("/workout-select")} icon={Plus}>New workout</Button>
                 </div>
             </section>
             <section className={styles.section} aria-labelledby="training-heading">

@@ -6,8 +6,8 @@
 .subtitle { margin: 0.8rem 0 0; color: var(--color-text-soft); }
 .sessionSection { display: grid; gap: 1rem; }
 .activeSession, .newSession { display: flex; justify-content: space-between; align-items: center; gap: 1.25rem; padding: 1.5rem; border-radius: var(--radius-lg); }
-.activeSession { background: var(--color-accent-soft); border: 1px solid var(--color-border-soft); }
-.newSession { background: var(--color-surface); border: 1px solid var(--color-border); }
+.activeSession { background: var(--color-success-soft); border: 1px solid var(--color-border); }
+.newSession { background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow-sm); }
 .activeSession h2, .newSession h2 { margin: 0; font-size: var(--text-heading-sm); }
 .newSession p { margin: 0.5rem 0 0; color: var(--color-text-muted); font-size: var(--text-sm); }
 .sessionTime { margin: 0.75rem 0 0; font-size: var(--text-heading-sm); font-variant-numeric: tabular-nums; }
@@ -19,5 +19,10 @@
 .destination > span { flex: 1; min-width: 0; }
 .destination strong { display: block; font-size: var(--text-base); }
 .destination span span { display: block; margin-top: 0.3rem; font-size: var(--text-sm); color: var(--color-text-muted); }
-.destination:hover { color: var(--color-primary-text); }
+.destination:hover { color: var(--color-primary-text); background: var(--color-primary-soft); }
+.destination { padding-inline: 1rem; border-radius: var(--radius-md); transition: background 150ms ease; }
+.destination > svg:first-child { box-sizing: content-box; padding: 0.75rem; border-radius: var(--radius-md); background: var(--color-blue-soft); color: var(--color-blue-text); }
+.destination:nth-child(2) > svg:first-child { background: var(--color-pink-soft); color: var(--color-pink-text); }
+.destination:nth-child(3) > svg:first-child { background: var(--color-success-soft); color: var(--color-success-text); }
+.kicker { color: var(--color-primary-text); }
 @media (max-width: 600px) { .page { padding: 1.5rem 1rem 2rem; } .activeSession, .newSession { flex-direction: column; align-items: stretch; padding: 1.25rem; } }
