@@ -1,3 +1,5 @@
+import { Plus, Trash2, Check, Circle, Flag, GripVertical, MoreHorizontal } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
 import {
     useEffect,
     useRef,
@@ -178,12 +180,13 @@ function SortableWorkoutExerciseCard({
                         {...attributes}
                         {...listeners}
                     >
-                        ⋮⋮
+                        <Icon icon={GripVertical} />
                     </button>
 
-                    <h2 className={styles.exerciseName}>
-                        {exercise.name}
-                    </h2>
+                    <div>
+                        <h2 className={styles.exerciseName}>{exercise.name}</h2>
+                        <p className={styles.exerciseProgress}>{exerciseSets.filter(set => set.isCompleted).length} of {exerciseSets.length} sets completed</p>
+                    </div>
                 </div>
 
                 <div className={styles.exerciseActions}>
@@ -192,6 +195,7 @@ function SortableWorkoutExerciseCard({
                         variant="primary"
                         size="small"
                         className={styles.addSetButton}
+                        icon={Plus}
                         onClick={() =>
                             onAddSet(exercise._id)
                         }
@@ -206,7 +210,7 @@ function SortableWorkoutExerciseCard({
                             }
                             aria-label={`Open menu for ${exercise.name}`}
                         >
-                            ⋯
+                            <Icon icon={MoreHorizontal} />
                         </summary>
 
                         <div
@@ -231,7 +235,7 @@ function SortableWorkoutExerciseCard({
                                         : "Add another exercise before removing the final exercise"
                                 }
                             >
-                                Remove exercise
+                                <Icon icon={Trash2} /> Remove exercise
                             </button>
                         </div>
                     </details>
@@ -243,9 +247,11 @@ function SortableWorkoutExerciseCard({
                     <div
                         key={set.id}
                         className={styles.setRow}
+                        data-completed={set.isCompleted}
                     >
+                        <span className={styles.setCaption}>Set {setIndex + 1}{set.isCompleted ? " - Completed" : ""}</span>
                         <div className={styles.inputGroup}>
-                            {setIndex === 0 && (
+                            {(
                                 <label
                                     className={
                                         styles.inputLabel
@@ -258,6 +264,7 @@ function SortableWorkoutExerciseCard({
                             <input
                                 type="number"
                                 min={0}
+                                aria-label={`Weight for ${exercise.name}, set ${setIndex + 1}`}
                                 value={set.weight}
                                 className={
                                     styles.underlineInput
@@ -274,7 +281,7 @@ function SortableWorkoutExerciseCard({
                         </div>
 
                         <div className={styles.inputGroup}>
-                            {setIndex === 0 && (
+                            {(
                                 <label
                                     className={
                                         styles.inputLabel
@@ -287,6 +294,7 @@ function SortableWorkoutExerciseCard({
                             <input
                                 type="number"
                                 min={0}
+                                aria-label={`Reps for ${exercise.name}, set ${setIndex + 1}`}
                                 value={set.reps}
                                 className={
                                     styles.underlineInput
@@ -317,9 +325,10 @@ function SortableWorkoutExerciseCard({
                                     setIndex,
                                 )
                             }
-                            aria-label="Complete set and start rest timer"
+                            aria-label={set.isCompleted ? "Completed set; restart rest timer" : "Complete set and start rest timer"}
+                            aria-pressed={set.isCompleted}
                         >
-                            ✓
+                            <Icon icon={set.isCompleted ? Check : Circle} />
                         </Button>
 
                         <Button
@@ -335,7 +344,7 @@ function SortableWorkoutExerciseCard({
                             }
                             aria-label="Remove set"
                         >
-                            X
+                            <Icon icon={Trash2} />
                         </Button>
                     </div>
                 ))}
@@ -1168,7 +1177,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                                 showLabel
                             />
                         ) : (
-                            "+ Add exercise"
+                            <><Icon icon={Plus} /> Add exercise</>
                         )}
                     </Button>
                 </div>
@@ -1258,6 +1267,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                     }
                 >
                     <Button
+                        icon={Trash2}
                         type="button"
                         variant="danger"
                         size="medium"
@@ -1268,6 +1278,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                         Abandon Workout
                     </Button>
                     <Button
+                        icon={Flag}
                         type="button"
                         variant="success"
                         size="medium"
@@ -1353,6 +1364,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                         exercise will be permanently
                         removed from the active workout.
                     </p>
+                    {error && <p className={styles.errorText} role="alert">{error}</p>}
                 </Modal>
 
                 <Modal
@@ -1448,6 +1460,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                         Are you sure you want to end
                         this workout session?
                     </p>
+                    {error && <p className={styles.errorText} role="alert">{error}</p>}
                 </Modal>
             </div>
         </div>

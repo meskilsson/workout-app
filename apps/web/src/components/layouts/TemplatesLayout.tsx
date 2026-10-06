@@ -1,3 +1,5 @@
+import { Dumbbell, Plus } from "lucide-react";
+import Icon from "../ui/icon/Icon";
 import { NavLink, Outlet } from "react-router-dom";
 
 import Box from "../../components/ui/box/Box";
@@ -12,14 +14,6 @@ export default function TemplatesLayout() {
         <Box className={styles.page}>
             <div className={styles.layout}>
                 <aside className={styles.sidebar}>
-                    <div className={styles.sidebarHeader}>
-                        <p className={styles.kicker}>Workouts</p>
-                        <h1 className={styles.title}>Workouts</h1>
-                        <p className={styles.subtitle}>
-                            Choose a pre-made workout or manage your own workouts.
-                        </p>
-                    </div>
-
                     <nav className={styles.nav}>
                         <NavLink
                             to="/templates/pre-made"
@@ -28,7 +22,7 @@ export default function TemplatesLayout() {
                                 }`
                             }
                         >
-                            Pre-made
+                            <Icon icon={Dumbbell} /> Pre-made
                         </NavLink>
 
                         {isAuthenticated ? (
@@ -40,7 +34,7 @@ export default function TemplatesLayout() {
                                         }`
                                     }
                                 >
-                                    My workouts
+                                    <Icon icon={Dumbbell} /> My templates
                                 </NavLink>
 
                                 <NavLink
@@ -50,18 +44,18 @@ export default function TemplatesLayout() {
                                         }`
                                     }
                                 >
-                                    Create workout
+                                    <Icon icon={Plus} /> Create template
                                 </NavLink>
                             </>
                         ) : (
                             <>
                                 <div className={styles.disabledLink}>
-                                    My workouts
+                                    My templates
                                     <span>Log in required</span>
                                 </div>
 
                                 <div className={styles.disabledLink}>
-                                    Create workouts
+                                    Create template
                                     <span>Log in required</span>
                                 </div>
                             </>
@@ -69,9 +63,9 @@ export default function TemplatesLayout() {
                     </nav>
                 </aside>
 
-                <main className={styles.content}>
+                <div className={styles.content}>
                     <Outlet />
-                </main>
+                </div>
             </div>
         </Box>
     );

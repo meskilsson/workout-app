@@ -71,8 +71,8 @@
     border: 1px solid var(--color-border-soft);
     border-radius: var(--radius-md);
 
-    font-size: 1.1rem;
-    font-weight: 900;
+    font-size: var(--text-lead);
+    font-weight: var(--weight-semibold);
     line-height: 1;
 
     cursor: grab;
@@ -95,9 +95,9 @@
 
     color: var(--color-text);
 
-    font-size: 1.1rem;
-    font-weight: 600;
-    line-height: 1.2;
+    font-size: var(--text-lead);
+    font-weight: var(--weight-semibold);
+    line-height: var(--line-heading);
 
     overflow-wrap: anywhere;
 }
@@ -141,8 +141,8 @@
     border-radius: var(--radius-md);
 
     font-family: inherit;
-    font-size: 1.35rem;
-    font-weight: 900;
+    font-size: var(--text-heading-sm);
+    font-weight: var(--weight-semibold);
     line-height: 1;
 
     cursor: pointer;
@@ -196,14 +196,14 @@
     width: 100%;
     padding: 0.7rem 0.8rem;
 
-    color: var(--color-danger);
+    color: var(--color-danger-text);
     background: transparent;
 
     border: none;
     border-radius: var(--radius-sm);
 
     font: inherit;
-    font-weight: 800;
+    font-weight: var(--weight-semibold);
     text-align: left;
 
     cursor: pointer;
@@ -256,25 +256,25 @@
 .inputLabel {
     color: var(--color-text-soft);
 
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
 }
 
 .underlineInput {
     width: 100%;
-    height: 34px;
+    height: var(--control-height);
     padding: 0 0 7px;
 
     color: var(--color-text);
     background: transparent;
 
     border: none;
-    border-bottom: 2px solid var(--color-border);
+    border-bottom: 2px solid var(--color-input-border);
     border-radius: 0;
     outline: none;
 
     font: inherit;
-    font-size: 1rem;
+    font-size: var(--text-base);
     text-align: center;
 
     appearance: textfield;
@@ -285,7 +285,7 @@
 }
 
 .underlineInput:focus {
-    border-bottom-color: var(--color-primary);
+    border-bottom-color: var(--color-focus);
 }
 
 .underlineInput::placeholder {
@@ -305,20 +305,20 @@
     padding: 0;
     align-self: end;
 
-    color: var(--color-primary);
+    color: var(--color-primary-text);
     background: var(--color-primary-soft);
 
     border: 1px solid var(--color-primary-border);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
 
-    font-size: 1.1rem;
-    font-weight: 900;
+    font-size: var(--text-lead);
+    font-weight: var(--weight-semibold);
     line-height: 1;
 }
 
 .completeSetButton.completeSetButton:hover {
-    color: var(--color-primary-hover);
+    color: var(--color-primary-text-hover);
     background: var(--color-surface-light);
     border-color: var(--color-primary);
 
@@ -347,15 +347,15 @@
     padding: 0;
     align-self: end;
 
-    color: var(--color-danger);
+    color: var(--color-danger-text);
     background: var(--color-danger-soft);
 
     border: 1px solid var(--color-danger);
     border-radius: var(--radius-md);
     box-shadow: none;
 
-    font-size: 1.1rem;
-    font-weight: 900;
+    font-size: var(--text-lead);
+    font-weight: var(--weight-semibold);
     line-height: 1;
 }
 
@@ -377,10 +377,10 @@
 .errorText {
     margin: 0;
 
-    color: var(--color-danger);
+    color: var(--color-danger-text);
 
-    font-size: 0.95rem;
-    font-weight: 700;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
     text-align: center;
 }
 
@@ -446,8 +446,8 @@
     }
 
     .exerciseName {
-        font-size: 1rem;
-        line-height: 1.15;
+        font-size: var(--text-base);
+        line-height: var(--line-heading);
     }
 
     .dragHandle {
@@ -455,7 +455,7 @@
         height: 2rem;
         flex: 0 0 2rem;
 
-        font-size: 1rem;
+        font-size: var(--text-base);
     }
 
     .exerciseActions {
@@ -473,7 +473,7 @@
         width: 2rem;
         height: 2rem;
 
-        font-size: 1.2rem;
+        font-size: var(--text-lead);
     }
 
     .exerciseMenuDropdown {
@@ -498,30 +498,30 @@
     }
 
     .inputLabel {
-        font-size: 0.78rem;
+        font-size: var(--text-xs);
     }
 
     .underlineInput {
         height: 32px;
         padding-bottom: 5px;
 
-        font-size: 0.95rem;
+        font-size: var(--text-sm);
     }
 
     .completeSetButton.completeSetButton {
         width: 40px;
         min-width: 40px;
-        height: 34px;
+        height: var(--control-height);
 
-        font-size: 1rem;
+        font-size: var(--text-base);
     }
 
     .deleteButton.deleteButton {
         width: 42px;
         min-width: 42px;
-        height: 34px;
+        height: var(--control-height);
 
-        font-size: 1rem;
+        font-size: var(--text-base);
     }
 
     .endSessionWrapper {
@@ -561,7 +561,7 @@
     }
 
     .exerciseName {
-        font-size: 0.95rem;
+        font-size: var(--text-sm);
     }
 
     .dragHandle {
@@ -576,14 +576,14 @@
 
     .addSetButton.addSetButton {
         padding-inline: 0.6rem;
-        font-size: 0.8rem;
+        font-size: var(--text-xs);
     }
 
     .exerciseMenuButton {
         width: 1.9rem;
         height: 1.9rem;
 
-        font-size: 1.1rem;
+        font-size: var(--text-lead);
     }
 
     .exerciseMenuDropdown {
@@ -592,7 +592,7 @@
 
     .removeExerciseButton {
         padding: 0.65rem 0.7rem;
-        font-size: 0.85rem;
+        font-size: var(--text-sm);
     }
 
     .setRow {
@@ -630,3 +630,40 @@
     .setRow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .endSessionButton.endSessionButton { min-width: 0; width: 100%; }
 }
+
+.dragHandle, .exerciseMenuButton { min-width: 44px; min-height: 44px; }
+.removeExerciseButton { display: flex; align-items: center; gap: 0.45rem; }
+
+@media (max-width: 400px) {
+    .endSessionButton.endSessionButton {
+        min-width: 0;
+        max-width: calc((100% - 0.75rem) / 2);
+        min-height: 44px;
+    }
+}
+
+.page { padding: 1.5rem 1rem 2.5rem; }
+.container { max-width: 820px; }
+.exerciseList { gap: var(--space-5); }
+.exerciseCard { padding: var(--space-6); border-radius: var(--radius-xl); }
+.exerciseHeader { padding-bottom: var(--space-4); border-bottom: 1px solid var(--color-border-soft); }
+.exerciseName { font-size: var(--text-lead); font-weight: var(--weight-semibold); line-height: var(--line-heading); }
+.exerciseProgress { margin: 0.35rem 0 0; font-size: var(--text-xs); color: var(--color-text-muted); }
+.setsList { gap: var(--space-3); margin-top: var(--space-4); }
+.setRow { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 46px 46px; gap: 0.65rem; padding: var(--space-3); border-radius: var(--radius-md); background: var(--color-surface-soft); }
+.setRow[data-completed="true"] { background: var(--color-success-soft); }
+.setCaption { grid-column: 1 / -1; font-size: var(--text-xs); font-weight: var(--weight-semibold); color: var(--color-text-soft); }
+.inputLabel { font-size: var(--text-xs); font-weight: var(--weight-semibold); }
+
+.underlineInput:focus { border-color: var(--color-focus); }
+.completeSetButton.completeSetButton, .deleteButton.deleteButton { width: 46px; min-width: 46px; height: var(--control-height); }
+.completeSetButton.completeSetButton { color: var(--color-success-text); background: var(--color-success-soft); border-color: var(--color-success-text); }
+.completeSetButton.completeSetButton:hover { color: var(--color-success-text); border-color: var(--color-success-text); }
+.endSessionWrapper { margin-top: var(--space-6); padding-top: var(--space-5); border-top: 1px solid var(--color-border); }
+@media (max-width: 640px) {
+    .page { padding: 1rem 0.75rem 6rem; }
+    .exerciseCard { padding: var(--space-4); }
+    .exerciseHeader { gap: 0.75rem; }
+    .setRow { gap: 0.5rem; padding: 0.65rem; }
+}
+@media (max-width: 280px) { .setRow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

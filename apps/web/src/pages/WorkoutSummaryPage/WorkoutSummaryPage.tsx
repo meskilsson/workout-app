@@ -1,3 +1,5 @@
+import { ArrowLeft, GripVertical } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -105,12 +107,7 @@ function SortableSummaryExerciseCard({
   return (
     <div
       ref={setNodeRef}
-      style={{
-        ...style,
-        touchAction: "none",
-      }}
-      {...attributes}
-      {...listeners}
+      style={style}
     >
       <Card className={styles.exerciseCard}>
         <div className={styles.exerciseHeader}>
@@ -124,7 +121,8 @@ function SortableSummaryExerciseCard({
             </h3>
           </div>
 
-          <span className={styles.exerciseBadge}>Selected</span>
+          <button type="button" className={styles.dragHandle} {...attributes} {...listeners}
+            aria-label={`Reorder ${exercise.exerciseName}`}><Icon icon={GripVertical} /></button>
         </div>
       </Card>
     </div>
@@ -376,18 +374,20 @@ export default function WorkoutSummaryPage() {
 
           <p className={styles.subtitle}>
             {isTemplateDraft
-              ? "Review your selected exercises before saving this as a reusable template."
-              : "Review your selected exercises before starting your session."}
+              ? "Review the exercise order, then save your template."
+              : "Review the exercise order, then start training."}
           </p>
 
           <Button
             type="button"
             variant="secondary"
             style={{ minWidth: "3.25rem", marginTop: "1rem" }}
-            className={styles.backButton}
+            iconOnly
+                        className={styles.backButton}
+                    aria-label="Go back"
             onClick={() => navigate(-1)}
           >
-            <span className={styles.buttonArrow}>←</span>
+            <Icon icon={ArrowLeft} />
           </Button>
         </div>
 
@@ -434,7 +434,7 @@ export default function WorkoutSummaryPage() {
                 ? "These exercises will be saved into your reusable template."
                 : "These exercises will be included in your workout session."}
               <br />
-              Drag and drop to re-order exercises.
+              Use the drag handle to reorder. Keyboard: Space, arrow keys, then Space.
             </p>
           </div>
         </div>
@@ -499,7 +499,7 @@ export default function WorkoutSummaryPage() {
                   showLabel
                 />
               ) : (
-                "Save workout"
+                "Save template"
               )}
             </Button>
           ) : (
@@ -561,6 +561,7 @@ export default function WorkoutSummaryPage() {
           </>
         }
       >
+        {actionError && <p className={styles.errorCard} role="alert">{actionError}</p>}
         <form
           id="save-template-form"
           className={styles.templateForm}

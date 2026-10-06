@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+import Icon from "../icon/Icon";
 import type { ReactNode, ButtonHTMLAttributes } from "react";
 import "./button.css";
 
@@ -8,6 +10,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
     size?: "small" | "medium" | "large";
     className?: string;
     iconOnly?: boolean;
+    icon?: LucideIcon;
     fullWidthMobile?: boolean;
 };
 
@@ -18,6 +21,7 @@ export default function Button({
     size = "medium",
     className = "",
     iconOnly = false,
+    icon,
     fullWidthMobile = false,
     ...rest
 }: ButtonProps) {
@@ -34,6 +38,7 @@ export default function Button({
 
     return (
         <button className={buttonClassName} {...rest}>
+            {icon && <Icon icon={icon} />}
             {children ?? title}
         </button>
     );

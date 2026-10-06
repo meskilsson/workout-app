@@ -1,3 +1,5 @@
+import { ArrowLeft } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -45,7 +47,7 @@ export default function ExerciseDetailsPage() {
                 if (error instanceof Error) {
                     setError(error.message || "Failed to fetch exercise");
                 } else {
-                    setError("Something went wrong");
+                    setError("Unable to complete this request. Please try again.");
                 }
             } finally {
                 setIsLoading(false);
@@ -58,7 +60,7 @@ export default function ExerciseDetailsPage() {
     if (isLoading && !exercise) {
         return (
             <LoadingState
-                layout="details"
+                layout="exerciseDetails"
                 className={styles.page}
                 title="Exercise details"
                 message="Loading exercise details..."
@@ -80,11 +82,13 @@ export default function ExerciseDetailsPage() {
                         type="button"
                         variant="secondary"
                         style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+                        iconOnly
                         className={styles.backButton}
+                    aria-label="Go back"
                         onClick={() => navigate(-1)}
 
                     >
-                        <span className={styles.buttonArrow}>←</span>
+                        <Icon icon={ArrowLeft} />
                     </Button>
                 </Card>
             </Box>
@@ -100,23 +104,23 @@ export default function ExerciseDetailsPage() {
         <Box className={styles.page}>
             <header className={styles.header}>
                 <div>
-                    <p className={styles.kicker}>Exercise details</p>
 
                     <h1 className={styles.title}>{exercise.name}</h1>
 
                     <p className={styles.subtitle}>
-                        Details of the exercise, instructions, equipment, difficulty,
-                        and trained muscles.
+                        Equipment, technique, and target muscles.
                     </p>
                     <Button
                         type="button"
                         variant="secondary"
                         style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+                        iconOnly
                         className={styles.backButton}
+                    aria-label="Go back"
                         onClick={() => navigate(-1)}
 
                     >
-                        <span className={styles.buttonArrow}>←</span>
+                        <Icon icon={ArrowLeft} />
                     </Button>
                 </div>
 
@@ -129,14 +133,6 @@ export default function ExerciseDetailsPage() {
                         }`}
                 >
                     <section className={styles.infoColumn}>
-                        <div className={styles.titleBlock}>
-
-                            <p className={styles.exerciseMetaText}>
-                                {exercise.exerciseType} · {exercise.equipment} ·{" "}
-                                {exercise.difficulty}
-                            </p>
-                        </div>
-
                         <p className={styles.description}>
                             {exercise.description || "No description provided."}
                         </p>
@@ -163,36 +159,6 @@ export default function ExerciseDetailsPage() {
                                 </span>
                             </div>
                         </div>
-
-                        <div className={styles.muscleSection}>
-                            <h3 className={styles.sectionTitle}>Primary muscles</h3>
-
-                            {primaryMuscles.length > 0 ? (
-                                <div className={styles.muscleTags}>
-                                    {primaryMuscles.map((muscle) => (
-                                        <span key={muscle} className={styles.primaryTag}>
-                                            {muscle}
-                                        </span>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className={styles.emptyText}>No primary muscles listed.</p>
-                            )}
-                        </div>
-
-                        {secondaryMuscles.length > 0 && (
-                            <div className={styles.muscleSection}>
-                                <h3 className={styles.sectionTitle}>Secondary muscles</h3>
-
-                                <div className={styles.muscleTags}>
-                                    {secondaryMuscles.map((muscle) => (
-                                        <span key={muscle} className={styles.secondaryTag}>
-                                            {muscle}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
 
                         <div className={styles.instructionsBlock}>
                             <h3 className={styles.sectionTitle}>Instructions</h3>

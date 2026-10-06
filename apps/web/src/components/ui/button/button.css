@@ -10,7 +10,7 @@
     gap: 0.5rem;
 
     font-family: inherit;
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
     line-height: 1.1;
     text-align: center;
     white-space: nowrap;
@@ -67,17 +67,17 @@
 
 .button--small {
     padding: 0.4rem 0.7rem;
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
 }
 
 .button--medium {
     padding: 0.55rem 0.9rem;
-    font-size: 0.95rem;
+    font-size: var(--text-sm);
 }
 
 .button--large {
     padding: 0.7rem 1rem;
-    font-size: 1rem;
+    font-size: var(--text-base);
 }
 
 .button--icon {
@@ -113,3 +113,14 @@
         width: 100%;
     }
 }
+.button--danger:hover:not(:disabled) { background: var(--color-danger-hover); }
+.button--success:hover:not(:disabled) { background: var(--color-success-hover); }
+.button:disabled { opacity: 0.7; }
+.button--icon { min-height: 44px; }
+
+.button:has(> .ui-icon:only-child) { min-height: 44px; }
+
+.button { min-height: var(--control-height); transition-duration: 150ms; }
+.button--medium { padding: 0.7rem 1rem; }
+.button--secondary:hover:not(:disabled) { background: var(--color-primary-soft); }
+.button--small { min-height: 44px; }

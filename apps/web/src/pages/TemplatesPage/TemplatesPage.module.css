@@ -16,19 +16,19 @@
 .kicker {
     margin: 0 0 0.5rem;
 
-    color: var(--color-primary);
-    font-size: 0.85rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    color: var(--color-primary-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    letter-spacing: normal;
+    text-transform: none;
 }
 
 .title {
     margin: 0;
 
     color: var(--color-text);
-    font-size: clamp(2rem, 5vw, 4rem);
-    line-height: 1;
+    font-size: var(--text-heading-md);
+    line-height: var(--line-heading);
     letter-spacing: -0.04em;
 }
 
@@ -37,7 +37,7 @@
     margin: 0.8rem 0 0;
 
     color: var(--color-text-muted);
-    font-size: 1rem;
+    font-size: var(--text-base);
 }
 
 .templateGrid {
@@ -56,7 +56,7 @@
     background: var(--gradient-surface);
     border: 1px solid var(--color-border-soft);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
 }
 
 .cardHeader {
@@ -70,27 +70,27 @@
     margin: 0;
 
     color: var(--color-text);
-    font-size: 1.2rem;
+    font-size: var(--text-lead);
 }
 
 .templateDescription {
     margin: 0.65rem 0 0;
 
     color: var(--color-text-muted);
-    font-size: 0.95rem;
+    font-size: var(--text-sm);
 }
 
 .categoryBadge {
     padding: 0.35rem 0.65rem;
 
-    color: var(--color-primary);
+    color: var(--color-primary-text);
     background: var(--color-primary-soft);
 
     border: 1px solid var(--color-primary-border);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-sm);
 
-    font-size: 0.8rem;
-    font-weight: 800;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
     text-transform: capitalize;
     white-space: nowrap;
 }
@@ -115,7 +115,7 @@
     border: 1px solid var(--color-border-soft);
     border-radius: var(--radius-md);
 
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
 }
 
 .stateCard {
@@ -126,13 +126,13 @@
     background: var(--gradient-surface);
     border: 1px solid var(--color-border-soft);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
+    box-shadow: none;
 
     text-align: center;
 }
 
 .errorText {
-    color: var(--color-danger);
+    color: var(--color-danger-text);
 }
 
 .section {
@@ -154,14 +154,14 @@
     margin: 0;
 
     color: var(--color-text);
-    font-size: 1.5rem;
+    font-size: var(--text-heading-sm);
 }
 
 .sectionText {
     margin: 0.5rem 0 0;
 
     color: var(--color-text-muted);
-    font-size: 0.95rem;
+    font-size: var(--text-sm);
 }
 
 .loginHint {
@@ -175,17 +175,17 @@
     border: 1px solid var(--color-border-soft);
     border-radius: var(--radius-md);
 
-    font-size: 0.95rem;
+    font-size: var(--text-sm);
 }
 
 .templateType {
     margin: 0 0 0.4rem;
 
-    color: var(--color-primary);
-    font-size: 0.75rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    color: var(--color-primary-text);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: normal;
+    text-transform: none;
 }
 
 .templateActions {
@@ -221,7 +221,7 @@
 
 
 .buttonArrow {
-    font-size: 1.1rem;
+    font-size: var(--text-lead);
     line-height: 1;
 }
 
@@ -312,3 +312,13 @@
     }
 
 }
+
+.title { font-size: var(--text-heading-md); font-weight: var(--weight-semibold); line-height: var(--line-heading); }
+
+.templateGrid { gap: var(--space-5); }
+.categoryBadge { background: var(--color-pink-soft); color: var(--color-pink-text); border-color: transparent; }
+.templateActions { padding-top: var(--space-4); border-top: 1px solid var(--color-border-soft); }
+
+.backButton { width: 44px !important; min-width: 44px !important; height: 44px; padding: 0; }
+
+.exerciseItem { background: transparent; border: 0; border-bottom: 1px solid var(--color-border-soft); border-radius: 0; padding: .65rem 0; }

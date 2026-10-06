@@ -1,3 +1,5 @@
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -417,13 +419,14 @@ export default function ExerciseSelectPage() {
                         : ""
                     }`}
                 onClick={() => handleToggleExercise(exercise)}
-                aria-disabled={isAlreadyInWorkout}
+                aria-disabled={isAlreadyInWorkout || isSavingExercises}
+                aria-pressed={isSelected || isAlreadyInWorkout}
             >
                 <div className={styles.exerciseCardContent}>
                     <div className={styles.exerciseCardTop}>
                         <div className={styles.exerciseMainInfo}>
                             <h3 className={styles.exerciseName}>
-                                {exercise.name}
+                                {exercise.name} {(isSelected || isAlreadyInWorkout) && <Icon icon={CheckCircle2} />}
                             </h3>
 
                             {isAlreadyInWorkout && (
@@ -560,7 +563,7 @@ export default function ExerciseSelectPage() {
                         Select exercises
                     </h1>
 
-                    <p className={styles.errorText}>{error}</p>
+                    <p className={styles.errorText} role="alert">{error}</p>
                 </div>
             </Box>
         );
@@ -595,7 +598,9 @@ export default function ExerciseSelectPage() {
                             minWidth: "3.25rem",
                             marginTop: "1.5rem",
                         }}
+                        iconOnly
                         className={styles.backButton}
+                    aria-label="Go back"
                         onClick={() =>
                             isActiveWorkout
                                 ? navigate(
@@ -604,9 +609,7 @@ export default function ExerciseSelectPage() {
                                 : navigate(-1)
                         }
                     >
-                        <span className={styles.buttonArrow}>
-                            ←
-                        </span>
+                        <Icon icon={ArrowLeft} />
                     </Button>
                 </div>
 
@@ -621,6 +624,7 @@ export default function ExerciseSelectPage() {
             <div className={styles.searchWrapper}>
                 <input
                     className={styles.searchInput}
+                    aria-label="Search exercises"
                     type="text"
                     placeholder="Search exercises, muscles, or equipment..."
                     value={searchTerm}

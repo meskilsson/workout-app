@@ -1,6 +1,7 @@
 import { changePasswordRequest } from "../../services/userApi";
 import { useAuth } from "../../context/AuthContext";
 import { useState } from "react";
+import styles from "./AccountForm.module.css";
 import Button from "../ui/button/Button";
 import LoadingPredator from "../Loading/LoadingPredator";
 
@@ -56,13 +57,14 @@ export default function ChangePasswordForm() {
     }
 
     return (
-        <section>
+        <section className={styles.section}>
             <h2>Change password</h2>
 
             <form onSubmit={handleSubmit}>
                 <label htmlFor="currentPassword">Current password</label>
                 <input
                     id="currentPassword"
+                    autoComplete="current-password"
                     type="password"
                     value={currentPassword}
                     onChange={(event) => setCurrentPassword(event.target.value)}
@@ -72,6 +74,7 @@ export default function ChangePasswordForm() {
                 <label htmlFor="newPassword">New password</label>
                 <input
                     id="newPassword"
+                    autoComplete="new-password"
                     type="password"
                     value={newPassword}
                     onChange={(event) => setNewPassword(event.target.value)}
@@ -81,14 +84,15 @@ export default function ChangePasswordForm() {
                 <label htmlFor="confirmPassword">Confirm new password</label>
                 <input
                     id="confirmPassword"
+                    autoComplete="new-password"
                     type="password"
                     value={confirmPassword}
                     onChange={(event) => setConfirmPassword(event.target.value)}
                     required
                 />
 
-                {error && <p>{error}</p>}
-                {success && <p>{success}</p>}
+                {error && <p className={styles.error} role="alert">{error}</p>}
+                {success && <p className={styles.success} role="status">{success}</p>}
 
                 <Button variant="primary" type="submit" disabled={isLoading}>
                     {isLoading ? (

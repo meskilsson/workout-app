@@ -1,14 +1,11 @@
+import { Sun, Moon } from "lucide-react";
+import Icon from "../ui/icon/Icon";
 import { useTheme, type ColorTheme } from "../../context/ThemeContext";
 import styles from "./ThemeSelect.module.css";
 
 const themeOptions: { value: ColorTheme; label: string }[] = [
-    { value: "charcoal", label: "Charcoal" },
-    { value: "dark", label: "Dark" },
     { value: "light", label: "Light" },
-    { value: "pink", label: "Pink" },
-    { value: "neon", label: "Neon" },
-    { value: "orange", label: "Orange" },
-    { value: "space", label: "Space" },
+    { value: "dark", label: "Dark" },
 ];
 
 export default function ThemeSelect() {
@@ -16,7 +13,7 @@ export default function ThemeSelect() {
 
     return (
         <label className={styles.wrapper}>
-            <span className={styles.label}>Theme</span>
+            <span className={styles.label}><Icon icon={theme === "light" ? Sun : Moon} /> Theme</span>
 
             <select
                 className={styles.select}

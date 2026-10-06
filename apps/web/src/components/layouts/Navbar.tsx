@@ -1,5 +1,7 @@
+import { Home, Dumbbell, BookOpen, Plus, UserRound, LogOut, Timer, Menu, X, History } from "lucide-react";
+import Icon from "../ui/icon/Icon";
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import Button from "../ui/button/Button";
 import { useAuth } from "../../context/AuthContext";
 import ThemeSelect from "../theme/ThemeSelect";
@@ -11,6 +13,8 @@ import { formatElapsedDuration } from "@workout-app/shared/utils/formatElapsedTi
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isWorkoutPage = /^\/workout\/[^/]+$/.test(pathname);
   const { user, isAuthenticated, logout } = useAuth();
 
   const { currentWorkoutId } = useCurrentWorkout();
@@ -54,33 +58,30 @@ export default function Navbar() {
   const navLinks = (
     <>
       <NavLink to="/" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}>
-        Home
+        <Icon icon={Home} /> Home
       </NavLink>
 
       <NavLink to="/templates" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}>
-        Workouts
+        <Icon icon={Dumbbell} /> Workouts
       </NavLink>
 
       <NavLink to="/library" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}>
-        Library
+        <Icon icon={BookOpen} /> Library
       </NavLink>
 
       {isAuthenticated && (
         <>
-          <NavLink
-            to="/create-exercise"
-            className={({ isActive }) => navLinkClass(isActive)}
-            onClick={closeMenu}
-          >
-            Create Exercise
+          <NavLink to="/profile/workouts" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}>
+            <Icon icon={History} /> History
           </NavLink>
 
           <NavLink
             to="/profile"
+            end
             className={({ isActive }) => navLinkClass(isActive)}
             onClick={closeMenu}
           >
-            Profile
+            <Icon icon={UserRound} /> Profile
           </NavLink>
         </>
       )}
@@ -97,14 +98,14 @@ export default function Navbar() {
             {user?.username ? `@${user.username}` : "Logged in"}
           </span>
 
-          <Button variant="ghost" onClick={handleLogout}>
-            Logout
+          <Button variant="ghost" iconOnly aria-label="Log out" onClick={handleLogout}>
+            <Icon icon={LogOut} />
           </Button>
         </>
       ) : (
         <>
           <Button variant="ghost" onClick={() => handleNavigate("/login")}>
-            Login
+            Log in
           </Button>
 
           <Button onClick={() => handleNavigate("/signup")}>Sign up</Button>
@@ -114,11 +115,11 @@ export default function Navbar() {
       {shouldShowCurrentWorkout && (
         <div className={styles.currentWorkout}>
           <Button variant="ghost" onClick={handleCurrentWorkout}>
-            Current Workout
+            <Icon icon={Dumbbell} /> Resume workout
           </Button>
 
           <span className={styles.timerText}>
-            {formatElapsedDuration(timerState.elapsedTime)}
+            <Icon icon={Timer} /> {formatElapsedDuration(timerState.elapsedTime)}
           </span>
         </div>
       )}
@@ -126,11 +127,13 @@ export default function Navbar() {
   );
 
   return (
-    <nav className={styles.navbar}>
+    <>
+    <nav className={styles.navbar} aria-label="Header navigation">
       <div className={styles.inner}>
         <div className={styles.leftSide}>
           <button
             className={styles.brand}
+            aria-label="Workout home"
             type="button"
             onClick={() => handleNavigate("/")}
           >
@@ -139,6 +142,7 @@ export default function Navbar() {
               alt="Moose logo"
               className={styles.logo}
             />
+            <span>Workout</span>
           </button>
 
           <div className={styles.links}>{navLinks}</div>
@@ -152,21 +156,30 @@ export default function Navbar() {
           onClick={() => setIsMenuOpen((current) => !current)}
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={isMenuOpen}
+          aria-controls="mobile-menu"
         >
-          <span className={styles.menuLine} />
-          <span className={styles.menuLine} />
-          <span className={styles.menuLine} />
+          <Icon icon={isMenuOpen ? X : Menu} />
         </button>
       </div>
 
       <div
+        id="mobile-menu"
         className={`${styles.mobileMenu} ${isMenuOpen ? styles.mobileMenuOpen : ""
           }`.trim()}
       >
-        <div className={styles.mobileLinks}>{navLinks}</div>
+        <div className={styles.mobileLinks}>{navLinks}
+          {isAuthenticated && <NavLink to="/create-exercise" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={Plus} /> Create exercise</NavLink>}
+        </div>
 
         <div className={styles.mobileActions}>{authActions}</div>
       </div>
     </nav>
+    {!isWorkoutPage && !isMenuOpen && <nav className={styles.bottomNav} aria-label="Main navigation">
+      <NavLink to="/" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={Home} /><span>Home</span></NavLink>
+      <NavLink to="/templates" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={Dumbbell} /><span>Workouts</span></NavLink>
+      {isAuthenticated ? <NavLink to="/profile/workouts" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={History} /><span>History</span></NavLink> : <NavLink to="/library" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={BookOpen} /><span>Library</span></NavLink>}
+      <NavLink to={isAuthenticated ? "/profile" : "/login"} className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu} end><Icon icon={UserRound} /><span>{isAuthenticated ? "Profile" : "Log in"}</span></NavLink>
+    </nav>}
+    </>
   );
 }

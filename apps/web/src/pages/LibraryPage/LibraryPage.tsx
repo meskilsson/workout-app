@@ -1,3 +1,5 @@
+import { ArrowLeft, Plus } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
 import { useEffect, useState } from "react";
 
 
@@ -104,7 +106,7 @@ export default function LibraryPage() {
                 <div className={styles.stateCard}>
                     <p className={styles.kicker}>Exercise library</p>
                     <h1 className={styles.title}>Library</h1>
-                    <p className={styles.errorText}>{error}</p>
+                    <p className={styles.errorText} role="alert">{error}</p>
                 </div>
             </Box>
         );
@@ -117,13 +119,16 @@ export default function LibraryPage() {
                     <p className={styles.kicker}>Exercise library</p>
                     <h1 className={styles.title}>Library</h1>
                     <p className={styles.subtitle}>
-                        Browse exercises by muscle, equipment, type, or difficulty.
+                        Find exercises for your next session.
                     </p>
-                    <p className={styles.subtitle}>Click an exercise for more details.</p>
+
                 </div>
 
-                <div className={styles.countBadge}>
+                <div className={styles.libraryActions}>
+                    {isAuthenticated && <Button variant="secondary" icon={Plus} onClick={() => navigate("/create-exercise")}>Create exercise</Button>}
+                    <div className={styles.countBadge}>
                     {total} exercise{total === 1 ? "" : "s"}
+                    </div>
                 </div>
             </div>
 
@@ -132,14 +137,17 @@ export default function LibraryPage() {
                     type="button"
                     variant="secondary"
                     style={{ minWidth: "3.25rem", marginBottom: "1rem" }}
-                    className={styles.backButton}
+                    iconOnly
+                        className={styles.backButton}
+                    aria-label="Go back"
                     onClick={() => navigate(-1)}
 
                 >
-                    <span className={styles.buttonArrow}>←</span>
+                    <Icon icon={ArrowLeft} />
                 </Button>
                 <input
                     className={styles.searchInput}
+                    aria-label="Search exercises"
                     type="text"
                     placeholder="Search exercises..."
                     value={searchTerm}
@@ -166,21 +174,6 @@ export default function LibraryPage() {
                                         {exercise.exerciseType} · {exercise.equipment} · {exercise.difficulty}
                                     </p>
 
-                                    <div className={styles.muscleTags}>
-                                        {exercise.primaryMuscles?.map((muscle) => (
-                                            <span key={muscle} className={styles.primaryTag}>
-                                                {muscle}
-                                            </span>
-                                        ))}
-                                    </div>
-
-                                    <div className={styles.muscleTags}>
-                                        {exercise.secondaryMuscles?.map((muscle) => (
-                                            <span key={muscle} className={styles.secondaryTag}>
-                                                {muscle}
-                                            </span>
-                                        ))}
-                                    </div>
                                 </div>
 
                                 <div className={styles.cardDummy}>

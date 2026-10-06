@@ -1,3 +1,5 @@
+import { Plus, ArrowLeft, Trash2 } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -112,39 +114,40 @@ export default function ProfileExercisesPage() {
             {isLoading && <LoadingAnnouncement message="Updating content..." />}
             <div className={styles.header}>
                 <div>
-                    <p className={styles.kicker}>Exercises</p>
-                    <h2 className={styles.title}>My custom exercises</h2>
+                    <h1 className={styles.title}>My exercises</h1>
                     <p className={styles.subtitle}>
-                        Manage the exercises you have created yourself.
+                        Edit or remove your custom movements.
                     </p>
 
                     <Button
                         type="button"
                         variant="secondary"
                         style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+                        iconOnly
                         className={styles.backButton}
+                    aria-label="Go back"
                         onClick={() => navigate(-1)}
 
                     >
-                        <span className={styles.buttonArrow}>←</span>
+                        <Icon icon={ArrowLeft} />
                     </Button>
                 </div>
 
-                <Button onClick={() => navigate("/create-exercise")}>
-                    Create Exercise
+                <Button icon={Plus} onClick={() => navigate("/create-exercise")}>
+                    Create exercise
                 </Button>
             </div>
 
             {error && (
                 <Card className={styles.stateCard}>
-                    <p className={styles.errorText}>{error}</p>
+                    <p className={styles.errorText} role="alert">{error}</p>
                 </Card>
             )}
 
-            {exercises.length === 0 ? (
+            {exercises.length === 0 && !error ? (
                 <Card className={styles.stateCard}>
                     <p className={styles.stateText}>
-                        You have not created any custom exercises yet.
+                        No custom exercises yet. Create one to add a movement.
                     </p>
                 </Card>
             ) : (
@@ -189,7 +192,7 @@ export default function ProfileExercisesPage() {
                                     </Button>
 
                                     <Button
-                                        variant="danger"
+                                        variant="danger" icon={Trash2}
                                         onClick={() => setExerciseToDelete(exercise)}
                                     >
                                         Delete
@@ -240,7 +243,7 @@ export default function ProfileExercisesPage() {
                         </Button>
 
                         <Button
-                            variant="danger"
+                            variant="danger" icon={Trash2}
                             onClick={handleConfirmDeleteExercise}
                             disabled={isDeleting}
                         >
@@ -262,6 +265,7 @@ export default function ProfileExercisesPage() {
                     Are you sure you want to delete{" "}
                     <strong>{exerciseToDelete?.name}</strong>?
                 </p>
+                {error && <p className={styles.errorText} role="alert">{error}</p>}
             </Modal>
         </div>
     );

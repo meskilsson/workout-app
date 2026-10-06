@@ -1,14 +1,8 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useLayoutEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
-export type ColorTheme =
-    | "charcoal"
-    | "dark"
-    | "light"
-    | "pink"
-    | "neon"
-    | "orange"
-    | "space";
+import { readThemePreference, THEME_STORAGE_KEY, type ColorTheme } from "../utils/themePreference";
+export type { ColorTheme } from "../utils/themePreference";
 
 type ThemeContextValue = {
     theme: ColorTheme;
@@ -17,35 +11,16 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-const THEME_STORAGE_KEY = "color_theme";
-const DEFAULT_THEME: ColorTheme = "dark";
-
-function isColorTheme(value: string | null): value is ColorTheme {
-    return (
-        value === "charcoal" ||
-        value === "dark" ||
-        value === "light" ||
-        value === "pink" ||
-        value === "neon" ||
-        value === "orange" ||
-        value === "space"
-    );
-}
-
 export function ThemeProvider({ children }: { children: ReactNode }) {
-    const [theme, setThemeState] = useState<ColorTheme>(() => {
-        const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    const [theme, setThemeState] = useState<ColorTheme>(readThemePreference);
 
-        if (isColorTheme(storedTheme)) {
-            return storedTheme;
-        }
-
-        return DEFAULT_THEME;
-    });
-
-    useEffect(() => {
+    useLayoutEffect(() => {
         document.documentElement.dataset.theme = theme;
-        localStorage.setItem(THEME_STORAGE_KEY, theme);
+        try {
+            localStorage.setItem(THEME_STORAGE_KEY, theme);
+        } catch {
+            // Mode switching remains available when storage is restricted.
+        }
     }, [theme]);
 
     function setTheme(newTheme: ColorTheme) {
