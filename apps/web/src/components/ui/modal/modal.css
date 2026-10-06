@@ -58,3 +58,26 @@
         width: 100%;
     }
 }
+/* Dialogs are the one necessary nested scroller; all actions scroll into view. */
+.modal-overlay {
+    align-items: flex-start;
+    padding: max(1rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px))
+        max(1rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
+}
+.modal-shell {
+    min-width: 0;
+    margin-block: auto;
+    max-height: calc(100dvh - 2rem);
+    max-height: calc(var(--visible-viewport-height, 100dvh) - 2rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+.modal-actions { flex-wrap: wrap; }
+
+.modal-overlay {
+    top: var(--visible-viewport-top, 0px);
+    bottom: auto;
+    height: 100vh;
+    height: var(--visible-viewport-height, 100dvh);
+}
+.modal-shell { max-height: 100%; }

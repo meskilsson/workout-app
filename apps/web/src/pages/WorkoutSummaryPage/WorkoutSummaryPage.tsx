@@ -336,6 +336,8 @@ export default function WorkoutSummaryPage() {
   if (isLoadingDraft) {
     return (
       <LoadingState
+                layout="summary"
+                className={styles.page}
         title="Workout builder"
         message="Loading workout summary..."
       />

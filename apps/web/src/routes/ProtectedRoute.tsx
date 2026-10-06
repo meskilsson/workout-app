@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
 
-import LoadingState from "../components/Loading/LoadingState";
+import AppLoadingSkeleton from "../components/Loading/AppLoadingSkeleton";
 
 export default function ProtectedRoute({
     children,
@@ -13,10 +13,7 @@ export default function ProtectedRoute({
 
     if (loading) {
         return (
-            <LoadingState
-                title="Workout App"
-                message="Checking your session..."
-            />
+            <AppLoadingSkeleton message="Checking your session..." />
         );
     }
 

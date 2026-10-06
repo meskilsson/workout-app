@@ -1130,6 +1130,8 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
     if (isLoadingDraft) {
         return (
             <LoadingState
+                layout="workout"
+                className={styles.page}
                 title="Active workout"
                 message="Loading workout..."
                 color="var(--color-success)"

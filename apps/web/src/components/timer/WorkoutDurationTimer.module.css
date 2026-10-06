@@ -107,3 +107,8 @@
         height: 2rem;
     }
 }
+.timerCard { flex-wrap: wrap; }
+.timeActions { min-width: 0; flex-wrap: wrap; }
+@media (hover: none) {
+    .iconButton.iconButton { min-width: 44px; min-height: 44px; }
+}

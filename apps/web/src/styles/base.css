@@ -426,6 +426,7 @@ body,
 
 body {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--color-background);
   color: var(--color-text);
   font-family: var(--font-family-base);
@@ -491,4 +492,26 @@ img {
     140px 40px;
 
   opacity: 0.28;
+}
+
+/* The document owns scrolling. Avoid clipping overflow so zoomed content can pan. */
+html {
+  scroll-padding-block: 6rem 9rem;
+}
+body {
+  overflow-wrap: anywhere;
+}
+input, textarea, select {
+  max-width: 100%;
+  min-width: 0;
+  scroll-margin-block: 6rem;
+}
+button {
+  max-width: 100%;
+}
+@media (hover: none), (max-width: 900px) {
+  /* More specific than page-level input classes: prevents Safari focus zoom. */
+  :root body input, :root body textarea, :root body select {
+    font-size: max(1rem, 16px);
+  }
 }

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
+import { LoadingAnnouncement } from "../../components/Loading/Skeleton";
 import LoadingState from "../../components/Loading/LoadingState";
 import LoadingPredator from "../../components/Loading/LoadingPredator";
 
@@ -27,6 +28,7 @@ export default function TemplatesPage() {
     const [error, setError] = useState("");
     const [actionError, setActionError] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
     const [startingTemplateId, setStartingTemplateId] = useState<string | null>(
         null,
@@ -48,6 +50,7 @@ export default function TemplatesPage() {
                 }
             } finally {
                 setIsLoading(false);
+                setHasLoadedOnce(true);
             }
         }
 
@@ -153,16 +156,18 @@ export default function TemplatesPage() {
         );
     }
 
-    if (isLoading) {
+    if (isLoading && !hasLoadedOnce) {
         return (
             <LoadingState
+                layout="cards"
+                className={styles.page}
                 title="Pre-made workouts"
                 message="Loading workout templates..."
             />
         );
     }
 
-    if (error) {
+    if (error && publicTemplates.length === 0) {
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>
@@ -174,6 +179,8 @@ export default function TemplatesPage() {
 
     return (
         <Box className={styles.page}>
+            {error && <p className={styles.errorText} role="alert">{error}</p>}
+            {isLoading && <LoadingAnnouncement message="Updating content..." />}
             <header className={styles.header}>
                 <p className={styles.kicker}>Pre-made workouts</p>
 
@@ -222,7 +229,7 @@ export default function TemplatesPage() {
                 </div>
 
                 {publicTemplates.length > 0 ? (
-                    <div className={styles.templateGrid}>
+                    <div className={styles.templateGrid} aria-busy={isLoading}>
                         {publicTemplates.map((template) =>
                             renderTemplateCard(template),
                         )}

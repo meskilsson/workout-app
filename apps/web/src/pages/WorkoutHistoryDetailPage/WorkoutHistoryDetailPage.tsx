@@ -188,9 +188,11 @@ export default function WorkoutHistoryDetailPage() {
         };
     }, [session, exerciseLibrary]);
 
-    if (isLoading) {
+    if (isLoading && !session) {
         return (
             <LoadingState
+                layout="details"
+                className={styles.page}
                 title="Workout history"
                 message="Loading workout details..."
             />
@@ -319,8 +321,9 @@ export default function WorkoutHistoryDetailPage() {
                             this workout.
                         </p>
 
-                        {isLoadingMuscles && (
+                        {isLoadingMuscles && exerciseLibrary.length === 0 && (
                             <LoadingState
+                                layout="muscles"
                                 variant="inline"
                                 message="Loading muscle profile..."
                                 color="var(--color-success)"

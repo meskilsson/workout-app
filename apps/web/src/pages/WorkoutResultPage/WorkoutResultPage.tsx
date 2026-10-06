@@ -169,9 +169,11 @@ export default function WorkoutResultPage() {
         };
     }, [workoutSession, exerciseLibrary]);
 
-    if (isLoadingSession) {
+    if (isLoadingSession && !workoutSession) {
         return (
             <LoadingState
+                layout="details"
+                className={styles.page}
                 title="Workout result"
                 message="Loading your saved workout..."
                 color="var(--color-success)"
@@ -256,8 +258,9 @@ export default function WorkoutResultPage() {
                             this workout.
                         </p>
 
-                        {isLoadingMuscles && (
+                        {isLoadingMuscles && exerciseLibrary.length === 0 && (
                             <LoadingState
+                                layout="muscles"
                                 variant="inline"
                                 message="Loading muscle profile..."
                                 color="var(--color-success)"

@@ -39,7 +39,7 @@ export default function TemplatesDetailsPage({
 
     const [template, setTemplate] = useState<WorkoutTemplate | null>(null);
     const [exerciseDetails, setExerciseDetails] = useState<Exercise[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -112,9 +112,11 @@ export default function TemplatesDetailsPage({
         };
     }, [id, isAuthenticated, templateSource]);
 
-    if (isLoading) {
+    if (isLoading && !template) {
         return (
             <LoadingState
+                layout="details"
+                className={styles.page}
                 title="Workout template"
                 message="Loading workout details..."
             />

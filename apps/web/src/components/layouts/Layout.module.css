@@ -1,11 +1,14 @@
 .appLayout {
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
+    padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
 }
 
 .main {
     flex: 1;
+    min-width: 0;
     width: 100%;
 }
 
@@ -111,4 +114,14 @@
     .about {
         text-align: center;
     }
+}
+
+.timerFooter {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+}
+:global(html[data-viewport-obstructed="true"]) .timerFooter {
+    position: static;
+}
+@media (max-height: 480px) and (hover: none) {
+    .timerFooter { position: static; }
 }

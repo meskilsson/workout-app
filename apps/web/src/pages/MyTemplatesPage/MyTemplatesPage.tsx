@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import Modal from "../../components/ui/modal/Modal";
+import { LoadingAnnouncement } from "../../components/Loading/Skeleton";
 import LoadingState from "../../components/Loading/LoadingState";
 import LoadingPredator from "../../components/Loading/LoadingPredator";
 
@@ -24,6 +25,7 @@ export default function MyTemplatesPage() {
     const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
     const [startingTemplateId, setStartingTemplateId] = useState<string | null>(
         null,
@@ -54,6 +56,7 @@ export default function MyTemplatesPage() {
                 }
             } finally {
                 setIsLoading(false);
+                setHasLoadedOnce(true);
             }
         }
 
@@ -121,9 +124,11 @@ export default function MyTemplatesPage() {
         }
     }
 
-    if (isLoading) {
+    if (isLoading && !hasLoadedOnce) {
         return (
             <LoadingState
+                layout="cards"
+                className={styles.section}
                 variant="card"
                 title="Your templates"
                 message="Loading your workout templates..."
@@ -133,6 +138,7 @@ export default function MyTemplatesPage() {
 
     return (
         <section className={styles.section}>
+            {isLoading && <LoadingAnnouncement message="Updating content..." />}
             <div className={styles.sectionHeader}>
                 <div>
                     <h2 className={styles.sectionTitle}>My workouts</h2>
@@ -168,7 +174,7 @@ export default function MyTemplatesPage() {
             )}
 
             {templates.length > 0 ? (
-                <div className={styles.templateGrid}>
+                <div className={styles.templateGrid} aria-busy={isLoading}>
                     {templates.map((template) => {
                         const isStarting = startingTemplateId === template._id;
                         const isEditing = editingTemplateId === template._id;

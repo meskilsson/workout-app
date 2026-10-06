@@ -41,3 +41,6 @@
         align-items: flex-start;
     }
 }
+.footer {
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+}

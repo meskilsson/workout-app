@@ -229,3 +229,14 @@
         padding-inline: 0.85rem;
     }
 }
+.navbar { padding-top: env(safe-area-inset-top, 0px); }
+.inner, .leftSide, .actions, .currentWorkout { min-width: 0; }
+:global(html[data-viewport-obstructed="true"]) .navbar { position: static; }
+@media (max-width: 900px) {
+    /* An open menu scrolls with the page, rather than covering the viewport. */
+    .navbar:has(.mobileMenuOpen) { position: static; }
+    .mobileActions .userText { white-space: normal; }
+}
+@media (max-height: 480px) and (hover: none) {
+    .navbar { position: static; }
+}

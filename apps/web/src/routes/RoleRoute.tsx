@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
 
-import LoadingState from "../components/Loading/LoadingState";
+import AppLoadingSkeleton from "../components/Loading/AppLoadingSkeleton";
 
 type AllowedRole = "user" | "admin";
 
@@ -21,10 +21,7 @@ export default function RoleRoute({
 
     if (loading) {
         return (
-            <LoadingState
-                title="Workout App"
-                message="Checking permissions..."
-            />
+            <AppLoadingSkeleton message="Checking permissions..." />
         );
     }
 

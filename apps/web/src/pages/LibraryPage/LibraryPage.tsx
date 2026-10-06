@@ -14,6 +14,7 @@ import type { Exercise } from "@workout-app/shared";
 import { usePaginationScroll } from "../../hooks/usePaginationScroll";
 import Button from "../../components/ui/button/Button";
 import { useNavigate } from "react-router-dom";
+import { LoadingAnnouncement } from "../../components/Loading/Skeleton";
 import LoadingState from "../../components/Loading/LoadingState";
 
 import styles from "./LibraryPage.module.css";
@@ -89,13 +90,15 @@ export default function LibraryPage() {
     if (isLoading && !hasLoadedOnce) {
         return (
             <LoadingState
+                layout="library"
+                className={styles.page}
                 title="Exercise library"
                 message="Loading exercises..."
             />
         );
     }
 
-    if (error) {
+    if (error && exercises.length === 0) {
         return (
             <Box className={styles.page}>
                 <div className={styles.stateCard}>
@@ -145,14 +148,13 @@ export default function LibraryPage() {
             </div>
 
             {isLoading && hasLoadedOnce && (
-                <LoadingState
-                    variant="inline"
-                    message="Updating exercises..."
-                />
+                <LoadingAnnouncement message="Updating exercises..." />
             )}
 
+            {error && <p className={styles.errorText} role="alert">{error}</p>}
+
             {exercises.length > 0 ? (
-                <div className={styles.exerciseGrid}>
+                <div className={styles.exerciseGrid} aria-busy={isLoading}>
                     {exercises.map((exercise) => (
                         <article key={exercise._id} className={styles.exerciseCard}>
 

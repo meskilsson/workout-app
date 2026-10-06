@@ -1,5 +1,6 @@
 .page {
     min-height: 100vh;
+    min-height: 100dvh;
     padding: 0.9rem 0.5rem 2rem;
     background: var(--gradient-background);
 }
@@ -612,4 +613,20 @@
         min-width: 38px;
         height: 32px;
     }
+}
+
+@media (max-width: 640px) {
+    .exerciseHeader { flex-wrap: wrap; }
+    .exerciseTitleRow { flex-basis: 12rem; }
+    .exerciseActions { margin-left: auto; flex-wrap: wrap; }
+    .exerciseMenuDropdown { min-width: 0; width: min(11rem, 75vw); }
+    .setRow { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px 44px; }
+    .completeSetButton.completeSetButton, .deleteButton.deleteButton {
+        width: 44px; min-width: 44px; min-height: 44px;
+    }
+    .underlineInput { min-height: 44px; }
+}
+@media (max-width: 280px) {
+    .setRow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .endSessionButton.endSessionButton { min-width: 0; width: 100%; }
 }

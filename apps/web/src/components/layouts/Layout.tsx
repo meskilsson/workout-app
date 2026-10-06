@@ -1,4 +1,5 @@
 import { Outlet, useLocation, useParams } from "react-router-dom";
+import { useVisibleViewport } from "../../hooks/useVisibleViewport";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
 import RestTimer from "../timer/RestTimer";
@@ -7,6 +8,7 @@ import styles from "./Layout.module.css";
 import WebRestTimerProvider from "../timer/WebRestTimerProvider";
 
 export default function Layout() {
+  useVisibleViewport();
   const { pathname } = useLocation();
   const { draftId } = useParams();
   const isWorkoutPage = pathname === `/workout/${draftId}`;

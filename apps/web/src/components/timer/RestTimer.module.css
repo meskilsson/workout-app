@@ -180,3 +180,11 @@
         justify-content: space-between;
     }
 }
+@media (max-width: 640px) {
+    .timer, .controls, .adjustActions, .actions { flex-wrap: wrap; min-width: 0; }
+    .controls { flex: 1 1 14rem; }
+    .adjustActions button, .iconButton.iconButton {
+        min-width: 44px; min-height: 44px; height: auto;
+    }
+    .label { font-size: 0.75rem; }
+}

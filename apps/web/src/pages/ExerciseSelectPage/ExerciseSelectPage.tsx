@@ -19,6 +19,7 @@ import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
+import { LoadingAnnouncement } from "../../components/Loading/Skeleton";
 import LoadingState from "../../components/Loading/LoadingState";
 import LoadingPredator from "../../components/Loading/LoadingPredator";
 
@@ -535,6 +536,8 @@ export default function ExerciseSelectPage() {
     if (isLoading && !hasLoadedOnce) {
         return (
             <LoadingState
+                layout="exercises"
+                className={styles.page}
                 title="Exercise library"
                 message={
                     isActiveWorkout
@@ -545,7 +548,7 @@ export default function ExerciseSelectPage() {
         );
     }
 
-    if (draftError || exerciseError) {
+    if (draftError || (exerciseError && exercises.length === 0)) {
         return (
             <Box className={styles.page}>
                 <div className={styles.stateCard}>
@@ -628,11 +631,10 @@ export default function ExerciseSelectPage() {
             </div>
 
             {isLoadingExercises && hasLoadedOnce && (
-                <LoadingState
-                    variant="inline"
-                    message="Updating exercises..."
-                />
+                <LoadingAnnouncement message="Updating exercises..." />
             )}
+
+            {exerciseError && <p className={styles.errorText} role="alert">{exerciseError}</p>}
 
             {actionError && (
                 <p className={styles.errorText}>
@@ -640,7 +642,7 @@ export default function ExerciseSelectPage() {
                 </p>
             )}
 
-            <Box className={styles.groupList}>
+            <Box className={styles.groupList} aria-busy={isLoadingExercises}>
                 {groupedExercises.map((group) => (
                     <section
                         key={group.id}

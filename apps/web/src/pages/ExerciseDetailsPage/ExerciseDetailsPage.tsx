@@ -55,9 +55,11 @@ export default function ExerciseDetailsPage() {
         getExercise();
     }, [id, isAuthenticated]);
 
-    if (isLoading) {
+    if (isLoading && !exercise) {
         return (
             <LoadingState
+                layout="details"
+                className={styles.page}
                 title="Exercise details"
                 message="Loading exercise details..."
             />

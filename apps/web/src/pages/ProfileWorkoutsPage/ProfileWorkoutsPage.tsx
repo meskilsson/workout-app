@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
+import { LoadingAnnouncement } from "../../components/Loading/Skeleton";
 import LoadingState from "../../components/Loading/LoadingState";
 import LoadingPredator from "../../components/Loading/LoadingPredator";
 
@@ -25,6 +26,7 @@ export default function ProfileWorkoutsPage() {
 
     const [sessions, setSessions] = useState<WorkoutSession[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
     const [error, setError] = useState("");
     const [actionError, setActionError] = useState("");
     const [repeatingSessionId, setRepeatingSessionId] = useState<string | null>(
@@ -50,6 +52,7 @@ export default function ProfileWorkoutsPage() {
                 }
             } finally {
                 setIsLoading(false);
+                setHasLoadedOnce(true);
             }
         }
 
@@ -99,9 +102,11 @@ export default function ProfileWorkoutsPage() {
         }
     }
 
-    if (isLoading) {
+    if (isLoading && !hasLoadedOnce) {
         return (
             <LoadingState
+                layout="list"
+                className={styles.page}
                 variant="card"
                 title="Workout history"
                 message="Loading your workouts..."
@@ -111,6 +116,7 @@ export default function ProfileWorkoutsPage() {
 
     return (
         <div className={styles.page}>
+            {isLoading && <LoadingAnnouncement message="Updating content..." />}
             <div className={styles.header}>
                 <div>
                     <p className={styles.kicker}>History</p>
@@ -164,7 +170,7 @@ export default function ProfileWorkoutsPage() {
                     <p className={styles.stateText}>No workouts saved yet.</p>
                 </Card>
             ) : (
-                <div className={styles.sessionList}>
+                <div className={styles.sessionList} aria-busy={isLoading}>
                     {sessions.map((session) => {
                         const totalSets = session.exercises.reduce(
                             (sum, exercise) => sum + exercise.sets.length,

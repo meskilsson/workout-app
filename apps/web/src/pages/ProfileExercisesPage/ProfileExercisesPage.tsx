@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import Modal from "../../components/ui/modal/Modal";
+import { LoadingAnnouncement } from "../../components/Loading/Skeleton";
 import LoadingState from "../../components/Loading/LoadingState";
 import LoadingPredator from "../../components/Loading/LoadingPredator";
 
@@ -32,6 +33,7 @@ export default function ProfileExercisesPage() {
 
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
     const [error, setError] = useState("");
 
     const [exerciseToDelete, setExerciseToDelete] = useState<Exercise | null>(null);
@@ -61,6 +63,7 @@ export default function ProfileExercisesPage() {
                 }
             } finally {
                 setIsLoading(false);
+                setHasLoadedOnce(true);
             }
         }
 
@@ -92,9 +95,11 @@ export default function ProfileExercisesPage() {
         }
     }
 
-    if (isLoading) {
+    if (isLoading && !hasLoadedOnce) {
         return (
             <LoadingState
+                layout="list"
+                className={styles.page}
                 variant="card"
                 title="Your exercises"
                 message="Loading custom exercises..."
@@ -104,6 +109,7 @@ export default function ProfileExercisesPage() {
 
     return (
         <div className={styles.page}>
+            {isLoading && <LoadingAnnouncement message="Updating content..." />}
             <div className={styles.header}>
                 <div>
                     <p className={styles.kicker}>Exercises</p>
@@ -142,7 +148,7 @@ export default function ProfileExercisesPage() {
                     </p>
                 </Card>
             ) : (
-                <div className={styles.exerciseList}>
+                <div className={styles.exerciseList} aria-busy={isLoading}>
                     {exercises.map((exercise) => (
                         <Card key={exercise._id} className={styles.exerciseCard}>
                             <div className={styles.exerciseTopRow}>

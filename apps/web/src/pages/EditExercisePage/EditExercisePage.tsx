@@ -163,6 +163,8 @@ export default function EditExercisePage() {
     if (isFetching) {
         return (
             <LoadingState
+                layout="form"
+                className={styles.page}
                 title="Edit exercise"
                 message="Loading exercise..."
             />

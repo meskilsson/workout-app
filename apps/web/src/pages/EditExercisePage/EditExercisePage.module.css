@@ -1,5 +1,6 @@
 .page {
     min-height: calc(100vh - 72px);
+    min-height: calc(100dvh - 72px);
     display: flex;
     justify-content: center;
     align-items: flex-start;
