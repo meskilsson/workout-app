@@ -108,7 +108,10 @@ export type PaginatedExercisesResponse = {
     exercises: Exercise[];
 };
 
+export type ExerciseSort = "name" | "popular" | "mostUsed";
+
 export type GetExercisesParams = {
+    sort?: ExerciseSort;
     page?: number;
     limit?: number;
     search?: string;
@@ -116,6 +119,7 @@ export type GetExercisesParams = {
 }
 
 export type GetExercisesOptions = {
+    sort?: ExerciseSort;
     page: number;
     limit: number;
     search?: string;

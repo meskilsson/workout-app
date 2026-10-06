@@ -3,11 +3,13 @@ import {
     MUSCLE_OPTIONS,
     muscleSearchAliases,
     type Muscle,
+    type ExerciseSort,
 } from "@workout-app/shared";
 
 import { ValidationError } from "../errors/AppError";
 
 export type ExerciseQueryOptions = {
+    sort?: ExerciseSort;
     page: number;
     limit: number;
     search?: string;
@@ -59,6 +61,10 @@ function normalizeMuscles(rawMuscles: string[]): Muscle[] {
 }
 
 export function parseExerciseQuery(req: Request): ExerciseQueryOptions {
+    const sort = req.query.sort ?? "name";
+    if (sort !== "name" && sort !== "popular" && sort !== "mostUsed") {
+        throw new ValidationError("Sort must be name, popular, or mostUsed");
+    }
     let limit = Number(req.query.limit);
     let page = Number(req.query.page);
 
@@ -94,6 +100,7 @@ export function parseExerciseQuery(req: Request): ExerciseQueryOptions {
     const muscles = normalizeMuscles(rawMuscles);
 
     return {
+        sort,
         page,
         limit,
         search,

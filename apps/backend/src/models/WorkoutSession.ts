@@ -104,6 +104,8 @@ const workoutSessionSchema = new Schema<IWorkoutSession>(
     },
 );
 
+workoutSessionSchema.index({ "exercises.exerciseId": 1, deletedAt: 1, userId: 1 });
+
 const WorkoutSession = model<IWorkoutSession>("WorkoutSession", workoutSessionSchema);
 
 export default WorkoutSession;

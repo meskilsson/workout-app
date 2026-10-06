@@ -15,11 +15,13 @@ function buildExerciseQueryParams({
     limit = 10,
     search = "",
     muscles = [],
+    sort = "name",
 }: GetExercisesParams) {
     const params = new URLSearchParams();
 
     params.set("page", String(page));
     params.set("limit", String(limit));
+    params.set("sort", sort);
 
     if (search.trim()) {
         params.set("search", search.trim());

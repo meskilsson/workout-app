@@ -31,7 +31,7 @@ import "../../components/ui/cards/card.css";
 
 import styles from "./ExerciseSelectPage.module.css";
 
-import type { Exercise } from "@workout-app/shared";
+import type { Exercise, ExerciseSort } from "@workout-app/shared";
 
 import { usePaginationScroll } from "../../hooks/usePaginationScroll";
 
@@ -98,6 +98,8 @@ export default function ExerciseSelectPage() {
     const [actionError, setActionError] = useState("");
 
     const [searchTerm, setSearchTerm] = useState("");
+    const [sort, setSort] = useState<ExerciseSort>("popular");
+    const effectiveSort = sort === "mostUsed" && !isAuthenticated ? "popular" : sort;
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
     const [limit] = useState(12);
@@ -118,6 +120,7 @@ export default function ExerciseSelectPage() {
     const isEditingExistingDraft = existingExerciseIds.length > 0;
 
     useEffect(() => {
+        let cancelled = false;
         async function loadExercises() {
             if (!isActiveWorkout && !selectedMuscleQuery) {
                 return;
@@ -128,6 +131,7 @@ export default function ExerciseSelectPage() {
 
             try {
                 const options = {
+                    sort: effectiveSort,
                     page,
                     limit,
                     search: debouncedSearchTerm,
@@ -140,21 +144,26 @@ export default function ExerciseSelectPage() {
                     ? await getExerciseLibraryRequest(options)
                     : await getPublicExercisesRequest(options);
 
+                if (cancelled) return;
                 setExercises(data.exercises);
                 setTotalPages(data.totalPages);
             } catch (err) {
+                if (cancelled) return;
                 setExerciseError(
                     err instanceof Error
                         ? err.message
                         : "Failed to load exercises",
                 );
             } finally {
-                setIsLoadingExercises(false);
-                setHasLoadedOnce(true);
+                if (!cancelled) {
+                    setIsLoadingExercises(false);
+                    setHasLoadedOnce(true);
+                }
             }
         }
 
         loadExercises();
+        return () => { cancelled = true; };
     }, [
         isAuthenticated,
         page,
@@ -162,6 +171,7 @@ export default function ExerciseSelectPage() {
         debouncedSearchTerm,
         selectedMuscleQuery,
         isActiveWorkout,
+        effectiveSort,
     ]);
 
     useEffect(() => {
@@ -626,6 +636,28 @@ export default function ExerciseSelectPage() {
                         setSearchTerm(event.target.value)
                     }
                 />
+                <label className={styles.sortLabel}>
+                    Sort by
+                    <select
+                        className={styles.sortSelect}
+                        value={effectiveSort}
+                        onChange={(event) => {
+                            setSort(event.target.value as ExerciseSort);
+                            setPage(1);
+                        }}
+                    >
+                        <option value="name">Name (A–Z)</option>
+                        <option value="popular">Most popular</option>
+                        {isAuthenticated && <option value="mostUsed">My most used</option>}
+                    </select>
+                </label>
+                {effectiveSort !== "name" && (
+                    <p className={styles.sortHint}>
+                        {effectiveSort === "mostUsed"
+                            ? "Ranked by your completed workouts, highest to lowest."
+                            : "Ranked by completed workouts across all users, highest to lowest."}
+                    </p>
+                )}
             </div>
 
             {isLoadingExercises && hasLoadedOnce && (

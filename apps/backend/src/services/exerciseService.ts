@@ -60,7 +60,10 @@ export async function createExercise(
 
 
 
-export async function getPublicExercises({ page, limit, search, muscles }: GetExercisesOptions) {
+export async function getPublicExercises({ page, limit, search, muscles, sort }: GetExercisesOptions) {
+    if (sort === "mostUsed") {
+        throw new ValidationError("My most used requires the authenticated exercise library");
+    }
 
 
     const filters: Record<string, unknown>[] = [
@@ -83,15 +86,15 @@ export async function getPublicExercises({ page, limit, search, muscles }: GetEx
     };
 
 
-    return findPaginatedExercises(filter, page, limit);
+    return findPaginatedExercises(filter, page, limit, sort);
 }
 
-export async function getExerciseLibrary(userId: string, { page, limit, search, muscles }: GetExercisesOptions) {
+export async function getExerciseLibrary(userId: string, { page, limit, search, muscles, sort }: GetExercisesOptions) {
     const filters: Record<string, unknown>[] = [
         {
             $or: [
                 { isCustom: false },
-                { createdBy: userId },
+                { createdBy: new Types.ObjectId(userId) },
             ],
         },
     ];
@@ -109,7 +112,7 @@ export async function getExerciseLibrary(userId: string, { page, limit, search, 
         $and: filters,
     };
 
-    return findPaginatedExercises(filter, page, limit);
+    return findPaginatedExercises(filter, page, limit, sort, userId);
 }
 
 export async function getPublicExerciseById(id: string) {
