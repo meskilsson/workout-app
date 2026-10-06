@@ -68,6 +68,19 @@
     margin: 0 auto 1.5rem;
 }
 
+.searchControls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.searchControls .searchInput { flex: 1 1 280px; width: auto; font: inherit; }
+.sortLabel { display: flex; align-items: center; gap: 0.5rem; font-size: var(--text-sm); }
+.sortSelect { padding: 0.9rem; font: inherit; color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-input-border); border-radius: var(--radius-lg); }
+.sortSelect:focus-visible { outline: 2px solid var(--color-primary-border); outline-offset: 2px; }
+.sortHint { margin: 0.75rem 0 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+
 .searchInput {
     width: 100%;
     padding: 0.9rem 1rem;

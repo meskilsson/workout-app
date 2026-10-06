@@ -12,7 +12,7 @@ import {
 import Box from "../../components/ui/box/Box";
 
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
-import type { Exercise } from "@workout-app/shared";
+import type { Exercise, ExerciseSort } from "@workout-app/shared";
 import { usePaginationScroll } from "../../hooks/usePaginationScroll";
 import Button from "../../components/ui/button/Button";
 import { useNavigate } from "react-router-dom";
@@ -37,6 +37,8 @@ export default function LibraryPage() {
 
 
     const [searchTerm, setSearchTerm] = useState("");
+    const [sort, setSort] = useState<ExerciseSort>("popular");
+    const effectiveSort = sort === "mostUsed" && !isAuthenticated ? "popular" : sort;
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
 
@@ -47,6 +49,7 @@ export default function LibraryPage() {
     const { page, setPage, pageTopRef, handlePageChange } = usePaginationScroll<HTMLDivElement>(totalPages)
 
     useEffect(() => {
+        let cancelled = false;
         async function loadExercises() {
             setError("");
             setIsLoading(true);
@@ -54,6 +57,7 @@ export default function LibraryPage() {
             try {
 
                 const options = {
+                    sort: effectiveSort,
                     page,
                     limit,
                     search: debouncedSearchTerm
@@ -63,19 +67,24 @@ export default function LibraryPage() {
                     ? await getExerciseLibraryRequest(options)
                     : await getPublicExercisesRequest(options);
 
+                if (cancelled) return;
                 setExercises(data.exercises);
                 setTotal(data.total);
                 setTotalPages(data.totalPages);
             } catch (err) {
+                if (cancelled) return;
                 setError(err instanceof Error ? err.message : "Failed to load exercises");
             } finally {
-                setIsLoading(false);
-                setHasLoadedOnce(true);
+                if (!cancelled) {
+                    setIsLoading(false);
+                    setHasLoadedOnce(true);
+                }
             }
         }
 
         loadExercises();
-    }, [isAuthenticated, page, limit, debouncedSearchTerm]);
+        return () => { cancelled = true; };
+    }, [isAuthenticated, page, limit, debouncedSearchTerm, effectiveSort]);
 
     useEffect(() => {
         const timeoutId = window.setTimeout(() => {
@@ -145,6 +154,7 @@ export default function LibraryPage() {
                 >
                     <Icon icon={ArrowLeft} />
                 </Button>
+                <div className={styles.searchControls}>
                 <input
                     className={styles.searchInput}
                     aria-label="Search exercises"
@@ -153,6 +163,29 @@ export default function LibraryPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
+                <label className={styles.sortLabel}>
+                    Sort by
+                    <select
+                        className={styles.sortSelect}
+                        value={effectiveSort}
+                        onChange={(event) => {
+                            setSort(event.target.value as ExerciseSort);
+                            setPage(1);
+                        }}
+                    >
+                        <option value="name">Name (A–Z)</option>
+                        <option value="popular">Most popular</option>
+                        {isAuthenticated && <option value="mostUsed">My most used</option>}
+                    </select>
+                </label>
+                </div>
+                {effectiveSort !== "name" && (
+                    <p className={styles.sortHint}>
+                        {effectiveSort === "mostUsed"
+                            ? "Ranked by your completed workouts, highest to lowest."
+                            : "Ranked by completed workouts across all users, highest to lowest."}
+                    </p>
+                )}
             </div>
 
             {isLoading && hasLoadedOnce && (
