@@ -13,7 +13,9 @@
     "dev:all": "concurrently \"npm run dev:web\" \"npm run dev:backend\" \"npm run dev:native\"",
     "build:web": "npm run build --workspace=web",
     "build:backend": "npm run build --workspace=backend",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "harness": "node tools/dev-harness/cli.mjs",
+    "test:harness": "node --test tools/dev-harness/harness.test.mjs"
   },
   "overrides": {
     "react": "19.1.0",
