@@ -1,5 +1,8 @@
 import { Navigate } from "react-router-dom";
+
 import { useAuth } from "../context/AuthContext";
+
+import LoadingState from "../components/Loading/LoadingState";
 
 export default function PublicRoute({
     children,
@@ -9,7 +12,12 @@ export default function PublicRoute({
     const { isAuthenticated, loading } = useAuth();
 
     if (loading) {
-        return <p>Loading...</p>;
+        return (
+            <LoadingState
+                title="Workout App"
+                message="Checking your session..."
+            />
+        );
     }
 
     if (isAuthenticated) {

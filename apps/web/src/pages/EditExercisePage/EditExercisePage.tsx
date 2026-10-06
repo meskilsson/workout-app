@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
+import LoadingState from "../../components/Loading/LoadingState";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import {
     DIFFICULTY_OPTIONS,
@@ -160,12 +162,10 @@ export default function EditExercisePage() {
 
     if (isFetching) {
         return (
-            <Box className={styles.page}>
-                <Card className={styles.card}>
-                    <h1 className={styles.title}>Edit Exercise</h1>
-                    <p className={styles.subtitle}>Loading exercise...</p>
-                </Card>
-            </Box>
+            <LoadingState
+                title="Edit exercise"
+                message="Loading exercise..."
+            />
         );
     }
 
@@ -314,7 +314,16 @@ export default function EditExercisePage() {
                         </Button>
 
                         <Button type="submit" disabled={isSaving}>
-                            {isSaving ? "Saving..." : "Save Changes"}
+                            {isSaving ? (
+                                <LoadingPredator
+                                    size="small"
+                                    color="currentColor"
+                                    label="Saving..."
+                                    showLabel
+                                />
+                            ) : (
+                                "Save Changes"
+                            )}
                         </Button>
                     </div>
                 </form>

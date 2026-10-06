@@ -4,8 +4,11 @@ import { useNavigate } from "react-router-dom";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import Modal from "../../components/ui/modal/Modal";
+import LoadingState from "../../components/Loading/LoadingState";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import {
+    createTemplateEditDraftRequest,
     deleteWorkoutTemplateRequest,
     getMyWorkoutTemplatesRequest,
     startWorkoutFromTemplateRequest,
@@ -15,7 +18,6 @@ import type { WorkoutTemplate } from "@workout-app/shared";
 
 import styles from "../TemplatesPage/TemplatesPage.module.css";
 
-
 export default function MyTemplatesPage() {
     const navigate = useNavigate();
 
@@ -24,6 +26,10 @@ export default function MyTemplatesPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     const [startingTemplateId, setStartingTemplateId] = useState<string | null>(
+        null,
+    );
+
+    const [editingTemplateId, setEditingTemplateId] = useState<string | null>(
         null,
     );
 
@@ -72,6 +78,24 @@ export default function MyTemplatesPage() {
         }
     }
 
+    async function handleEditTemplate(templateId: string) {
+        setError("");
+        setEditingTemplateId(templateId);
+
+        try {
+            const draft = await createTemplateEditDraftRequest(templateId);
+            navigate(`/exercise-select/${draft._id}`);
+        } catch (error) {
+            if (error instanceof Error) {
+                setError(error.message);
+            } else {
+                setError("Failed to prepare workout for editing");
+            }
+        } finally {
+            setEditingTemplateId(null);
+        }
+    }
+
     async function handleConfirmDeleteTemplate() {
         if (!templateToDelete) return;
 
@@ -99,17 +123,11 @@ export default function MyTemplatesPage() {
 
     if (isLoading) {
         return (
-            <Card className={styles.stateCard}>
-                <p>Loading your workouts...</p>
-            </Card>
-        );
-    }
-
-    if (error) {
-        return (
-            <Card className={styles.stateCard}>
-                <p className={styles.errorText}>{error}</p>
-            </Card>
+            <LoadingState
+                variant="card"
+                title="Your templates"
+                message="Loading your workout templates..."
+            />
         );
     }
 
@@ -143,10 +161,24 @@ export default function MyTemplatesPage() {
                 </Button>
             </div>
 
+            {error && (
+                <Card className={styles.stateCard}>
+                    <p className={styles.errorText}>{error}</p>
+                </Card>
+            )}
+
             {templates.length > 0 ? (
                 <div className={styles.templateGrid}>
                     {templates.map((template) => {
                         const isStarting = startingTemplateId === template._id;
+                        const isEditing = editingTemplateId === template._id;
+                        const isBusy = Boolean(
+                            startingTemplateId ||
+                            editingTemplateId ||
+                            templateToDelete ||
+                            isDeleting,
+                        );
+
                         const exercises = template.exercises ?? [];
 
                         return (
@@ -165,7 +197,8 @@ export default function MyTemplatesPage() {
                                         </h2>
 
                                         <p className={styles.templateDescription}>
-                                            {template.description || "No description."}
+                                            {template.description ||
+                                                "No description."}
                                         </p>
                                     </div>
 
@@ -178,7 +211,10 @@ export default function MyTemplatesPage() {
                                     {exercises.length > 0 ? (
                                         exercises.map((exercise, index) => (
                                             <div
-                                                key={exercise._id ?? `${template._id}-${index}`}
+                                                key={
+                                                    exercise._id ??
+                                                    `${template._id}-${index}`
+                                                }
                                                 className={styles.exerciseItem}
                                             >
                                                 <span>{exercise.order + 1}.</span>
@@ -196,38 +232,66 @@ export default function MyTemplatesPage() {
                                     )}
                                 </div>
 
-                                <div className={styles.templateActions}>
-                                    <Button
-                                        type="button"
-                                        disabled={isStarting}
-                                        onClick={() =>
-                                            handleStartTemplate(template._id)
-                                        }
-                                    >
-                                        {isStarting
-                                            ? "Starting..."
-                                            : "Start workout"}
-                                    </Button>
+                                <div className={styles.templateCardActions}>
+                                    <div className={styles.templateActionStack}>
+                                        <Button
+                                            type="button"
+                                            variant="primary"
+                                            disabled={isBusy}
+                                            onClick={() => handleStartTemplate(template._id)}
+                                        >
+                                            {isStarting ? (
+                                                <LoadingPredator
+                                                    size="small"
+                                                    color="currentColor"
+                                                    label="Starting..."
+                                                    showLabel
+                                                />
+                                            ) : (
+                                                "Start workout"
+                                            )}
+                                        </Button>
 
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        onClick={() =>
-                                            navigate(
-                                                `/templates/my/templates-details/${template._id}`,
-                                            )
-                                        }
-                                    >
-                                        View details
-                                    </Button>
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            disabled={isBusy}
+                                            onClick={() =>
+                                                navigate(`/templates/my/templates-details/${template._id}`)
+                                            }
+                                        >
+                                            View details
+                                        </Button>
+                                    </div>
 
-                                    <Button
-                                        type="button"
-                                        variant="danger"
-                                        onClick={() => setTemplateToDelete(template)}
-                                    >
-                                        Delete
-                                    </Button>
+                                    <div className={styles.templateActionStack}>
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            disabled={isBusy}
+                                            onClick={() => handleEditTemplate(template._id)}
+                                        >
+                                            {isEditing ? (
+                                                <LoadingPredator
+                                                    size="small"
+                                                    color="currentColor"
+                                                    label="Preparing..."
+                                                    showLabel
+                                                />
+                                            ) : (
+                                                "Edit"
+                                            )}
+                                        </Button>
+
+                                        <Button
+                                            type="button"
+                                            variant="danger"
+                                            disabled={isBusy}
+                                            onClick={() => setTemplateToDelete(template)}
+                                        >
+                                            Delete
+                                        </Button>
+                                    </div>
                                 </div>
                             </Card>
                         );
@@ -255,7 +319,16 @@ export default function MyTemplatesPage() {
                             onClick={handleConfirmDeleteTemplate}
                             disabled={isDeleting}
                         >
-                            {isDeleting ? "Deleting..." : "Delete"}
+                            {isDeleting ? (
+                                <LoadingPredator
+                                    size="small"
+                                    color="currentColor"
+                                    label="Deleting..."
+                                    showLabel
+                                />
+                            ) : (
+                                "Delete"
+                            )}
                         </Button>
 
                         <Button

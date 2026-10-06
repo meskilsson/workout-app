@@ -10,6 +10,7 @@ import { getExerciseLibraryRequest } from "../../services/exerciseApi";
 import { getWorkoutSessionByIdRequest } from "../../services/workoutSessionApi";
 import { formatCompletedDate } from "../../utils/formatCompletedDate";
 import { formatEndTime } from "../../utils/formatEndTime";
+import LoadingState from "../../components/Loading/LoadingState";
 
 import styles from "./WorkoutResultPage.module.css";
 
@@ -170,15 +171,11 @@ export default function WorkoutResultPage() {
 
     if (isLoadingSession) {
         return (
-            <Box className={styles.page}>
-                <Card className={styles.stateCard}>
-                    <p className={styles.kicker}>Workout result</p>
-                    <h1 className={styles.title}>Loading workout result...</h1>
-                    <p className={styles.stateText}>
-                        Getting your saved workout session.
-                    </p>
-                </Card>
-            </Box>
+            <LoadingState
+                title="Workout result"
+                message="Loading your saved workout..."
+                color="var(--color-success)"
+            />
         );
     }
 
@@ -260,9 +257,11 @@ export default function WorkoutResultPage() {
                         </p>
 
                         {isLoadingMuscles && (
-                            <p className={styles.stateText}>
-                                Loading muscle profile...
-                            </p>
+                            <LoadingState
+                                variant="inline"
+                                message="Loading muscle profile..."
+                                color="var(--color-success)"
+                            />
                         )}
 
                         {muscleError && (

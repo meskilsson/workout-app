@@ -37,6 +37,12 @@ export const updateWorkoutDraftExercisesSchema = z.strictObject({
         .min(1, "At least one exercise is required"),
 });
 
+export const addWorkoutDraftExercisesSchema = z.strictObject({
+    exerciseIds: z
+        .array(objectIdSchema)
+        .min(1, "At least one exercise is required"),
+});
+
 const draftSetValueSchema = z.union([
     z.string(),
     z.number(),
@@ -44,6 +50,7 @@ const draftSetValueSchema = z.union([
 ]).optional();
 
 const draftSetSchema = z.strictObject({
+    id: z.uuid().optional(),
     weight: draftSetValueSchema,
     reps: draftSetValueSchema,
 });
@@ -51,13 +58,24 @@ const draftSetSchema = z.strictObject({
 export const updateWorkoutDraftSetsSchema = z.strictObject({
     exerciseId: objectIdSchema,
 
-    sets: z.array(draftSetSchema),
+    sets: z.array(draftSetSchema).refine(
+        sets => {
+            const ids = sets.flatMap(set => set.id ? [set.id] : []);
+            return new Set(ids).size === ids.length;
+        },
+        "Set IDs must be unique within an exercise",
+    ),
 });
 
 export const reorderWorkoutDraftExercisesSchema = z.strictObject({
     exerciseIds: z
         .array(objectIdSchema)
         .min(1, "At least one exercise is required"),
+});
+
+export const workoutDraftExerciseParamsSchema = z.strictObject({
+    draftId: objectIdSchema,
+    exerciseId: objectIdSchema,
 });
 
 export type WorkoutDraftIdParams = z.infer<
@@ -82,4 +100,12 @@ export type UpdateWorkoutDraftSetsInput = z.infer<
 
 export type ReorderWorkoutDraftExercisesInput = z.infer<
     typeof reorderWorkoutDraftExercisesSchema
+>;
+
+export type AddWorkoutDraftExercisesInput = z.infer<
+    typeof addWorkoutDraftExercisesSchema
+>;
+
+export type WorkoutDraftExerciseParams = z.infer<
+    typeof workoutDraftExerciseParamsSchema
 >;

@@ -3,6 +3,7 @@ import { updateUserRequest } from "../../services/userApi";
 import { useAuth } from "../../context/AuthContext";
 import type { UpdateUserBody } from "@workout-app/shared";
 import Button from "../ui/button/Button";
+import LoadingPredator from "../Loading/LoadingPredator";
 
 export default function UpdateAccountForm() {
     const { user: authUser, updateAuthUser } = useAuth();
@@ -88,7 +89,16 @@ export default function UpdateAccountForm() {
                 {success && <p>{success}</p>}
 
                 <Button variant="primary" type="submit" disabled={isLoading}>
-                    {isLoading ? "Saving..." : "Save changes"}
+                    {isLoading ? (
+                        <LoadingPredator
+                            size="small"
+                            color="currentColor"
+                            label="Saving..."
+                            showLabel
+                        />
+                    ) : (
+                        "Save changes"
+                    )}
                 </Button>
             </form>
         </section>

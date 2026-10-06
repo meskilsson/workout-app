@@ -3,10 +3,14 @@ import { useNavigate } from "react-router-dom";
 
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
+import LoadingState from "../../components/Loading/LoadingState";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import {
     getMyWorkoutSessionsRequest,
     repeatWorkoutSessionRequest,
+    deleteWorkoutSessionRequest,
+
 } from "../../services/workoutSessionApi";
 
 import { formatCompletedDate } from "../../utils/formatCompletedDate";
@@ -26,6 +30,9 @@ export default function ProfileWorkoutsPage() {
     const [repeatingSessionId, setRepeatingSessionId] = useState<string | null>(
         null,
     );
+    const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
+    const [deleteAction, setDeleteAction] = useState("");
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         async function loadWorkoutHistory() {
@@ -67,11 +74,38 @@ export default function ProfileWorkoutsPage() {
         }
     }
 
+    async function handleDeleteSession(sessionId: string) {
+        setDeleteAction("");
+        setDeleteSessionId(sessionId);
+        setIsDeleting(true);
+
+        try {
+            await deleteWorkoutSessionRequest(sessionId);
+
+            setSessions((currentSessions) =>
+                currentSessions.filter((session) => session._id !== sessionId),
+            );
+
+
+        } catch (error) {
+            if (error instanceof Error) {
+                setDeleteAction(error.message || "Failed to delete");
+            } else {
+                setDeleteAction("Something went wrong");
+            }
+        } finally {
+            setIsDeleting(false);
+            setDeleteSessionId(null);
+        }
+    }
+
     if (isLoading) {
         return (
-            <Card className={styles.stateCard}>
-                <p className={styles.stateText}>Loading workout history...</p>
-            </Card>
+            <LoadingState
+                variant="card"
+                title="Workout history"
+                message="Loading your workouts..."
+            />
         );
     }
 
@@ -119,6 +153,12 @@ export default function ProfileWorkoutsPage() {
                 </Card>
             )}
 
+            {deleteAction && (
+                <Card className={styles.stateCard}>
+                    <p className={styles.errorText}>{deleteAction}</p>
+                </Card>
+            )}
+
             {sessions.length === 0 ? (
                 <Card className={styles.stateCard}>
                     <p className={styles.stateText}>No workouts saved yet.</p>
@@ -135,6 +175,8 @@ export default function ProfileWorkoutsPage() {
                         const endTime = formatEndTime(session.endedAt);
                         const isRepeatingThisSession =
                             repeatingSessionId === session._id;
+
+                        const isDeletingThisSession = deleteSessionId === session._id && isDeleting;
 
                         return (
                             <Card key={session._id} className={styles.sessionCard}>
@@ -158,9 +200,16 @@ export default function ProfileWorkoutsPage() {
                                                 handleTrainAgain(session._id)
                                             }
                                         >
-                                            {isRepeatingThisSession
-                                                ? "Preparing..."
-                                                : "Train again"}
+                                            {isRepeatingThisSession ? (
+                                                <LoadingPredator
+                                                    size="small"
+                                                    color="currentColor"
+                                                    label="Preparing..."
+                                                    showLabel
+                                                />
+                                            ) : (
+                                                "Train again"
+                                            )}
                                         </Button>
 
                                         <Button
@@ -229,6 +278,25 @@ export default function ProfileWorkoutsPage() {
                                             +{session.exercises.length - 3} more
                                         </span>
                                     )}
+                                </div>
+                                <div className={styles.deleteButton}>
+                                    <Button
+                                        type="button"
+                                        variant="danger"
+                                        disabled={isDeleting || Boolean(repeatingSessionId)}
+                                        onClick={() => handleDeleteSession(session._id)}
+                                    >
+                                        {isDeletingThisSession ? (
+                                            <LoadingPredator
+                                                size="small"
+                                                color="currentColor"
+                                                label="Deleting..."
+                                                showLabel
+                                            />
+                                        ) : (
+                                            "Delete"
+                                        )}
+                                    </Button>
                                 </div>
                             </Card>
                         );

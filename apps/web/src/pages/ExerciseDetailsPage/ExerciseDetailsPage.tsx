@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import styles from "./ExerciseDetailsPage.module.css";
+import LoadingState from "../../components/Loading/LoadingState";
 
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
@@ -56,12 +57,10 @@ export default function ExerciseDetailsPage() {
 
     if (isLoading) {
         return (
-            <Box className={styles.page}>
-                <Card className={styles.stateCard}>
-                    <p className={styles.stateTitle}>Exercise details</p>
-                    <p className={styles.stateText}>Loading exercise details...</p>
-                </Card>
-            </Box>
+            <LoadingState
+                title="Exercise details"
+                message="Loading exercise details..."
+            />
         );
     }
 

@@ -1,3 +1,5 @@
+import { clearDraftSnapshots } from "../utils/workoutProgressStorage";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 import type { CreateWorkoutDraftInput } from "@workout-app/shared";
@@ -11,16 +13,20 @@ type UpdateWorkoutDraftExercisesInput = {
 type UpdateWorkoutDraftSetsInput = {
     exerciseId: string;
     sets: {
+        id?: string;
         weight: string | number | null;
         reps: string | number | null;
     }[];
 };
 
 async function handleResponse(response: Response, fallbackMessage: string) {
-    const data = await response.json();
+    const data = await response.json().catch(error => {
+        if (response.ok) throw error;
+        return null;
+    });
 
     if (!response.ok) {
-        throw new Error(data.message || fallbackMessage);
+        throw Object.assign(new Error(data?.message || fallbackMessage), { status: response.status });
     }
 
     return data;
@@ -107,6 +113,40 @@ export async function updateWorkoutDraftSetsRequest(
     return handleResponse(response, "Failed to update workout draft sets");
 }
 
+export async function addWorkoutDraftExercisesRequest(
+    draftId: string,
+    exerciseData: UpdateWorkoutDraftExercisesInput,
+) {
+    const response = await fetch(
+        `${API_URL}/api/workout-drafts/${draftId}/exercises/add`,
+        {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify(exerciseData),
+        },
+    );
+
+    return handleResponse(response, "Failed to add exercises to workout");
+}
+
+export async function removeWorkoutDraftExerciseRequest(
+    draftId: string,
+    exerciseId: string,
+) {
+    const response = await fetch(
+        `${API_URL}/api/workout-drafts/${draftId}/exercises/${exerciseId}`,
+        {
+            method: "DELETE",
+            credentials: "include",
+        },
+    );
+
+    return handleResponse(response, "Failed to remove exercise from workout");
+}
+
 export async function completeWorkoutDraftRequest(draftId: string) {
     const response = await fetch(
         `${API_URL}/api/workout-drafts/${draftId}/complete`,
@@ -116,7 +156,9 @@ export async function completeWorkoutDraftRequest(draftId: string) {
         },
     );
 
-    return handleResponse(response, "Failed to complete workout draft");
+    const result = await handleResponse(response, "Failed to complete workout draft");
+    clearDraftSnapshots(draftId);
+    return result;
 }
 
 export async function abandonWorkoutDraftRequest(draftId: string) {
@@ -128,7 +170,9 @@ export async function abandonWorkoutDraftRequest(draftId: string) {
         },
     );
 
-    return handleResponse(response, "Failed to abandon workout draft");
+    const result = await handleResponse(response, "Failed to abandon workout draft");
+    clearDraftSnapshots(draftId);
+    return result;
 }
 
 export async function reorderWorkoutDraftExercisesRequest(

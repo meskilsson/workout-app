@@ -17,6 +17,8 @@ import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
 import Card from "../../components/ui/cards/Card";
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
+import LoadingState from "../../components/Loading/LoadingState";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import styles from "./WorkoutHistoryDetailPage.module.css";
 
@@ -188,13 +190,10 @@ export default function WorkoutHistoryDetailPage() {
 
     if (isLoading) {
         return (
-            <Box className={styles.page}>
-                <Card className={styles.stateCard}>
-                    <p className={styles.kicker}>Workout history</p>
-                    <h1 className={styles.title}>Workout details</h1>
-                    <p className={styles.stateText}>Loading workout details...</p>
-                </Card>
-            </Box>
+            <LoadingState
+                title="Workout history"
+                message="Loading workout details..."
+            />
         );
     }
 
@@ -251,7 +250,16 @@ export default function WorkoutHistoryDetailPage() {
                         onClick={handleTrainAgain}
                         disabled={isRepeatingWorkout}
                     >
-                        {isRepeatingWorkout ? "Preparing..." : "Train again"}
+                        {isRepeatingWorkout ? (
+                            <LoadingPredator
+                                size="small"
+                                color="currentColor"
+                                label="Preparing..."
+                                showLabel
+                            />
+                        ) : (
+                            "Train again"
+                        )}
                     </Button>
 
                     <Button
@@ -312,7 +320,11 @@ export default function WorkoutHistoryDetailPage() {
                         </p>
 
                         {isLoadingMuscles && (
-                            <p className={styles.stateText}>Loading muscle profile...</p>
+                            <LoadingState
+                                variant="inline"
+                                message="Loading muscle profile..."
+                                color="var(--color-success)"
+                            />
                         )}
 
                         {muscleError && (

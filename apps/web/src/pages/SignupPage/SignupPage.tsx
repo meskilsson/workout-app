@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import { signupRequest } from "../../services/authApi";
 import { ApiRequestError } from "../../utils/parseJsonResponse";
@@ -234,7 +235,16 @@ export default function SignupPage() {
                         )}
 
                         <Button type="submit" disabled={isLoading}>
-                            {isLoading ? "Creating account..." : "Create account"}
+                            {isLoading ? (
+                                <LoadingPredator
+                                    size="small"
+                                    color="currentColor"
+                                    label="Creating account..."
+                                    showLabel
+                                />
+                            ) : (
+                                "Create account"
+                            )}
                         </Button>
                     </form>
                 </Card>

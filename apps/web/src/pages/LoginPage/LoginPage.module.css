@@ -6,7 +6,7 @@
     align-items: center;
     justify-content: center;
 
-    background: var(--gradient-background);
+
     color: var(--color-text);
 }
 
@@ -140,6 +140,12 @@
 .bottomText button:hover {
     color: var(--color-primary-hover);
     text-decoration: underline;
+}
+
+.buttonLoader {
+    width: 18px;
+    height: 18px;
+    border-width: 3px;
 }
 
 @media (max-width: 480px) {

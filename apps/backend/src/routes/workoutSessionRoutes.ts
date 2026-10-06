@@ -5,6 +5,7 @@ import {
     getMyWorkoutSessions,
     getWorkoutSessionById,
     repeatWorkoutSession,
+    deleteWorkoutSession,
 } from "../controllers/workoutSessionController";
 
 import { requireAuth } from "../middleware/requireAuth";
@@ -43,5 +44,7 @@ workoutSessionRouter.get(
     validateRequest({ params: workoutSessionIdParamsSchema }),
     getWorkoutSessionById,
 );
+
+workoutSessionRouter.delete("/:id", requireAuth, validateRequest({ params: workoutSessionIdParamsSchema }), deleteWorkoutSession);
 
 export default workoutSessionRouter;

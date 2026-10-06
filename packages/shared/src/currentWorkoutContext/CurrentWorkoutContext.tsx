@@ -94,3 +94,10 @@ export function useCurrentWorkout(): CurrentWorkoutContextValue {
 
     return context;
 }
+// Controlled integration for platforms that validate a workout before hydration.
+export function CurrentWorkoutStateProvider({ children, value }: {
+    children: ReactNode;
+    value: CurrentWorkoutContextValue;
+}): ReactElement {
+    return <CurrentWorkoutContext.Provider value={value}>{children}</CurrentWorkoutContext.Provider>;
+}

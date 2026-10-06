@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 import { createExerciseRequest } from "../../services/exerciseApi";
 import {
     MUSCLE_OPTIONS,
@@ -227,7 +228,16 @@ export default function CreateExercisePage() {
                         </Button>
 
                         <Button type="submit" disabled={isLoading}>
-                            {isLoading ? "Creating..." : "Create Exercise"}
+                            {isLoading ? (
+                                <LoadingPredator
+                                    size="small"
+                                    color="currentColor"
+                                    label="Creating..."
+                                    showLabel
+                                />
+                            ) : (
+                                "Create Exercise"
+                            )}
                         </Button>
                     </div>
                 </form>

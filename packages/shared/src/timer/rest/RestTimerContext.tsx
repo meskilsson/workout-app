@@ -1,6 +1,6 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { secondsToMilliseconds } from "./restTimer.utils";
-import { useRestTimer } from "./useRestTimer";
+import { useRestTimer, type RestTimerStorage } from "./useRestTimer";
 
 type RestTimerContextValue = ReturnType<typeof useRestTimer>;
 
@@ -9,13 +9,15 @@ const RestTimerContext = createContext<RestTimerContextValue | null>(null);
 type RestTimerProviderProps = {
     children: ReactNode;
     durationMs?: number;
+    storage?: RestTimerStorage;
 };
 
 export function RestTimerProvider({
     children,
-    durationMs = secondsToMilliseconds(60),
+    durationMs = secondsToMilliseconds(120),
+    storage,
 }: RestTimerProviderProps) {
-    const timer = useRestTimer(durationMs);
+    const timer = useRestTimer(durationMs, storage);
 
     return (
         <RestTimerContext.Provider value={timer}>{children}</RestTimerContext.Provider>

@@ -17,8 +17,14 @@ type WorkoutTimerContextValue = {
     reset: () => void;
 };
 
+export type WorkoutTimerStorage = {
+    load: () => WorkoutTimerState;
+    save: (state: WorkoutTimerState) => void;
+};
+
 type WorkoutTimerProviderProps = {
     children: ReactNode;
+    storage?: WorkoutTimerStorage;
 };
 
 const WORKOUT_TIMER_STORAGE_KEY = "workout-timer-state";
@@ -70,11 +76,12 @@ function hydrateWorkoutTimerState(): WorkoutTimerState {
 
 export function WorkoutTimerProvider({
     children,
+    storage,
 }: WorkoutTimerProviderProps) {
     const [state, dispatch] = useReducer(
         workoutTimerReducer,
         undefined,
-        () => hydrateWorkoutTimerState(),
+        () => storage ? storage.load() : hydrateWorkoutTimerState(),
     );
 
     useEffect(() => {
@@ -90,6 +97,10 @@ export function WorkoutTimerProvider({
     }, [state.isRunning]);
 
     useEffect(() => {
+        if (storage) {
+            storage.save(state);
+            return;
+        }
         if (typeof window === "undefined") return;
 
         try {
@@ -104,7 +115,7 @@ export function WorkoutTimerProvider({
             );
         } catch {
         }
-    }, [state]);
+    }, [state, storage]);
 
     const value = useMemo<WorkoutTimerContextValue>(
         () => ({

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import * as workoutTemplateService from '../services/workoutTemplateService';
 import type { WorkoutDraftIdParams } from "../schemas/workoutDraft.schema";
 
-import { UnauthorizedError } from "../errors/AppError";
+import { UnauthorizedError, ValidationError } from "../errors/AppError";
 
 import type { CreateWorkoutTemplateInput, UpdateWorkoutTemplateInput, WorkoutTemplateIdParams, CreateWorkoutTemplateFromDraftInput } from "../schemas/workoutTemplateSchemas";
 
@@ -189,6 +189,34 @@ export async function createWorkoutTemplateFromDraft(
         );
 
         res.status(201).json(template);
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function createTemplateEditDraft(
+    req: Request<{ templateId: string }>,
+    res: Response,
+    next: NextFunction,
+): Promise<void> {
+    try {
+        const userId = req.user?.id;
+        const { templateId } = req.params;
+
+        if (!userId) {
+            throw new UnauthorizedError("Unauthorized");
+        }
+
+        if (!templateId) {
+            throw new ValidationError("Missing template id");
+        }
+
+        const draft = await workoutTemplateService.createTemplateEditDraft(
+            templateId,
+            userId,
+        );
+
+        res.status(201).json(draft);
     } catch (error) {
         next(error);
     }

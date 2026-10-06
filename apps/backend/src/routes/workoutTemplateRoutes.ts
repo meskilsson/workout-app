@@ -10,6 +10,7 @@ import {
     startWorkoutFromTemplate,
     updateWorkoutTemplate,
     createWorkoutTemplateFromDraft,
+    createTemplateEditDraft,
 } from "../controllers/workoutTemplateController";
 
 import { requireAuth } from "../middleware/requireAuth";
@@ -27,6 +28,7 @@ const workoutTemplateRouter = Router();
 
 workoutTemplateRouter.get("/public", getPublicWorkoutTemplates);
 
+
 workoutTemplateRouter.get(
     "/public/:templateId",
     validateRequest({
@@ -39,6 +41,13 @@ workoutTemplateRouter.get(
     "/my",
     requireAuth,
     getMyWorkoutTemplates,
+);
+
+workoutTemplateRouter.post(
+    "/:templateId/edit-draft",
+    requireAuth,
+    validateRequest({ params: workoutTemplateIdParamSchema }),
+    createTemplateEditDraft,
 );
 
 workoutTemplateRouter.get(

@@ -171,7 +171,8 @@
         transform 0.2s ease,
         box-shadow 0.2s ease,
         border-color 0.2s ease,
-        background 0.2s ease;
+        background 0.2s ease,
+        opacity 0.2s ease;
 }
 
 .exerciseCard:hover {
@@ -183,9 +184,36 @@
 .selectedCard {
     border-color: var(--color-primary) !important;
     background: var(--color-primary-soft) !important;
+
     box-shadow:
         0 0 0 3px var(--color-primary-soft),
         var(--shadow-md);
+}
+
+.existingCard {
+    cursor: default;
+    opacity: 0.68;
+}
+
+.existingCard:hover {
+    transform: none;
+    border-color: var(--color-border-soft) !important;
+    box-shadow: var(--shadow-sm);
+}
+
+.existingBadge {
+    width: fit-content;
+    padding: 0.3rem 0.55rem;
+
+    color: var(--color-text-muted);
+    background: var(--color-surface-soft);
+
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-pill);
+
+    font-size: 0.75rem;
+    font-weight: 800;
+    white-space: nowrap;
 }
 
 .exerciseCardContent {
@@ -305,18 +333,21 @@
 .secondaryTag {
     color: var(--color-text-soft);
     background: var(--color-primary-soft);
+
     border: 1px solid var(--color-primary-border);
 }
 
 .selectedCard .primaryTag {
     color: var(--color-primary);
     background: var(--color-surface);
+
     border: 1px solid var(--color-primary-border);
 }
 
 .selectedCard .secondaryTag {
     color: var(--color-text-muted);
     background: var(--color-surface);
+
     border: 1px solid var(--color-border-soft);
 }
 
@@ -347,7 +378,10 @@
 
     padding: 1rem;
 
-    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    background: color-mix(in srgb,
+            var(--color-surface) 92%,
+            transparent);
+
     border: 1px solid var(--color-border-soft);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
@@ -373,6 +407,7 @@
     padding: 1.5rem;
 
     background: var(--gradient-surface);
+
     border: 1px solid var(--color-border-soft);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
@@ -395,7 +430,10 @@
     color: var(--color-danger);
     background: var(--color-danger-soft);
 
-    border: 1px solid color-mix(in srgb, var(--color-danger) 35%, transparent);
+    border: 1px solid color-mix(in srgb,
+            var(--color-danger) 35%,
+            transparent);
+
     border-radius: var(--radius-md);
 
     font-weight: 700;
@@ -475,7 +513,6 @@
         grid-template-columns: repeat(2, minmax(360px, 1fr));
     }
 }
-
 
 @media (max-width: 700px) {
     .page {
@@ -564,9 +601,18 @@
         gap: 0.5rem;
     }
 
+    .exerciseMainInfo {
+        gap: 0.5rem;
+    }
+
     .exerciseName {
         font-size: 0.95rem;
         line-height: 1.15;
+    }
+
+    .existingBadge {
+        padding: 0.22rem 0.42rem;
+        font-size: 0.68rem;
     }
 
     .exerciseMeta {
@@ -612,6 +658,10 @@
         padding: 0.75rem;
     }
 
+    .footerText {
+        font-size: 0.85rem;
+    }
+
     .footer button {
         width: auto;
         flex: 0 0 auto;
@@ -637,6 +687,10 @@
         gap: 0.5rem;
 
         padding: 0.65rem;
+    }
+
+    .footerText {
+        font-size: 0.78rem;
     }
 
     .footer button {

@@ -158,3 +158,20 @@ export async function createWorkoutTemplateFromDraftRequest(
         "Failed to save workout template",
     );
 }
+
+export async function createTemplateEditDraftRequest(
+    templateId: string,
+): Promise<StartedWorkoutDraft> {
+    const response = await fetch(
+        `${API_URL}/api/workout-templates/${templateId}/edit-draft`,
+        {
+            method: "POST",
+            credentials: "include",
+        },
+    );
+
+    return parseJsonResponse<StartedWorkoutDraft>(
+        response,
+        "Failed to prepare template for editing",
+    );
+}

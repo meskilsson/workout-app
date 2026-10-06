@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Types } from "mongoose";
 import { MUSCLE_OPTIONS, type Muscle } from "@workout-app/shared";
 import Exercise from "../models/Exercises";
@@ -20,6 +21,7 @@ interface UpdateExercisesInput {
 }
 
 interface WorkoutDraftSetInput {
+    id?: string;
     weight?: string | number | null;
     reps?: string | number | null;
 }
@@ -152,6 +154,7 @@ function normalizeDraftSets(value: unknown) {
         const draftSet = set as WorkoutDraftSetInput;
 
         return {
+            id: draftSet.id ?? randomUUID(),
             weight: normalizeNullableNumber(draftSet.weight, "weight"),
             reps: normalizeNullableNumber(draftSet.reps, "reps"),
         };
@@ -263,7 +266,24 @@ export async function getCurrentWorkoutDraft(userId: string) {
 }
 
 export async function getWorkoutDraftById(draftId: string, userId: string) {
-    return getOwnedDraft(draftId, userId);
+    const draft = await getOwnedDraft(draftId, userId);
+    let migrated = false;
+    // Assign identities to legacy sets once, without overwriting concurrent edits.
+    for (const [exerciseIndex, exercise] of draft.exercises.entries()) {
+        for (const [setIndex, set] of exercise.sets.entries()) {
+            if (set.id) continue;
+            migrated = true;
+            const path = `exercises.${exerciseIndex}.sets.${setIndex}.id`;
+            await WorkoutDraft.updateOne(
+                { _id: draft._id, userId, [path]: { $exists: false },
+                    [`exercises.${exerciseIndex}.exerciseId`]: exercise.exerciseId,
+                    [`exercises.${exerciseIndex}.sets.${setIndex}`]: { $exists: true } },
+                { $set: { [path]: randomUUID() } },
+                { timestamps: false },
+            );
+        }
+    }
+    return migrated ? getOwnedDraft(draftId, userId) : draft;
 }
 
 export async function updateWorkoutDraftMuscleGroups(
@@ -348,6 +368,103 @@ export async function updateWorkoutDraftExercises(
 
     return draft;
 }
+
+export async function addWorkoutDraftExercises(
+    draftId: string,
+    exerciseData: UpdateExercisesInput,
+    userId: string,
+) {
+    const draft = await getOwnedDraft(draftId, userId);
+
+    ensureDraftIsActive(draft.status);
+
+    const exerciseIds = normalizeExerciseIds(exerciseData.exerciseIds);
+
+    const existingExerciseIdSet = new Set(
+        draft.exercises.map((exercise) => exercise.exerciseId.toString()),
+    );
+
+    const newExerciseIds = exerciseIds.filter(
+        (exerciseId) => !existingExerciseIdSet.has(exerciseId),
+    );
+
+    if (newExerciseIds.length === 0) {
+        return draft;
+    }
+
+    const exercises = await Exercise.find({
+        _id: { $in: newExerciseIds },
+        $or: [{ isCustom: false, createdBy: null }, { createdBy: userId }],
+    });
+
+    if (exercises.length !== newExerciseIds.length) {
+        throw new ValidationError(
+            "One or more exercises were not found or are not available to you",
+        );
+    }
+
+    const exerciseById = new Map(
+        exercises.map((exercise) => [
+            (exercise._id as Types.ObjectId).toString(),
+            exercise,
+        ]),
+    );
+
+    const exercisesToAdd = newExerciseIds.map((exerciseId) => {
+        const exercise = exerciseById.get(exerciseId);
+
+        if (!exercise) {
+            throw new ValidationError("Exercise not found");
+        }
+
+        return {
+            exerciseId: exercise._id as Types.ObjectId,
+            exerciseName: exercise.name,
+            sets: [],
+        };
+    });
+
+    draft.exercises.push(...exercisesToAdd);
+
+    await draft.save();
+
+    return draft;
+
+}
+
+export async function removeWorkoutDraftExercise(
+    draftId: string,
+    exerciseId: string,
+    userId: string,
+) {
+    const draft = await getOwnedDraft(draftId, userId);
+
+    ensureDraftIsActive(draft.status);
+
+    const exerciseObjectId = normalizeObjectId(exerciseId, "exercise id");
+
+    const exerciseIndex = draft.exercises.findIndex(
+        (exercise) =>
+            exercise.exerciseId.toString() === exerciseObjectId.toString(),
+    );
+
+    if (exerciseIndex === -1) {
+        throw new NotFoundError("Exercise is not part of this draft");
+    }
+
+    if (draft.exercises.length === 1) {
+        throw new ConflictError(
+            "Add another exercise before removing the final exercise",
+        );
+    }
+
+    draft.exercises.splice(exerciseIndex, 1);
+
+    await draft.save();
+
+    return draft;
+}
+
 
 export async function startWorkoutDraft(draftId: string, userId: string) {
     const draft = await WorkoutDraft.findOne({

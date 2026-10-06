@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import Modal from "../../components/ui/modal/Modal";
+import LoadingState from "../../components/Loading/LoadingState";
+import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import {
     deleteExerciseRequest,
@@ -92,9 +94,11 @@ export default function ProfileExercisesPage() {
 
     if (isLoading) {
         return (
-            <Card className={styles.stateCard}>
-                <p className={styles.stateText}>Loading exercises...</p>
-            </Card>
+            <LoadingState
+                variant="card"
+                title="Your exercises"
+                message="Loading custom exercises..."
+            />
         );
     }
 
@@ -234,7 +238,16 @@ export default function ProfileExercisesPage() {
                             onClick={handleConfirmDeleteExercise}
                             disabled={isDeleting}
                         >
-                            {isDeleting ? "Deleting..." : "Delete"}
+                            {isDeleting ? (
+                                <LoadingPredator
+                                    size="small"
+                                    color="currentColor"
+                                    label="Deleting..."
+                                    showLabel
+                                />
+                            ) : (
+                                "Delete"
+                            )}
                         </Button>
                     </>
                 }

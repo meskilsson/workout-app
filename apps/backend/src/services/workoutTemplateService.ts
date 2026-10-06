@@ -1,22 +1,28 @@
-
-
 import WorkoutTemplate from "../models/WorkoutTemplate";
 import Exercise from "../models/Exercises";
 import WorkoutDraft from "../models/WorkoutDraft";
 import { Types } from "mongoose";
 
-import { ForbiddenError, NotFoundError, ValidationError } from "../errors/AppError";
+import {
+    ForbiddenError,
+    NotFoundError,
+    ValidationError,
+} from "../errors/AppError";
 import { assertValidObjectId } from "../utils/assertValidObjectId";
 import { findDuplicateIds } from "../utils/findDuplicateIds";
 
-import type { CreateWorkoutTemplateInput, UpdateWorkoutTemplateInput, CreateWorkoutTemplateFromDraftInput } from "../schemas/workoutTemplateSchemas";
+import type {
+    CreateWorkoutTemplateInput,
+    UpdateWorkoutTemplateInput,
+    CreateWorkoutTemplateFromDraftInput,
+} from "../schemas/workoutTemplateSchemas";
 import type { Muscle } from "@workout-app/shared";
 
 type PopulatedTemplateExercise = {
-    _id: Types.ObjectId,
+    _id: Types.ObjectId;
     primaryMuscles?: Muscle[];
     secondaryMuscles?: Muscle[];
-}
+};
 
 async function buildTemplateExercises(
     inputExercises: CreateWorkoutTemplateInput["exercises"],
@@ -24,10 +30,12 @@ async function buildTemplateExercises(
 ) {
     const exerciseIds = inputExercises.map((item) => item.exerciseId);
 
-    const dupliateIds = findDuplicateIds(exerciseIds);
+    const duplicateIds = findDuplicateIds(exerciseIds);
 
-    if (dupliateIds.length > 0) {
-        throw new ValidationError("A template cannot contain duplicate exercises");
+    if (duplicateIds.length > 0) {
+        throw new ValidationError(
+            "A template cannot contain duplicate exercises",
+        );
     }
 
     const availableExercises = await Exercise.find({
@@ -40,13 +48,14 @@ async function buildTemplateExercises(
     });
 
     if (availableExercises.length !== exerciseIds.length) {
-        throw new ValidationError("One or more exercises could not be found or are not available to you");
+        throw new ValidationError(
+            "One or more exercises could not be found or are not available to you",
+        );
     }
 
     const exerciseMap = new Map(
         availableExercises.map((exercise) => [exercise.id, exercise]),
     );
-
 
     return inputExercises.map((inputExercise, index) => {
         const exercise = exerciseMap.get(inputExercise.exerciseId);
@@ -70,7 +79,10 @@ export async function getPublicWorkoutTemplates() {
         createdBy: null,
     })
         .sort({ createdAt: -1 })
-        .populate("exercises.exercise", "name primaryMuscles secondaryMuscles equipment difficulty exerciseType");
+        .populate(
+            "exercises.exercise",
+            "name primaryMuscles secondaryMuscles equipment difficulty exerciseType",
+        );
 
     return templates;
 }
@@ -83,11 +95,13 @@ export async function getMyWorkoutTemplates(userId: string) {
         createdBy: userId,
     })
         .sort({ createdAt: -1 })
-        .populate("exercises.exercise", "name primaryMuscles secondaryMuscles equipment difficulty exerciseType");
+        .populate(
+            "exercises.exercise",
+            "name primaryMuscles secondaryMuscles equipment difficulty exerciseType",
+        );
 
     return templates;
 }
-
 
 export async function getPublicWorkoutTemplateById(templateId: string) {
     assertValidObjectId(templateId, "template id");
@@ -114,7 +128,6 @@ export async function getMyWorkoutTemplateById(
 ) {
     assertValidObjectId(templateId, "template id");
     assertValidObjectId(userId, "user id");
-
 
     const template = await WorkoutTemplate.findOne({
         _id: templateId,
@@ -327,7 +340,7 @@ export async function createWorkoutTemplateFromDraft(
     }
 
     if (draft.exercises.length === 0) {
-        throw new ValidationError("Cannot create a template without exercises");
+        throw new ValidationError("Cannot save a template without exercises");
     }
 
     const templateExercises = draft.exercises.map((draftExercise, index) => ({
@@ -342,6 +355,32 @@ export async function createWorkoutTemplateFromDraft(
         })),
     }));
 
+    if (draft.sourceTemplateId) {
+        const template = await WorkoutTemplate.findOne({
+            _id: draft.sourceTemplateId,
+            isPublic: false,
+            createdBy: userId,
+        });
+
+        if (!template) {
+            throw new NotFoundError(
+                "Workout template to update could not be found",
+            );
+        }
+
+        template.name = input.name;
+        template.description = input.description ?? "";
+        template.category = input.category ?? "custom";
+        template.exercises = templateExercises;
+
+        await template.save();
+
+        draft.status = "abandoned";
+        await draft.save();
+
+        return template;
+    }
+
     const template = await WorkoutTemplate.create({
         name: input.name,
         description: input.description ?? "",
@@ -355,4 +394,68 @@ export async function createWorkoutTemplateFromDraft(
     await draft.save();
 
     return template;
+}
+
+export async function createTemplateEditDraft(
+    templateId: string,
+    userId: string,
+) {
+    assertValidObjectId(templateId, "template id");
+    assertValidObjectId(userId, "user id");
+
+    const template = await WorkoutTemplate.findOne({
+        _id: templateId,
+        isPublic: false,
+        createdBy: userId,
+    }).populate(
+        "exercises.exercise",
+        "name primaryMuscles secondaryMuscles equipment difficulty exerciseType",
+    );
+
+    if (!template) {
+        throw new NotFoundError("Workout template not found");
+    }
+
+    if (template.exercises.length === 0) {
+        throw new ValidationError("Cannot edit an empty template");
+    }
+
+    const selectedMuscleGroups = new Set<Muscle>();
+
+    const draftExercises = [...template.exercises]
+        .sort((a, b) => a.order - b.order)
+        .map((templateExercise) => {
+            const exercise =
+                templateExercise.exercise as unknown as PopulatedTemplateExercise | null;
+
+            if (!exercise) {
+                throw new ValidationError(
+                    `Cannot edit template because an exercise is missing: ${templateExercise.exerciseName}`,
+                );
+            }
+
+            for (const muscle of exercise.primaryMuscles ?? []) {
+                selectedMuscleGroups.add(muscle);
+            }
+
+            return {
+                exerciseId: exercise._id,
+                exerciseName: templateExercise.exerciseName,
+                sets: templateExercise.plannedSets.map((set) => ({
+                    weight: set.weight ?? null,
+                    reps: set.reps ?? null,
+                })),
+            };
+        });
+
+    const draft = await WorkoutDraft.create({
+        userId,
+        status: "building",
+        purpose: "template",
+        selectedMuscleGroups: Array.from(selectedMuscleGroups),
+        exercises: draftExercises,
+        sourceTemplateId: template._id,
+    });
+
+    return draft;
 }

@@ -12,6 +12,8 @@ import {
     updateWorkoutDraftExercises,
     updateWorkoutDraftMuscleGroups,
     updateWorkoutDraftSets,
+    addWorkoutDraftExercises,
+    removeWorkoutDraftExercise,
 } from "../controllers/workoutDraftController";
 import {
     createWorkoutDraftSchema,
@@ -20,6 +22,8 @@ import {
     updateWorkoutDraftSetsSchema,
     workoutDraftIdParamsSchema,
     reorderWorkoutDraftExercisesSchema,
+    addWorkoutDraftExercisesSchema,
+    workoutDraftExerciseParamsSchema,
 } from "../schemas/workoutDraft.schema";
 
 const workoutDraftRouter = Router();
@@ -60,6 +64,23 @@ workoutDraftRouter.patch(
         body: updateWorkoutDraftExercisesSchema,
     }),
     updateWorkoutDraftExercises,
+);
+
+workoutDraftRouter.patch(
+    "/:draftId/exercises/add",
+    validateRequest({
+        params: workoutDraftIdParamsSchema,
+        body: addWorkoutDraftExercisesSchema,
+    }),
+    addWorkoutDraftExercises,
+);
+
+workoutDraftRouter.delete(
+    "/:draftId/exercises/:exerciseId",
+    validateRequest({
+        params: workoutDraftExerciseParamsSchema,
+    }),
+    removeWorkoutDraftExercise,
 );
 
 workoutDraftRouter.patch(
