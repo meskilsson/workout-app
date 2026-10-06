@@ -80,8 +80,8 @@
 }
 
 .contactLinks a {
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 44px;
+    height: 44px;
 
     display: flex;
     align-items: center;
@@ -130,4 +130,7 @@
 .footerText { font-weight: var(--weight-regular); font-size: var(--text-xs); }
 .footerText span { margin-left: 0.5rem; }
 .contactTitle { display: none; }
-@media (max-width: 900px) { .appLayout:has(:global(nav[aria-label="Main navigation"])) { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); } }
+@media (max-width: 900px) { .appLayout:has(:global(nav[aria-label="Main navigation"])) { padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 1rem); } }
+
+.skipLink { position: fixed; top: 0.5rem; left: 1rem; z-index: 1100; padding: 0.75rem 1rem; background: var(--color-surface); border: 2px solid var(--color-focus); border-radius: var(--radius-sm); transform: translateY(-200%); }
+.skipLink:focus { transform: translateY(0); }

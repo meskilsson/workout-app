@@ -1,4 +1,4 @@
-import { ArrowLeft, GripVertical } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -62,6 +62,9 @@ type WorkoutDraft = {
 type SortableSummaryExerciseCardProps = {
   exercise: DraftExercise;
   index: number;
+  total: number;
+  isReordering: boolean;
+  onMove: (from: number, to: number) => void;
 };
 
 const categoryOptions: WorkoutTemplateCategory[] = [
@@ -85,6 +88,9 @@ function formatCategory(category: string) {
 function SortableSummaryExerciseCard({
   exercise,
   index,
+  total,
+  isReordering,
+  onMove,
 }: SortableSummaryExerciseCardProps) {
   const {
     attributes,
@@ -121,8 +127,12 @@ function SortableSummaryExerciseCard({
             </h3>
           </div>
 
-          <button type="button" className={styles.dragHandle} {...attributes} {...listeners}
+          <div className={styles.reorderControls}>
+          <Button type="button" variant="ghost" iconOnly aria-label={`Move ${exercise.exerciseName} up`} disabled={index === 0 || isReordering} onClick={() => onMove(index, index - 1)}><Icon icon={ArrowUp} /></Button>
+          <Button type="button" variant="ghost" iconOnly aria-label={`Move ${exercise.exerciseName} down`} disabled={index === total - 1 || isReordering} onClick={() => onMove(index, index + 1)}><Icon icon={ArrowDown} /></Button>
+          <button type="button" className={styles.dragHandle} {...attributes} {...listeners} disabled={isReordering}
             aria-label={`Reorder ${exercise.exerciseName}`}><Icon icon={GripVertical} /></button>
+          </div>
         </div>
       </Card>
     </div>
@@ -239,6 +249,11 @@ export default function WorkoutSummaryPage() {
       return;
     }
 
+    moveExercise(oldIndex, newIndex);
+  }
+
+  function moveExercise(oldIndex: number, newIndex: number) {
+    if (isReordering || newIndex < 0 || newIndex >= orderedExercises.length) return;
     const previousOrder = orderedExercises;
     const nextOrder = arrayMove(orderedExercises, oldIndex, newIndex);
 
@@ -291,6 +306,7 @@ export default function WorkoutSummaryPage() {
 
   async function handleSaveTemplate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSavingTemplate) return;
 
     if (!draftId) {
       return;
@@ -457,6 +473,9 @@ export default function WorkoutSummaryPage() {
                     key={exercise.exerciseId}
                     exercise={exercise}
                     index={index}
+                    total={selectedExercises.length}
+                    isReordering={isReordering}
+                    onMove={moveExercise}
                   />
                 ))}
               </div>

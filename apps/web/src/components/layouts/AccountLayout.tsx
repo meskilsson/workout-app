@@ -58,9 +58,9 @@ export default function AccountLayout() {
                     </nav>
                 </aside>
 
-                <main className={styles.content}>
+                <div className={styles.content}>
                     <Outlet />
-                </main>
+                </div>
             </div>
         </section>
     );

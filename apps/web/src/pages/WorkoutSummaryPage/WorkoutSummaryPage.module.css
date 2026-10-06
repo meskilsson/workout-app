@@ -315,3 +315,6 @@
 .backButton { width: 44px !important; min-width: 44px !important; height: 44px; padding: 0; }
 
 @media (max-width: 640px) { .summaryGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; } }
+.reorderControls { display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0; }
+.reorderControls button { width: 44px; min-width: 44px; }
+@media (max-width: 640px) { .reorderControls { align-self: flex-end; } .summaryGrid { grid-template-columns: 1fr; } }

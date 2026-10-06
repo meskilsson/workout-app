@@ -1,5 +1,5 @@
 import { UserPlus } from "lucide-react";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -10,6 +10,7 @@ import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import { signupRequest } from "../../services/authApi";
 import { ApiRequestError } from "../../utils/parseJsonResponse";
+import { focusInvalidField } from "../../utils/focusInvalidField";
 
 import styles from "./SignupPage.module.css";
 
@@ -66,9 +67,17 @@ export default function SignupPage() {
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<SignupFieldErrors>({});
+    const formRef = useRef<HTMLFormElement>(null);
+    const focusPending = useRef(false);
+    useLayoutEffect(() => {
+        if (!focusPending.current || !formRef.current) return;
+        focusPending.current = false;
+        focusInvalidField(formRef.current);
+    }, [fieldErrors]);
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        if (isLoading) return;
 
         setError("");
         setFieldErrors({});
@@ -87,6 +96,7 @@ export default function SignupPage() {
             if (err instanceof ApiRequestError) {
                 const nextFieldErrors = getSignupFieldErrors(err.data);
 
+                focusPending.current = true;
                 setFieldErrors(nextFieldErrors);
 
                 if (Object.keys(nextFieldErrors).length === 0) {
@@ -116,7 +126,7 @@ export default function SignupPage() {
                 </div>
 
                 <Card className={styles.card}>
-                    <form className={styles.form} onSubmit={handleSubmit}>
+                    <form ref={formRef} className={styles.form} onSubmit={handleSubmit}>
                         <div className={styles.field}>
                             <label htmlFor="name">Name</label>
 

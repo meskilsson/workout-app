@@ -1,4 +1,6 @@
 import { Play, Pause, RotateCcw, Timer } from "lucide-react";
+import { useState } from "react";
+import { restAlertsEnabled, setRestAlertsEnabled } from "../../utils/restTimerAlerts";
 import Icon from "../ui/icon/Icon";
 import Button from "../ui/button/Button";
 import styles from "./RestTimer.module.css";
@@ -11,6 +13,7 @@ import {
 
 export default function RestTimer() {
     const { state, start, pause, reset, adjustTime } = useRestTimerControls();
+    const [alertsEnabled, setAlertsEnabled] = useState(restAlertsEnabled);
 
     return (
         <section className={styles.timer}>
@@ -21,6 +24,14 @@ export default function RestTimer() {
                     {formatCountdownMilliseconds(state.timeLeft)}
                 </strong>
             </div>
+                <label className={styles.alertToggle}>
+                    <input type="checkbox" checked={alertsEnabled} onChange={(event) => {
+                        const value = event.target.checked;
+                        setRestAlertsEnabled(value);
+                        setAlertsEnabled(value);
+                    }} />
+                    Rest alerts
+                </label>
 
             <div className={styles.controls}>
                 <div className={styles.adjustActions}>

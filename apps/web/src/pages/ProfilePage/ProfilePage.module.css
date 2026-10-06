@@ -96,3 +96,4 @@
     .infoGrid { grid-template-columns: 1fr; }
 }
 .backButton { width: 44px !important; min-width: 44px !important; height: 44px; padding: 0; }
+@media (max-width: 480px) { .infoCard { grid-template-columns: 1fr; gap: 0.35rem; } }

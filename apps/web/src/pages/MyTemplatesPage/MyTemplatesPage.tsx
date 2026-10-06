@@ -143,7 +143,7 @@ export default function MyTemplatesPage() {
             {isLoading && <LoadingAnnouncement message="Updating content..." />}
             <div className={styles.sectionHeader}>
                 <div>
-                    <h2 className={styles.sectionTitle}>My templates</h2>
+                    <h1 className={styles.sectionTitle}>My templates</h1>
 
                     <p className={styles.sectionText}>
                         Your reusable training routines.

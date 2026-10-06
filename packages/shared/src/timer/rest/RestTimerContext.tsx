@@ -10,14 +10,16 @@ type RestTimerProviderProps = {
     children: ReactNode;
     durationMs?: number;
     storage?: RestTimerStorage;
+    onComplete?: () => void;
 };
 
 export function RestTimerProvider({
     children,
     durationMs = secondsToMilliseconds(120),
     storage,
+    onComplete,
 }: RestTimerProviderProps) {
-    const timer = useRestTimer(durationMs, storage);
+    const timer = useRestTimer(durationMs, storage, onComplete);
 
     return (
         <RestTimerContext.Provider value={timer}>{children}</RestTimerContext.Provider>

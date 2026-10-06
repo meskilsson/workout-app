@@ -1,6 +1,6 @@
 import { Home, Dumbbell, BookOpen, Plus, UserRound, LogOut, Timer, Menu, X, History } from "lucide-react";
 import Icon from "../ui/icon/Icon";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import Button from "../ui/button/Button";
 import { useAuth } from "../../context/AuthContext";
@@ -13,14 +13,38 @@ import { formatElapsedDuration } from "@workout-app/shared/utils/formatElapsedTi
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, key: locationKey } = useLocation();
   const isWorkoutPage = /^\/workout\/[^/]+$/.test(pathname);
   const { user, isAuthenticated, logout } = useAuth();
 
   const { currentWorkoutId } = useCurrentWorkout();
   const { state: timerState } = useWorkoutTimer();
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [menuLocation, setMenuLocation] = useState<string | null>(null);
+  const isMenuOpen = menuLocation === locationKey;
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMenuLocation(null);
+        menuButtonRef.current?.focus();
+      }
+    }
+    function onPointer(event: PointerEvent) {
+      if (!navRef.current?.contains(event.target as Node)) setMenuLocation(null);
+    }
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointer);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointer);
+    };
+  }, [isMenuOpen]);
 
   const currentWorkoutPath = currentWorkoutId
     ? `/workout/${currentWorkoutId}`
@@ -30,7 +54,7 @@ export default function Navbar() {
     isAuthenticated && currentWorkoutPath !== null;
 
   function closeMenu() {
-    setIsMenuOpen(false);
+    setMenuLocation(null);
   }
 
   function navLinkClass(isActive: boolean) {
@@ -38,9 +62,16 @@ export default function Navbar() {
   }
 
   async function handleLogout() {
-    await logout();
-    closeMenu();
-    navigate("/login");
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    setLogoutError("");
+    try {
+      await logout();
+      closeMenu();
+      navigate("/login");
+    } catch (error) {
+      setLogoutError(error instanceof Error ? error.message : "Could not log out. Please try again.");
+    } finally { setIsLoggingOut(false); }
   }
 
   function handleCurrentWorkout() {
@@ -99,7 +130,7 @@ export default function Navbar() {
             {user?.username ? `@${user.username}` : "Logged in"}
           </span>
 
-          <Button variant="ghost" iconOnly aria-label="Log out" onClick={handleLogout}>
+          <Button variant="ghost" iconOnly aria-label="Log out" disabled={isLoggingOut} onClick={handleLogout}>
             <Icon icon={LogOut} />
           </Button>
         </>
@@ -129,7 +160,7 @@ export default function Navbar() {
 
   return (
     <>
-    <nav className={styles.navbar} aria-label="Header navigation">
+    <nav ref={navRef} className={styles.navbar} aria-label="Header navigation">
       <div className={styles.inner}>
         <div className={styles.leftSide}>
           <button
@@ -154,7 +185,8 @@ export default function Navbar() {
         <button
           type="button"
           className={styles.menuButton}
-          onClick={() => setIsMenuOpen((current) => !current)}
+          ref={menuButtonRef}
+          onClick={() => setMenuLocation(isMenuOpen ? null : locationKey)}
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={isMenuOpen}
           aria-controls="mobile-menu"
@@ -163,6 +195,7 @@ export default function Navbar() {
         </button>
       </div>
 
+      {logoutError && <p className={styles.logoutError} role="alert">{logoutError}</p>}
       <div
         id="mobile-menu"
         className={`${styles.mobileMenu} ${isMenuOpen ? styles.mobileMenuOpen : ""
@@ -177,9 +210,9 @@ export default function Navbar() {
     </nav>
     {!isWorkoutPage && !isMenuOpen && <nav className={styles.bottomNav} aria-label="Main navigation">
       <NavLink to="/" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={Home} /><span>Home</span></NavLink>
-      <NavLink to="/templates" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={Dumbbell} /><span>Workouts</span></NavLink>
+      <NavLink to="/templates" className={({ isActive }) => navLinkClass(isActive || /^\/(workout-select|exercise-select|workout-summary|workout-result)(\/|$)/.test(pathname))} onClick={closeMenu}><Icon icon={Dumbbell} /><span>Workouts</span></NavLink>
       {isAuthenticated ? <NavLink to="/profile/workouts" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={History} /><span>History</span></NavLink> : <NavLink to="/library" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={BookOpen} /><span>Library</span></NavLink>}
-      <NavLink to={isAuthenticated ? "/profile" : "/login"} className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu} end><Icon icon={UserRound} /><span>{isAuthenticated ? "Profile" : "Log in"}</span></NavLink>
+      <NavLink to={isAuthenticated ? "/profile" : "/login"} className={({ isActive }) => navLinkClass(isActive || (isAuthenticated && pathname.startsWith("/profile/") && !pathname.startsWith("/profile/workouts")))} onClick={closeMenu} end><Icon icon={UserRound} /><span>{isAuthenticated ? "Profile" : "Log in"}</span></NavLink>
     </nav>}
     </>
   );

@@ -27,6 +27,7 @@ export default function UpdateAccountForm() {
 
     async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
+        if (isLoading) return;
 
         if (!authUser?._id) return;
 
@@ -63,6 +64,7 @@ export default function UpdateAccountForm() {
                     Name
                     <input
                         type="text"
+                        autoComplete="name"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                     />
@@ -73,6 +75,9 @@ export default function UpdateAccountForm() {
                     <input
                         type="text"
                         value={username}
+                        autoComplete="username"
+                        autoCapitalize="none"
+                        spellCheck={false}
                         onChange={(e) => setUsername(e.target.value)}
                     />
                 </label>
@@ -81,6 +86,8 @@ export default function UpdateAccountForm() {
                     Email
                     <input
                         type="email"
+                        autoComplete="email"
+                        autoCapitalize="none"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                     />

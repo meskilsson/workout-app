@@ -23,6 +23,7 @@ export default function LoginPage() {
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        if (isLoading) return;
         setError("");
         setIsLoading(true);
 

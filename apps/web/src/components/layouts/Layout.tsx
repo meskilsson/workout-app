@@ -19,8 +19,9 @@ export default function Layout() {
     <WebRestTimerProvider>
       <div className={styles.appLayout}>
         <Navbar />
+        <a href="#main-content" className={styles.skipLink}>Skip to content</a>
 
-        <main className={styles.main}>
+        <main id="main-content" tabIndex={-1} className={styles.main}>
           <Outlet />
         </main>
 

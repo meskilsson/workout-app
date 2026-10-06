@@ -1,4 +1,4 @@
-import { Plus, Trash2, Check, Circle, Flag, GripVertical, MoreHorizontal } from "lucide-react";
+import { Plus, Trash2, Check, Circle, Flag, GripVertical, MoreHorizontal, ArrowUp, ArrowDown } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import {
     useEffect,
@@ -130,6 +130,9 @@ type SortableWorkoutExerciseCardProps = {
     ) => void;
 
     canRemoveExercise: boolean;
+    canMoveUp: boolean;
+    canMoveDown: boolean;
+    onMove: (direction: -1 | 1) => void;
 };
 
 function SortableWorkoutExerciseCard({
@@ -141,6 +144,9 @@ function SortableWorkoutExerciseCard({
     onCompleteSet,
     onRequestRemoveExercise,
     canRemoveExercise,
+    canMoveUp,
+    canMoveDown,
+    onMove,
 }: SortableWorkoutExerciseCardProps) {
     const {
         attributes,
@@ -218,6 +224,8 @@ function SortableWorkoutExerciseCard({
                                 styles.exerciseMenuDropdown
                             }
                         >
+                            <Button type="button" variant="ghost" disabled={!canMoveUp} icon={ArrowUp} onClick={() => onMove(-1)}>Move up</Button>
+                            <Button type="button" variant="ghost" disabled={!canMoveDown} icon={ArrowDown} onClick={() => onMove(1)}>Move down</Button>
                             <button
                                 type="button"
                                 className={
@@ -809,6 +817,11 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             return;
         }
 
+        moveExercise(oldIndex, newIndex);
+    }
+
+    function moveExercise(oldIndex: number, newIndex: number) {
+        if (isReorderingExercises || newIndex < 0 || newIndex >= selectedExercises.length) return;
         const previousOrder =
             selectedExercises;
 
@@ -1204,8 +1217,11 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                             }
                         >
                             {selectedExercises.map(
-                                (exercise) => (
+                                (exercise, index) => (
                                     <SortableWorkoutExerciseCard
+                                        canMoveUp={index > 0 && !isReorderingExercises && !isRemovingExercise}
+                                        canMoveDown={index < selectedExercises.length - 1 && !isReorderingExercises && !isRemovingExercise}
+                                        onMove={(direction) => moveExercise(index, index + direction)}
                                         key={
                                             exercise._id
                                         }

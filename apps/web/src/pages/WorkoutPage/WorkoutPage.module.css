@@ -667,3 +667,5 @@
     .setRow { gap: 0.5rem; padding: 0.65rem; }
 }
 @media (max-width: 280px) { .setRow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.exerciseMenuDropdown > button { width: 100%; min-height: 44px; justify-content: flex-start; }
+@media (max-width: 380px) { .setRow { grid-template-columns: repeat(2, minmax(0, 1fr)); } .completeSetButton.completeSetButton, .deleteButton.deleteButton { width: 100%; } }

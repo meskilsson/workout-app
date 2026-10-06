@@ -26,7 +26,7 @@ export function usePaginationScroll<TElement extends HTMLElement>(
 
             requestAnimationFrame(() => {
                 pageTopRef.current?.scrollIntoView({
-                    behavior,
+                    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : behavior,
                     block,
                 });
             });

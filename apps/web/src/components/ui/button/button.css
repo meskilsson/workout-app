@@ -13,7 +13,7 @@
     font-weight: var(--weight-semibold);
     line-height: 1.1;
     text-align: center;
-    white-space: nowrap;
+    white-space: normal;
 
     cursor: pointer;
 
@@ -125,3 +125,4 @@
 .button--medium { padding: 0.7rem 1rem; }
 .button--secondary:hover:not(:disabled) { background: var(--color-blue-hover); border-color: var(--blue-700); }
 .button--small { min-height: 44px; }
+.button:active:not(:disabled) { transform: translateY(1px); filter: brightness(0.96); }

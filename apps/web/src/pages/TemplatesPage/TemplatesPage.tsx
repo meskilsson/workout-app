@@ -126,7 +126,7 @@ export default function TemplatesPage() {
                 <div className={styles.templateActions}>
                     <Button
                         type="button"
-                        disabled={!isAuthenticated || isStarting}
+                        disabled={!isAuthenticated || startingTemplateId !== null}
                         onClick={() => handleStartTemplate(template._id)}
                     >
                         {isStarting ? (
