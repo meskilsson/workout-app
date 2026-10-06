@@ -13,6 +13,18 @@
     gap: 0.25rem;
 }
 
+.alertToggle {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 44px;
+    font-size: var(--text-xs);
+    color: var(--color-accent-text);
+    cursor: pointer;
+}
+
+.alertToggle input { accent-color: var(--color-accent-text); }
+
 .label {
     color: var(--color-text-muted);
 
@@ -195,3 +207,9 @@
 .timerIcon.timerIcon { width: 1.125rem; height: 1.125rem; }
 
 .time { font-size: clamp(1.75rem, 5vw, 2.6rem); letter-spacing: -0.035em; }
+@media (max-width: 640px) {
+    .timer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.5rem; }
+    .info { min-width: 0; }
+    .alertToggle { justify-self: end; }
+    .controls { grid-column: 1 / -1; width: 100%; justify-content: space-between; }
+}

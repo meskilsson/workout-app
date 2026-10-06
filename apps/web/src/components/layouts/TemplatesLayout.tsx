@@ -14,7 +14,7 @@ export default function TemplatesLayout() {
         <Box className={styles.page}>
             <div className={styles.layout}>
                 <aside className={styles.sidebar}>
-                    <nav className={styles.nav}>
+                    <nav className={styles.nav} aria-label="Template navigation">
                         <NavLink
                             to="/templates/pre-made"
                             className={({ isActive }) =>

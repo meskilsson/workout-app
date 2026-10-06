@@ -1,9 +1,10 @@
-import { useState, type FormEvent } from "react";
+import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { MUSCLE_OPTIONS, EQUIPMENT_OPTIONS, DIFFICULTY_OPTIONS, EXERCISE_TYPE_OPTIONS } from "@workout-app/shared";
 import Input from "../../components/ui/input/Input";
 import Button from "../../components/ui/button/Button";
 import { adminRequest, type AdminItem, type AdminExerciseRow, type Resource } from "../../services/adminApi";
 import { ApiRequestError } from "../../utils/parseJsonResponse";
+import { focusInvalidField } from "../../utils/focusInvalidField";
 import styles from "./AdminPage.module.css";
 
 const categories = ["full_body", "push", "pull", "legs", "upper", "lower", "custom"];
@@ -18,6 +19,13 @@ export default function AdminEditor({ resource, item, onSaved, onCancel }: Props
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const focusPending = useRef(false);
+  useLayoutEffect(() => {
+    if (!focusPending.current || !formRef.current) return;
+    focusPending.current = false;
+    focusInvalidField(formRef.current);
+  }, [errors]);
   function set(key: string, value: string) { setValues(current => ({ ...current, [key]: value })); }
   function rowSet(index: number, update: Partial<AdminExerciseRow>) { setRows(current => current.map((row, i) => i === index ? { ...row, ...update } : row)); }
   function field(key: string, label: string, required = false, maxLength?: number) {
@@ -27,6 +35,7 @@ export default function AdminEditor({ resource, item, onSaved, onCancel }: Props
     return <label className={styles.field} key={key}>{label}<select value={values[key]} aria-invalid={errors[key] ? true : undefined} aria-describedby={errors[key] ? `admin-${key}-error` : undefined} onChange={event => set(key, event.target.value)}><option value="">Choose…</option>{options.map(option => <option key={option}>{option}</option>)}</select>{errors[key] && <span id={`admin-${key}-error`} role="alert">{errors[key]}</span>}</label>;
   }
   async function submit(event: FormEvent) {
+    if (busy) { event.preventDefault(); return; }
     event.preventDefault(); setErrors({}); setError(""); setBusy(true);
     try {
       let body: unknown;
@@ -46,11 +55,12 @@ export default function AdminEditor({ resource, item, onSaved, onCancel }: Props
       setError(cause instanceof Error ? cause.message : "Could not save");
       if (cause instanceof ApiRequestError) {
         const data = cause.data as { errors?: { field?: string; message: string }[] };
+        focusPending.current = true;
         setErrors(Object.fromEntries((data?.errors ?? []).map(issue => [issue.field ?? "", issue.message])));
       }
     } finally { setBusy(false); }
   }
-  return <form onSubmit={submit} className={styles.form}>
+  return <form ref={formRef} onSubmit={submit} className={styles.form}>
     <p>{resource === "sessions" ? "Completed workout records are personal data. Choose the owner explicitly." : item ? `Editing ${resource === "exercises" ? item.isCustom ? "a personal exercise" : "a shared exercise" : item.isPublic ? "a shared template" : "a personal template"}. Ownership and visibility are preserved.` : "New exercises and templates are shared with all users."}</p>
     {resource !== "sessions" && field("name", "Name", true, resource === "exercises" ? 50 : 80)}
     {resource !== "sessions" && field("description", "Description", false, resource === "templates" ? 500 : undefined)}

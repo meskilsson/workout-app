@@ -626,16 +626,19 @@ export default function ExerciseSelectPage() {
             </div>
 
             <div className={styles.searchWrapper}>
+                <label className={styles.searchLabel}>
+                    Search exercises
                 <input
                     className={styles.searchInput}
                     aria-label="Search exercises"
-                    type="text"
+                    type="search"
                     placeholder="Search exercises, muscles, or equipment..."
                     value={searchTerm}
                     onChange={(event) =>
                         setSearchTerm(event.target.value)
                     }
                 />
+                </label>
                 <label className={styles.sortLabel}>
                     Sort by
                     <select

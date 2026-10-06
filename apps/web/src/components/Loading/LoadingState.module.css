@@ -42,3 +42,5 @@
 
 .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .summaryStats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 380px) { .workoutRow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .summaryStats { grid-template-columns: 1fr; } }

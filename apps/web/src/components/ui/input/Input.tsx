@@ -18,6 +18,7 @@ export default function Input({
     wrapperClassName,
     labelClassName,
     errorClassName,
+    "aria-describedby": describedBy,
     ...rest
 }: InputProps) {
     const generatedId = useId();
@@ -39,7 +40,7 @@ export default function Input({
                 id={inputId}
                 name={name}
                 aria-invalid={error ? true : undefined}
-                aria-describedby={error ? errorId : undefined}
+                aria-describedby={[describedBy, error ? errorId : undefined].filter(Boolean).join(" ") || undefined}
                 className={className ?? "input-field"}
                 {...rest}
             />

@@ -155,14 +155,17 @@ export default function LibraryPage() {
                     <Icon icon={ArrowLeft} />
                 </Button>
                 <div className={styles.searchControls}>
+                <label className={styles.searchLabel}>
+                    Search exercises
                 <input
                     className={styles.searchInput}
                     aria-label="Search exercises"
-                    type="text"
+                    type="search"
                     placeholder="Search exercises..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
+                </label>
                 <label className={styles.sortLabel}>
                     Sort by
                     <select

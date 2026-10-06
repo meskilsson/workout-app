@@ -169,6 +169,8 @@
     }
 
 .navLink { display: flex; align-items: center; gap: 0.45rem; }
+.navLink, .disabledLink { min-height: 44px; }
+@media (max-width: 850px) { .nav { gap: 0.5rem; } .navLink, .disabledLink { padding: 0.65rem; border-radius: var(--radius-sm); } }
 
 .activeLink { font-weight: var(--weight-semibold); text-decoration: underline; text-underline-offset: 0.25rem; }
 

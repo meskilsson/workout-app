@@ -140,6 +140,7 @@
     color: var(--color-primary-text-hover);
     text-decoration: underline;
 }
+.bottomText button { min-height: 44px; padding-inline: 0.5rem; }
 
 .buttonLoader {
     width: 18px;

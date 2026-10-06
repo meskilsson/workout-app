@@ -76,6 +76,9 @@
 }
 
 .searchControls .searchInput { flex: 1 1 280px; width: auto; font: inherit; }
+.searchLabel { display: grid; gap: 0.35rem; flex: 1 1 280px; min-width: 0; font-size: var(--text-sm); }
+.searchLabel .searchInput { width: 100%; }
+.searchControls { align-items: flex-end; }
 .sortLabel { display: flex; align-items: center; gap: 0.5rem; font-size: var(--text-sm); }
 .sortSelect { padding: 0.9rem; font: inherit; color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-input-border); border-radius: var(--radius-lg); }
 .sortSelect:focus-visible { outline: 2px solid var(--color-primary-border); outline-offset: 2px; }
@@ -439,3 +442,4 @@
 .exerciseLink { align-content: start; }
 .cardDummy { align-items: flex-start; }
 .exerciseText { text-align: left; }
+@media (max-width: 640px) { .sortLabel { width: 100%; flex-direction: column; align-items: stretch; gap: 0.35rem; } .sortSelect { width: 100%; } .exerciseLink { padding: 1rem; } .muscleTags { justify-content: flex-start; } }

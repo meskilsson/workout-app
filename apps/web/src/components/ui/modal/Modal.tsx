@@ -1,4 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 import Box from "../box/Box";
 import "./modal.css";
 
@@ -26,6 +28,13 @@ export default function Modal({
         const previousFocus = document.activeElement as HTMLElement | null;
         const panel = panelRef.current;
         if (!panel) return;
+        const scrollY = window.scrollY;
+        const previousStyle = { position: document.body.style.position, top: document.body.style.top,
+            width: document.body.style.width, overflow: document.body.style.overflow };
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.width = "100%";
+        document.body.style.overflow = "hidden";
         const controls = () => Array.from(panel.querySelectorAll<HTMLElement>(
             'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]',
         )).filter(element => element.getClientRects().length > 0);
@@ -50,12 +59,14 @@ export default function Modal({
         return () => {
             document.removeEventListener("keydown", handleKey);
             document.removeEventListener("focusin", containFocus);
-            if (previousFocus?.isConnected) previousFocus.focus();
+            Object.assign(document.body.style, previousStyle);
+            window.scrollTo({ top: scrollY, behavior: "instant" });
+            if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
         };
     }, [isOpen]);
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div className="modal-overlay" onClick={onClose}>
             <div
                 className="modal-shell"
@@ -68,13 +79,16 @@ export default function Modal({
                 onClick={(event) => event.stopPropagation()}
             >
                 <Box className="modal-panel">
-                    {title && <h2 id={titleId} className="modal-title">{title}</h2>}
+                    <div className="modal-header">
+                        {title && <h2 id={titleId} className="modal-title">{title}</h2>}
+                        <button type="button" className="modal-close" aria-label="Close dialog" onClick={onClose}><X aria-hidden="true" size={20} /></button>
+                    </div>
 
                     <div className="modal-content">{children}</div>
 
                     {actions && <div className="modal-actions">{actions}</div>}
                 </Box>
             </div>
-        </div>
+        </div>, document.body,
     );
 }

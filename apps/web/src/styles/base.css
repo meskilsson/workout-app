@@ -264,6 +264,7 @@
   --space-6: 1.5rem;
   --space-8: 2rem;
   --control-height: 2.875rem;
+  --bottom-nav-height: 4.5rem;
   --text-xs: 0.8125rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
@@ -370,6 +371,9 @@ button {
 }
 input::placeholder, textarea::placeholder { color: var(--color-text-muted); opacity: 1; }
 input, textarea, select { accent-color: var(--color-accent-text); }
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select { min-height: 44px; }
+input[type="checkbox"], input[type="radio"] { flex-shrink: 0; }
+fieldset { min-width: 0; }
 .ui-icon { width: 1.125rem; height: 1.125rem; flex: 0 0 auto; vertical-align: -0.2em; }
 
 h1, h2, h3 { text-wrap: balance; letter-spacing: -0.025em; }

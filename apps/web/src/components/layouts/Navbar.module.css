@@ -14,19 +14,23 @@
 .currentWorkout button { font-size: var(--text-xs); padding-inline: 0.4rem; }
 .menuButton { display: none; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border: 1px solid var(--color-border); background: var(--color-surface); border-radius: var(--radius-sm); cursor: pointer; }
 .mobileMenu, .bottomNav { display: none; }
-:global(html[data-viewport-obstructed="true"]) .navbar { position: static; }
-.navbar:has(.mobileMenuOpen) { position: static; }
+:global(html[data-viewport-obstructed="true"]) .navbar { position: relative; }
 @media (max-width: 1200px) {
     .links, .actions { display: none; }
     .menuButton { display: flex; }
     .inner { padding: 0.65rem 1rem; }
-    .mobileMenuOpen { display: block; padding: 0.5rem 1rem 1rem; }
+    .mobileMenuOpen { display: block; position: absolute; top: 100%; inset-inline: 0; padding: 0.5rem 1rem 1rem; max-height: calc(var(--visible-viewport-height, 100dvh) - 5rem - env(safe-area-inset-top, 0px)); overflow-y: auto; overscroll-behavior: contain; background: var(--color-background); border-bottom: 1px solid var(--color-border); box-shadow: var(--shadow-md); }
     .mobileLinks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem 1rem; }
     .mobileActions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; padding-top: 0.75rem; margin-top: 0.5rem; border-top: 1px solid var(--color-border); }
 }
 @media (max-width: 900px) {
-    .bottomNav { position: fixed; bottom: 0; left: env(safe-area-inset-left, 0px); right: env(safe-area-inset-right, 0px); z-index: 80; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 0.35rem 0.5rem max(0.35rem, env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--color-border); background: var(--color-background); }
+    .bottomNav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 80; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: var(--bottom-nav-height); padding: 0.35rem max(0.5rem, env(safe-area-inset-right, 0px)) max(0.35rem, env(safe-area-inset-bottom, 0px)) max(0.5rem, env(safe-area-inset-left, 0px)); border-top: 1px solid var(--color-border); background: var(--color-background); }
     .bottomNav .link { flex-direction: column; justify-content: center; gap: 0.3rem; font-size: var(--text-xs); padding: 0.4rem 0; }
     .bottomNav .linkActive { background: var(--color-primary-soft); border-radius: var(--radius-sm); }
     :global(html[data-viewport-obstructed="true"]) .bottomNav { display: none; }
 }
+
+.link:active, .brand:active, .menuButton:active { background: var(--color-primary-soft); }
+.mobileLinks .link { border-radius: var(--radius-sm); padding-inline: 0.65rem; }
+.logoutError { margin: 0; padding: 0.75rem 1rem; color: var(--color-danger-text); background: var(--color-danger-soft); }
+@media (max-height: 480px) { .mobileLinks { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

@@ -127,6 +127,7 @@ export default function EditExercisePage() {
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        if (isSaving) return;
 
         if (!id) {
             setError("Exercise id is missing.");

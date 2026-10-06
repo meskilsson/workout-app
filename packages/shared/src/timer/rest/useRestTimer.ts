@@ -7,7 +7,7 @@ export type RestTimerStorage = {
     save: (state: RestTimerState) => void;
 };
 
-export function useRestTimer(durationMs: number, storage?: RestTimerStorage) {
+export function useRestTimer(durationMs: number, storage?: RestTimerStorage, onComplete?: () => void) {
     const [state, dispatch] = useReducer(
         restTimerReducer,
         durationMs,
@@ -17,14 +17,20 @@ export function useRestTimer(durationMs: number, storage?: RestTimerStorage) {
     useEffect(() => {
         if (!state.isRunning) return;
 
+        let completed = false;
         const intervalId = setInterval(() => {
+            const expired = state.endTime !== null && Date.now() >= state.endTime;
             dispatch({ type: "TICK" });
+            if (expired && !completed) {
+                completed = true;
+                onComplete?.();
+            }
         }, 1000);
 
         return () => {
             clearInterval(intervalId);
         };
-    }, [state.isRunning]);
+    }, [state.isRunning, state.endTime, onComplete]);
 
     useEffect(() => {
         storage?.save(state);

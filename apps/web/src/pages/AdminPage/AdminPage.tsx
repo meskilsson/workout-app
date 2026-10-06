@@ -82,7 +82,7 @@ export default function AdminPage() {
     {loading && <p role="status">Loading admin data…</p>}
     {!loading && totals && <div className={styles.stats}>{Object.entries(totals).map(([key, value]) => <article key={key}><h2>{totalLabels[key] ?? key}</h2><strong>{value.toLocaleString()}</strong></article>)}</div>}
     {!loading && list && <>
-      {!list.items.length ? <p>No matching records.</p> : <div className={styles.tableWrap}><table><caption>{section === "sessions" ? "Completed workouts" : section} ({list.total})</caption><thead><tr><th scope="col">Record</th><th scope="col">Ownership / status</th><th scope="col">Actions</th></tr></thead><tbody>{list.items.map(item => <tr key={item._id}>
+      {!list.items.length ? <p>No matching records.</p> : <div className={styles.tableWrap} role="region" aria-label="Records; scroll horizontally to see all columns" tabIndex={0}><table><caption>{section === "sessions" ? "Completed workouts" : section} ({list.total})</caption><thead><tr><th scope="col">Record</th><th scope="col">Ownership / status</th><th scope="col">Actions</th></tr></thead><tbody>{list.items.map(item => <tr key={item._id}>
         <td><strong>{item.name ?? `Workout ${item.endedAt ? new Date(item.endedAt).toLocaleDateString() : ""}`}</strong>{item.username && <div>@{item.username}</div>}<small>ID: {item._id}</small></td>
         <td>{resource === "users" ? <>{item.role} · {item.deletedAt ? "Inactive" : "Active"}</> : resource === "sessions" ? <>Personal · owner {item.userId}</> : <>{(resource === "exercises" ? !item.isCustom : item.isPublic) ? "Shared" : `Personal · owner ${item.createdBy}`}</>}</td>
         <td><div className={styles.actions}><Button variant="ghost" disabled={busy} onClick={() => open(item, false)}>Details</Button>
