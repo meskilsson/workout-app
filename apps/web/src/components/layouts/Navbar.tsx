@@ -68,6 +68,7 @@ export default function Navbar() {
       <NavLink to="/library" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}>
         <Icon icon={BookOpen} /> Library
       </NavLink>
+      {user?.role === "admin" && <NavLink to="/admin" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={UserRound} /> Admin</NavLink>}
 
       {isAuthenticated && (
         <>

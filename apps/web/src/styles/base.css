@@ -101,10 +101,10 @@
   --color-warning-soft: var(--yellow-50);
   --color-pink-soft: #fbf0f2;
   --color-pink-text: #864d5c;
-  --color-dummy-muscle-primary: var(--red-300);
-  --color-dummy-muscle-secondary: var(--red-700);
-  --color-muscle-primary-text: var(--red-1000);
-  --color-muscle-secondary-text: var(--neutral-50);
+  --color-dummy-muscle-primary: var(--red-700);
+  --color-dummy-muscle-secondary: var(--red-300);
+  --color-muscle-primary-text: var(--neutral-50);
+  --color-muscle-secondary-text: var(--red-1000);
   --color-dummy-muscle-neutral: var(--neutral-300);
 }
 
@@ -158,10 +158,10 @@
   --color-warning-soft: var(--yellow-1000);
   --color-pink-soft: #48343e;
   --color-pink-text: #efc1ce;
-  --color-dummy-muscle-primary: var(--red-300);
-  --color-dummy-muscle-secondary: var(--red-700);
-  --color-muscle-primary-text: var(--red-1000);
-  --color-muscle-secondary-text: var(--neutral-50);
+  --color-dummy-muscle-primary: var(--red-700);
+  --color-dummy-muscle-secondary: var(--red-300);
+  --color-muscle-primary-text: var(--neutral-50);
+  --color-muscle-secondary-text: var(--red-1000);
   --color-dummy-muscle-neutral: var(--neutral-600);
 }
 

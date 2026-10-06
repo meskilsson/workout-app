@@ -1,13 +1,12 @@
 import User from "../models/User";
 import bcrypt from "bcrypt";
-import type { UserRole } from "@workout-app/shared";
 import {
   ConflictError,
   NotFoundError,
   ValidationError,
 } from "../errors/AppError";
 import type { AppErrorDetail } from "../errors/AppError";
-import { Types } from "mongoose";
+import { manageUser } from "./adminUserService";
 
 
 interface CreateUserInput {
@@ -22,7 +21,6 @@ interface UpdatedUserInput {
   name?: string;
   email?: string;
   username?: string;
-  role?: UserRole;
 }
 
 
@@ -99,25 +97,7 @@ export async function getUserById(id: string) {
 }
 
 export async function deleteUser(id: string, deletedByUserId: string) {
-  const user = await User.findById(id);
-
-  if (!user) {
-    throw new NotFoundError("User not found");
-  }
-
-  if (user.deletedAt) {
-    throw new ValidationError("User is already deleted");
-  }
-
-  user.deletedAt = new Date();
-  user.deletedBy = new Types.ObjectId(deletedByUserId);
-  user.deleteReason =
-    user._id.toString() === deletedByUserId
-      ? "User requested account deletion"
-      : "Account deleted by admin";
-
-  await user.save();
-
+  await manageUser(id, deletedByUserId, { active: false }, id === deletedByUserId);
   return { message: "User deleted successfully" };
 }
 
@@ -137,7 +117,6 @@ export async function updateUser(id: string, userData: UpdatedUserInput) {
     email?: string;
     username?: string;
     passwordHash?: string;
-    role?: UserRole;
   } = {};
 
   if (userData.name !== undefined) {
@@ -168,10 +147,6 @@ export async function updateUser(id: string, userData: UpdatedUserInput) {
     }
 
     updateData.username = username;
-  }
-
-  if (userData.role !== undefined) {
-    updateData.role = userData.role;
   }
 
   const conflictConditions = [];

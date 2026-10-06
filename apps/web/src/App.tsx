@@ -31,12 +31,15 @@ import TemplatesDetailsPage from "./pages/TemplatesDetailsPage/TemplatesDetailsP
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
 import MyTemplatesPage from "./pages/MyTemplatesPage/MyTemplatesPage";
+import RoleRoute from "./routes/RoleRoute";
+import AdminPage from "./pages/AdminPage/AdminPage";
 
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
+        <Route path="admin/:section?" element={<RoleRoute allowedRoles={["admin"]}><AdminPage /></RoleRoute>} />
         <Route index element={<Homepage />} />
 
 

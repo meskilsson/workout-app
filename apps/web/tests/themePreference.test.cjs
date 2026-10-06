@@ -70,7 +70,7 @@ for (const mode of ["light", "dark"]) {
         assert(contrast(tokens["muscle-primary-text"], tokens["dummy-muscle-primary"]) >= 4.5, "primary muscle label");
         assert(contrast(tokens["muscle-secondary-text"], tokens["dummy-muscle-secondary"]) >= 4.5, "secondary muscle label");
         assert(contrast(tokens["warning-text"], tokens["warning-soft"]) >= 4.5, "warning text");
-        assert(luminance(tokens["dummy-muscle-primary"]) > luminance(tokens["dummy-muscle-secondary"]), "primary muscle red is lighter");
+        assert(luminance(tokens["dummy-muscle-primary"]) < luminance(tokens["dummy-muscle-secondary"]), "primary muscle red is darker");
         assert(contrast(tokens["input-border"], tokens["surface-light"]) >= 3, "input border");
         assert(contrast(tokens.focus, tokens.surface) >= 3, "focus indicator");
     });
