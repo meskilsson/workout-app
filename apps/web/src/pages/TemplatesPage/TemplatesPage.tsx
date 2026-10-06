@@ -1,3 +1,5 @@
+import { ArrowLeft } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -46,7 +48,7 @@ export default function TemplatesPage() {
                 if (error instanceof Error) {
                     setError(error.message);
                 } else {
-                    setError("Something went wrong");
+                    setError("Unable to complete this request. Please try again.");
                 }
             } finally {
                 setIsLoading(false);
@@ -87,7 +89,6 @@ export default function TemplatesPage() {
             <Card key={template._id} className={styles.templateCard}>
                 <div className={styles.cardHeader}>
                     <div>
-                        <p className={styles.templateType}>Pre-made</p>
 
                         <h2 className={styles.templateName}>
                             {template.name}
@@ -161,7 +162,7 @@ export default function TemplatesPage() {
             <LoadingState
                 layout="cards"
                 className={styles.page}
-                title="Pre-made workouts"
+                title="Workout templates"
                 message="Loading workout templates..."
             />
         );
@@ -171,7 +172,7 @@ export default function TemplatesPage() {
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>
-                    <p className={styles.errorText}>{error}</p>
+                    <p className={styles.errorText} role="alert">{error}</p>
                 </Card>
             </Box>
         );
@@ -182,12 +183,12 @@ export default function TemplatesPage() {
             {error && <p className={styles.errorText} role="alert">{error}</p>}
             {isLoading && <LoadingAnnouncement message="Updating content..." />}
             <header className={styles.header}>
-                <p className={styles.kicker}>Pre-made workouts</p>
+                <p className={styles.kicker}>Workout templates</p>
 
-                <h1 className={styles.title}>Browse workouts</h1>
+                <h1 className={styles.title}>Browse templates</h1>
 
                 <p className={styles.subtitle}>
-                    Browse pre-made workouts and choose what you want to train.
+                    Choose a routine for your next session.
                 </p>
 
                 {!isAuthenticated && (
@@ -200,20 +201,13 @@ export default function TemplatesPage() {
 
             {actionError && (
                 <Card className={styles.actionErrorCard}>
-                    <p className={styles.errorText}>{actionError}</p>
+                    <p className={styles.errorText} role="alert">{actionError}</p>
                 </Card>
             )}
 
             <section className={styles.section}>
                 <div className={styles.sectionHeader}>
                     <div>
-                        <h2 className={styles.sectionTitle}>
-                            Pre-made workouts
-                        </h2>
-
-                        <p className={styles.sectionText}>
-                            Workouts available for everyone to browse.
-                        </p>
 
                         <Button
                             type="button"
@@ -221,9 +215,10 @@ export default function TemplatesPage() {
                             style={{ minWidth: "3.25rem", marginTop: "1rem" }}
                             iconOnly
                             className={styles.backButton}
+                    aria-label="Go back"
                             onClick={() => navigate(-1)}
                         >
-                            <span className={styles.buttonArrow}>←</span>
+                            <Icon icon={ArrowLeft} />
                         </Button>
                     </div>
                 </div>
@@ -236,7 +231,7 @@ export default function TemplatesPage() {
                     </div>
                 ) : (
                     <Card className={styles.stateCard}>
-                        <p>No pre-made workouts found.</p>
+                        <p>No templates available yet.</p>
                     </Card>
                 )}
             </section>

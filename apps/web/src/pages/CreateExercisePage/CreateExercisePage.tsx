@@ -1,3 +1,5 @@
+import { Plus, ArrowLeft } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Box from "../../components/ui/box/Box";
@@ -81,14 +83,16 @@ export default function CreateExercisePage() {
                     type="button"
                     variant="secondary"
                     style={{ minWidth: "3.25rem", marginBottom: "1rem" }}
-                    className={styles.backButton}
+                    iconOnly
+                        className={styles.backButton}
+                    aria-label="Go back"
                     onClick={() => navigate(-1)}
 
                 >
-                    <span className={styles.buttonArrow}>←</span>
+                    <Icon icon={ArrowLeft} />
                 </Button>
                 <div className={styles.header}>
-                    <h1 className={styles.title}>Create Custom Exercise</h1>
+                    <h1 className={styles.title}>Create exercise</h1>
                     <p className={styles.subtitle}>
                         Add your own movement to your exercise library.
                     </p>
@@ -130,7 +134,7 @@ export default function CreateExercisePage() {
 
                     <div className={styles.row}>
                         <div className={styles.field}>
-                            <label htmlFor="exerciseType">Exercise Type</label>
+                            <label htmlFor="exerciseType">Exercise type</label>
                             <select
                                 id="exerciseType"
                                 value={exerciseType}
@@ -185,8 +189,8 @@ export default function CreateExercisePage() {
                     </div>
 
                     <div className={styles.field}>
-                        <label>Primary Muscles</label>
-                        <div className={styles.checkboxGrid}>
+                        <span id="primary-muscles-label">Primary muscles</span>
+                        <div className={styles.checkboxGrid} role="group" aria-labelledby="primary-muscles-label">
                             {MUSCLE_OPTIONS.map((muscle) => (
                                 <label key={muscle} className={styles.checkboxOption}>
                                     <input
@@ -201,8 +205,8 @@ export default function CreateExercisePage() {
                     </div>
 
                     <div className={styles.field}>
-                        <label>Secondary Muscles</label>
-                        <div className={styles.checkboxGrid}>
+                        <span id="secondary-muscles-label">Secondary muscles</span>
+                        <div className={styles.checkboxGrid} role="group" aria-labelledby="secondary-muscles-label">
                             {MUSCLE_OPTIONS.map((muscle) => (
                                 <label key={muscle} className={styles.checkboxOption}>
                                     <input
@@ -216,7 +220,7 @@ export default function CreateExercisePage() {
                         </div>
                     </div>
 
-                    {error && <p className={styles.error}>{error}</p>}
+                    {error && <p className={styles.error} role="alert">{error}</p>}
 
                     <div className={styles.actions}>
                         <Button
@@ -227,7 +231,7 @@ export default function CreateExercisePage() {
                             Cancel
                         </Button>
 
-                        <Button type="submit" disabled={isLoading}>
+                        <Button icon={Plus} type="submit" disabled={isLoading}>
                             {isLoading ? (
                                 <LoadingPredator
                                     size="small"
@@ -236,7 +240,7 @@ export default function CreateExercisePage() {
                                     showLabel
                                 />
                             ) : (
-                                "Create Exercise"
+                                "Create exercise"
                             )}
                         </Button>
                     </div>

@@ -28,8 +28,8 @@
 .footerText {
     margin: 0;
     color: var(--color-text-muted);
-    font-size: 0.9rem;
-    font-weight: 700;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
 
 }
 
@@ -38,7 +38,7 @@
     bottom: 0;
     z-index: 50;
     width: 100%;
-    border-top: 1px solid var(--color-primary-border);
+    border-top: 1px solid var(--color-accent-border);
     background: color-mix(in srgb, var(--color-surface) 92%, transparent);
     box-shadow: var(--shadow-lg);
     backdrop-filter: blur(14px);
@@ -70,7 +70,7 @@
 .contactTitle {
     margin: 0;
     color: var(--color-text);
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
 }
 
 .contactLinks {
@@ -94,8 +94,8 @@
 }
 
 .contactLinks a:hover {
-    color: var(--color-primary);
-    border-color: var(--color-primary-border);
+    color: var(--color-primary-text);
+    border-color: var(--color-accent-border);
     background: var(--color-primary-soft);
 }
 
@@ -125,3 +125,9 @@
 @media (max-height: 480px) and (hover: none) {
     .timerFooter { position: static; }
 }
+
+.footerBox { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.footerText { font-weight: var(--weight-regular); font-size: var(--text-xs); }
+.footerText span { margin-left: 0.5rem; }
+.contactTitle { display: none; }
+@media (max-width: 900px) { .appLayout:has(:global(nav[aria-label="Main navigation"])) { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); } }

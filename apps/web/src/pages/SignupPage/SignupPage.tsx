@@ -1,3 +1,4 @@
+import { UserPlus } from "lucide-react";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
@@ -98,7 +99,7 @@ export default function SignupPage() {
             if (err instanceof Error) {
                 setError(err.message);
             } else {
-                setError("Something went wrong");
+                setError("Unable to complete this request. Please try again.");
             }
         } finally {
             setIsLoading(false);
@@ -111,7 +112,7 @@ export default function SignupPage() {
                 <div className={styles.topText}>
                     <p className={styles.brand}>Workout App</p>
                     <h1>Create account</h1>
-                    <p>Set up your account and start saving workouts.</p>
+                    <p>Save your routines and track each session.</p>
                 </div>
 
                 <Card className={styles.card}>
@@ -121,6 +122,8 @@ export default function SignupPage() {
 
                             <input
                                 id="name"
+                                aria-invalid={Boolean(fieldErrors.name)}
+                                aria-describedby={fieldErrors.name ? "name-error" : undefined}
                                 type="text"
                                 placeholder="Your name"
                                 value={name}
@@ -137,7 +140,7 @@ export default function SignupPage() {
                             />
 
                             {fieldErrors.name && (
-                                <p className={styles.fieldError}>
+                                <p id="name-error" className={styles.fieldError} role="alert">
                                     {fieldErrors.name}
                                 </p>
                             )}
@@ -148,6 +151,8 @@ export default function SignupPage() {
 
                             <input
                                 id="email"
+                                aria-invalid={Boolean(fieldErrors.email)}
+                                aria-describedby={fieldErrors.email ? "email-error" : undefined}
                                 type="email"
                                 placeholder="example@example.com"
                                 value={email}
@@ -164,7 +169,7 @@ export default function SignupPage() {
                             />
 
                             {fieldErrors.email && (
-                                <p className={styles.fieldError}>
+                                <p id="email-error" className={styles.fieldError} role="alert">
                                     {fieldErrors.email}
                                 </p>
                             )}
@@ -175,6 +180,8 @@ export default function SignupPage() {
 
                             <input
                                 id="username"
+                                aria-invalid={Boolean(fieldErrors.username)}
+                                aria-describedby={fieldErrors.username ? "username-error" : undefined}
                                 type="text"
                                 placeholder="JaneDoe"
                                 value={username}
@@ -193,7 +200,7 @@ export default function SignupPage() {
                             />
 
                             {fieldErrors.username && (
-                                <p className={styles.fieldError}>
+                                <p id="username-error" className={styles.fieldError} role="alert">
                                     {fieldErrors.username}
                                 </p>
                             )}
@@ -204,6 +211,8 @@ export default function SignupPage() {
 
                             <input
                                 id="password"
+                                aria-invalid={Boolean(fieldErrors.password)}
+                                aria-describedby={fieldErrors.password ? "password-error" : undefined}
                                 type="password"
                                 placeholder="••••••••"
                                 value={password}
@@ -222,7 +231,7 @@ export default function SignupPage() {
                             />
 
                             {fieldErrors.password && (
-                                <p className={styles.fieldError}>
+                                <p id="password-error" className={styles.fieldError} role="alert">
                                     {fieldErrors.password}
                                 </p>
                             )}
@@ -234,7 +243,7 @@ export default function SignupPage() {
                             </p>
                         )}
 
-                        <Button type="submit" disabled={isLoading}>
+                        <Button icon={UserPlus} type="submit" disabled={isLoading}>
                             {isLoading ? (
                                 <LoadingPredator
                                     size="small"

@@ -1,7 +1,6 @@
-import BodyHighlighter, {
-    type ExtendedBodyPart,
-    type Slug,
-} from "@mjcdev/react-body-highlighter";
+import BodyHighlighter from "@mjcdev/react-body-highlighter";
+import { useId } from "react";
+import { mapMusclesToBodyHighlighterData } from "../../utils/muscleProfile";
 import type { BodyModelGender } from "@workout-app/shared";
 import { useBodyModel } from "../../context/BodyModelContext";
 import styles from "./MuscleDummy.module.css";
@@ -15,60 +14,13 @@ type MuscleDummyProps = {
 
 
 
-const muscleToBodyPartSlugs: Record<string, Slug[]> = {
-    chest: ["chest"],
-    back: ["upper-back", "lower-back"],
-    shoulders: ["deltoids"],
-    biceps: ["biceps"],
-    triceps: ["triceps"],
-    quads: ["quadriceps"],
-    hamstrings: ["hamstring"],
-    glutes: ["gluteal"],
-    calves: ["calves"],
-    core: ["abs"],
-    forearms: ["forearm"],
-};
-
-function normalizeMuscle(muscle: string) {
-    return muscle.trim().toLowerCase();
-}
-
-function mapMusclesToBodyHighlighterData(
-    primaryMuscles: string[],
-    secondaryMuscles: string[],
-): ExtendedBodyPart[] {
-    const bodyPartMap = new Map<Slug, 1 | 2>();
-
-    for (const muscle of secondaryMuscles) {
-        const normalizedMuscle = normalizeMuscle(muscle);
-        const slugs = muscleToBodyPartSlugs[normalizedMuscle] ?? [];
-
-        for (const slug of slugs) {
-            bodyPartMap.set(slug, 1);
-        }
-    }
-
-    for (const muscle of primaryMuscles) {
-        const normalizedMuscle = normalizeMuscle(muscle);
-        const slugs = muscleToBodyPartSlugs[normalizedMuscle] ?? [];
-
-        for (const slug of slugs) {
-            bodyPartMap.set(slug, 2);
-        }
-    }
-
-    return [...bodyPartMap.entries()].map(([slug, intensity]) => ({
-        slug,
-        intensity,
-    }));
-}
-
 export default function MuscleDummy({
     primaryMuscles = [],
     secondaryMuscles = [],
     variant = "full",
     gender,
 }: MuscleDummyProps) {
+    const descriptionId = useId();
     const { gender: selectedGender } = useBodyModel();
 
     const bodyGender = gender ?? selectedGender;
@@ -81,14 +33,16 @@ export default function MuscleDummy({
     const highlightColors = [
         "var(--color-dummy-muscle-secondary)",
         "var(--color-dummy-muscle-primary)",
+        "var(--color-dummy-muscle-neutral)",
     ];
 
     return (
-        <div
+        <figure
+            aria-labelledby={descriptionId}
             className={`${styles.wrapper} ${variant === "mini" ? styles.mini : styles.full
                 }`}
         >
-            <div className={styles.bodyViews}>
+            <div className={styles.bodyViews} aria-hidden="true">
                 <div className={styles.bodyView}>
                     <span className={styles.bodyLabel}>Front</span>
 
@@ -111,6 +65,16 @@ export default function MuscleDummy({
                     />
                 </div>
             </div>
-        </div>
+            <figcaption id={descriptionId} className={styles.caption}>
+                <span className={styles.legendTitle}>Muscle profile</span>
+                <div className={styles.legend}>
+                    <span><i className={styles.primarySwatch} aria-hidden="true" />Primary</span>
+                    <span><i className={styles.secondarySwatch} aria-hidden="true" />Secondary</span>
+                    <span><i className={styles.neutralSwatch} aria-hidden="true" />Untargeted</span>
+                </div>
+                <p><strong>Primary:</strong> {primaryMuscles.join(", ") || "None"}</p>
+                <p><strong>Secondary:</strong> {secondaryMuscles.filter(muscle => !primaryMuscles.some(primary => primary.trim().toLowerCase() === muscle.trim().toLowerCase())).join(", ") || "None"}</p>
+            </figcaption>
+        </figure>
     );
 }

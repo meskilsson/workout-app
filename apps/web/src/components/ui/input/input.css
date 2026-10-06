@@ -5,13 +5,13 @@
 }
 
 .input-label {
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
     color: var(--color-text);
 }
 
 .input-field {
     padding: 10px 12px;
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-input-border);
     border-radius: var(--radius-md);
     background: var(--color-surface-light);
     color: var(--color-text);
@@ -28,8 +28,8 @@
 }
 
 .input-error {
-    font-size: 0.85rem;
-    color: var(--color-danger);
+    font-size: var(--text-sm);
+    color: var(--color-danger-text);
 }
 
 .set-row {
@@ -46,11 +46,11 @@
     width: 100%;
     background: transparent;
     border: none;
-    border-bottom: 2px solid var(--color-border);
+    border-bottom: 2px solid var(--color-input-border);
     border-radius: 0;
     padding: 6px 4px;
     color: var(--color-text);
-    font-size: 1.05rem;
+    font-size: var(--text-lead);
     text-align: center;
     outline: none;
     box-shadow: none;
@@ -77,3 +77,5 @@
 .set-delete-button {
     flex-shrink: 0;
 }
+.input-field { min-height: var(--control-height); padding: 0.75rem 0.9rem; }
+.input-label { font-weight: var(--weight-semibold); }

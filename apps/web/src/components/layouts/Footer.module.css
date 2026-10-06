@@ -9,7 +9,7 @@
     border-top: 1px solid var(--color-border-soft);
     box-shadow: var(--shadow-sm);
 
-    font-size: 0.95rem;
+    font-size: var(--text-sm);
 }
 
 
@@ -21,7 +21,7 @@
 }
 
 .footer a:hover {
-    color: var(--color-primary);
+    color: var(--color-primary-text);
 }
 
 .footer button {
@@ -33,7 +33,7 @@
 @media (max-width: 700px) {
     .footer {
         padding: 1.25rem 1rem;
-        font-size: 0.9rem;
+        font-size: var(--text-sm);
     }
 
     .footerInner {

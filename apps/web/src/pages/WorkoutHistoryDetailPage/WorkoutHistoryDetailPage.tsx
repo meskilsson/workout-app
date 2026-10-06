@@ -191,7 +191,7 @@ export default function WorkoutHistoryDetailPage() {
     if (isLoading && !session) {
         return (
             <LoadingState
-                layout="details"
+                layout="sessionDetails"
                 className={styles.page}
                 title="Workout history"
                 message="Loading workout details..."
@@ -203,7 +203,6 @@ export default function WorkoutHistoryDetailPage() {
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>
-                    <p className={styles.kicker}>Workout history</p>
                     <h1 className={styles.title}>Workout details</h1>
 
                     <p className={styles.errorText}>
@@ -236,12 +235,11 @@ export default function WorkoutHistoryDetailPage() {
         <Box className={styles.page}>
             <div className={styles.header}>
                 <div>
-                    <p className={styles.kicker}>Workout history</p>
 
                     <h1 className={styles.title}>Workout details</h1>
 
                     <p className={styles.subtitle}>
-                        A full breakdown of this saved workout session.
+                        Your recorded sets, weight, reps, and duration.
                     </p>
                 </div>
 
@@ -276,7 +274,7 @@ export default function WorkoutHistoryDetailPage() {
 
             {actionError && (
                 <Card className={styles.actionErrorCard}>
-                    <p className={styles.errorText}>{actionError}</p>
+                    <p className={styles.errorText} role="alert">{actionError}</p>
                 </Card>
             )}
 
@@ -312,13 +310,11 @@ export default function WorkoutHistoryDetailPage() {
             <Card className={styles.muscleCard}>
                 <div className={styles.muscleCardContent}>
                     <div className={styles.muscleInfo}>
-                        <p className={styles.kicker}>Muscle profile</p>
 
                         <h2 className={styles.sectionTitle}>Muscles trained</h2>
 
                         <p className={styles.sectionText}>
-                            This highlights the primary and secondary muscles targeted by
-                            this workout.
+                            Primary and secondary muscles targeted by your exercises.
                         </p>
 
                         {isLoadingMuscles && exerciseLibrary.length === 0 && (
@@ -331,27 +327,9 @@ export default function WorkoutHistoryDetailPage() {
                         )}
 
                         {muscleError && (
-                            <p className={styles.errorText}>{muscleError}</p>
+                            <p className={styles.errorText} role="alert">{muscleError}</p>
                         )}
 
-                        <div className={styles.muscleLegend}>
-                            <span className={styles.primaryLegend}>Primary</span>
-                            <span className={styles.secondaryLegend}>Secondary</span>
-                        </div>
-
-                        <div className={styles.muscleTags}>
-                            {trainedMuscles.primaryMuscles.map((muscle) => (
-                                <span key={muscle} className={styles.primaryTag}>
-                                    {muscle}
-                                </span>
-                            ))}
-
-                            {trainedMuscles.secondaryMuscles.map((muscle) => (
-                                <span key={muscle} className={styles.secondaryTag}>
-                                    {muscle}
-                                </span>
-                            ))}
-                        </div>
                     </div>
 
                     <div className={styles.muscleDummyWrap}>
@@ -375,6 +353,7 @@ export default function WorkoutHistoryDetailPage() {
                     </div>
                 </div>
 
+                {session.exercises.length === 0 && <Card className={styles.stateCard}><p className={styles.stateText}>No sets were recorded for this session.</p></Card>}
                 <div className={styles.exerciseList}>
                     {session.exercises.map((exercise, exerciseIndex) => (
                         <Card

@@ -18,7 +18,7 @@ type PredatorStyle = CSSProperties & {
 
 export default function LoadingPredator({
     className = "",
-    color = "var(--color-primary)",
+    color = "currentColor",
     size = "medium",
     label = "Loading",
     showLabel = false,
@@ -35,24 +35,7 @@ export default function LoadingPredator({
             aria-live="polite"
             aria-label={label}
         >
-            <span className={styles.visualShell} aria-hidden="true">
-                <span
-                    className={styles.loadingPredator}
-                    style={predatorStyle}
-                >
-                    <span
-                        className={`${styles.laser} ${styles.leftLaser}`}
-                    />
-
-                    <span
-                        className={`${styles.laser} ${styles.rightLaser}`}
-                    />
-
-                    <span
-                        className={`${styles.laser} ${styles.bottomLaser}`}
-                    />
-                </span>
-            </span>
+            <span aria-hidden="true" className={styles.spinner} style={predatorStyle} />
 
             {showLabel && (
                 <span className={styles.label}>

@@ -1,27 +1,14 @@
+import { UserRound, History, Dumbbell, Settings } from "lucide-react";
+import Icon from "../ui/icon/Icon";
 import { NavLink, Outlet } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import styles from "./AccountLayout.module.css";
 
 export default function AccountLayout() {
-    const { user } = useAuth();
 
     return (
         <section className={styles.page}>
-            <div className={styles.pageHeader}>
-                <p className={styles.kicker}>My account</p>
-
-                <h1 className={styles.title}>Training profile</h1>
-
-                <p className={styles.subtitle}>
-                    {user?.name
-                        ? `Welcome back, ${user.name}. Manage your workouts, exercises, and account.`
-                        : "Manage your workouts, exercises, and account."}
-                </p>
-            </div>
-
             <div className={styles.accountLayout}>
                 <aside className={styles.sideNav}>
-                    <h3 className={styles.header}>Profile</h3>
 
                     <nav className={styles.links} aria-label="Profile navigation">
                         <NavLink
@@ -33,7 +20,7 @@ export default function AccountLayout() {
                                     : styles.link
                             }
                         >
-                            Profile
+                            <Icon icon={UserRound} /> Profile
                         </NavLink>
 
                         <NavLink
@@ -44,7 +31,7 @@ export default function AccountLayout() {
                                     : styles.link
                             }
                         >
-                            Workout history
+                            <Icon icon={History} /> Workout history
                         </NavLink>
 
                         <NavLink
@@ -55,7 +42,7 @@ export default function AccountLayout() {
                                     : styles.link
                             }
                         >
-                            My exercises
+                            <Icon icon={Dumbbell} /> My exercises
                         </NavLink>
 
                         <NavLink
@@ -66,7 +53,7 @@ export default function AccountLayout() {
                                     : styles.link
                             }
                         >
-                            Settings
+                            <Icon icon={Settings} /> Settings
                         </NavLink>
                     </nav>
                 </aside>

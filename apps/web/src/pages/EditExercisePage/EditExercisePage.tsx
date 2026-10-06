@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Box from "../../components/ui/box/Box";
@@ -175,7 +176,7 @@ export default function EditExercisePage() {
         <Box className={styles.page}>
             <Card variant="default" className={styles.card}>
                 <div className={styles.header}>
-                    <h1 className={styles.title}>Edit Exercise</h1>
+                    <h1 className={styles.title}>Edit exercise</h1>
                     <p className={styles.subtitle}>
                         Update your custom exercise details.
                     </p>
@@ -217,7 +218,7 @@ export default function EditExercisePage() {
 
                     <div className={styles.row}>
                         <div className={styles.field}>
-                            <label htmlFor="exerciseType">Exercise Type</label>
+                            <label htmlFor="exerciseType">Exercise type</label>
                             <select
                                 id="exerciseType"
                                 value={exerciseType}
@@ -272,8 +273,8 @@ export default function EditExercisePage() {
                     </div>
 
                     <div className={styles.field}>
-                        <label>Primary Muscles</label>
-                        <div className={styles.checkboxGrid}>
+                        <span id="primary-muscles-label">Primary muscles</span>
+                        <div className={styles.checkboxGrid} role="group" aria-labelledby="primary-muscles-label">
                             {MUSCLE_OPTIONS.map((muscle) => (
                                 <label key={muscle} className={styles.checkboxOption}>
                                     <input
@@ -288,8 +289,8 @@ export default function EditExercisePage() {
                     </div>
 
                     <div className={styles.field}>
-                        <label>Secondary Muscles</label>
-                        <div className={styles.checkboxGrid}>
+                        <span id="secondary-muscles-label">Secondary muscles</span>
+                        <div className={styles.checkboxGrid} role="group" aria-labelledby="secondary-muscles-label">
                             {MUSCLE_OPTIONS.map((muscle) => (
                                 <label key={muscle} className={styles.checkboxOption}>
                                     <input
@@ -303,7 +304,7 @@ export default function EditExercisePage() {
                         </div>
                     </div>
 
-                    {error && <p className={styles.error}>{error}</p>}
+                    {error && <p className={styles.error} role="alert">{error}</p>}
 
                     <div className={styles.actions}>
                         <Button
@@ -315,7 +316,7 @@ export default function EditExercisePage() {
                             Cancel
                         </Button>
 
-                        <Button type="submit" disabled={isSaving}>
+                        <Button icon={Check} type="submit" disabled={isSaving}>
                             {isSaving ? (
                                 <LoadingPredator
                                     size="small"
@@ -324,7 +325,7 @@ export default function EditExercisePage() {
                                     showLabel
                                 />
                             ) : (
-                                "Save Changes"
+                                "Save changes"
                             )}
                         </Button>
                     </div>

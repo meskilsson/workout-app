@@ -2,7 +2,7 @@
     width: 100%;
     max-width: 900px;
     margin: 0 auto;
-    padding: 3rem 1rem 4rem;
+    padding: 2rem 1rem 3rem;
     display: flex;
     flex-direction: column;
     gap: 1.75rem;
@@ -17,18 +17,18 @@
 
 .kicker {
     margin: 0;
-    color: var(--color-primary);
-    font-size: 0.78rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    color: var(--color-primary-text);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: normal;
+    text-transform: none;
 }
 
 .title {
     margin: 0.35rem 0 0;
     color: var(--color-text);
-    font-size: clamp(1.9rem, 4vw, 2.6rem);
-    line-height: 1.05;
+    font-size: var(--text-heading-md);
+    line-height: var(--line-heading);
 }
 
 .subtitle {
@@ -54,8 +54,8 @@
 .sectionTitle {
     margin: 0;
     color: var(--color-text);
-    font-size: 1.25rem;
-    line-height: 1.2;
+    font-size: var(--text-heading-sm);
+    line-height: var(--line-heading);
 }
 
 .sectionText {
@@ -71,7 +71,7 @@
     border-radius: var(--radius-lg);
     background: var(--color-surface) !important;
     color: var(--color-text) !important;
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
 }
 
 .summaryCard {
@@ -88,24 +88,21 @@
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
-    padding: 0.95rem 1rem;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-surface-light);
+    padding: .35rem 0;
 }
 
 .summaryLabel {
     color: var(--color-text-muted);
-    font-size: 0.78rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: normal;
+    text-transform: none;
 }
 
 .summaryValue {
     color: var(--color-text);
-    font-size: 1.15rem;
-    font-weight: 800;
+    font-size: var(--text-lead);
+    font-weight: var(--weight-semibold);
     line-height: 1.35;
 }
 
@@ -128,10 +125,10 @@
 }
 
 .exerciseCard:hover {
-    transform: translateY(-2px);
+
     border-color: var(--color-primary-border) !important;
     background: var(--color-surface-light) !important;
-    box-shadow: var(--shadow-md);
+    box-shadow: none;
 }
 
 .exerciseHeader {
@@ -144,28 +141,28 @@
 .exerciseNumber {
     margin: 0 0 0.35rem;
     color: var(--color-text-muted);
-    font-size: 0.75rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: normal;
+    text-transform: none;
 }
 
 .exerciseTitle {
     margin: 0;
     color: var(--color-text);
-    font-size: 1.15rem;
-    line-height: 1.25;
+    font-size: var(--text-lead);
+    line-height: var(--line-heading);
 }
 
 .exerciseBadge {
     flex-shrink: 0;
     padding: 0.4rem 0.7rem;
     border: 1px solid var(--color-primary-border);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-sm);
     background: var(--color-primary-soft);
-    color: var(--color-primary);
-    font-size: 0.82rem;
-    font-weight: 800;
+    color: var(--color-primary-text);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
 }
 
 .stateCard {
@@ -179,7 +176,7 @@
 }
 
 .footer {
-    position: sticky;
+    position: static;
     bottom: 1rem;
     display: flex;
     justify-content: space-between;
@@ -189,14 +186,14 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     background: color-mix(in srgb, var(--color-surface) 92%, transparent);
-    box-shadow: var(--shadow-md);
+    box-shadow: none;
     backdrop-filter: blur(12px);
 }
 
 .footerText {
     margin: 0;
     color: var(--color-text-muted);
-    font-weight: 700;
+    font-weight: var(--weight-semibold);
 }
 
 .actions {
@@ -222,7 +219,7 @@
 .errorCard {
     padding: 1rem;
 
-    color: var(--color-danger);
+    color: var(--color-danger-text);
     background: var(--color-danger-soft);
     border: 1px solid color-mix(in srgb, var(--color-danger) 35%, transparent);
     border-radius: var(--radius-md);
@@ -230,7 +227,7 @@
 
 .errorCard p {
     margin: 0;
-    font-weight: 700;
+    font-weight: var(--weight-semibold);
 }
 
 .templateForm {
@@ -247,8 +244,8 @@
 
 .templateField span {
     color: var(--color-text-muted);
-    font-size: 0.85rem;
-    font-weight: 800;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
 }
 
 .templateField input,
@@ -260,7 +257,7 @@
     color: var(--color-text);
     background: var(--color-surface-light);
 
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-input-border);
     border-radius: var(--radius-md);
     outline: none;
 
@@ -280,7 +277,7 @@
 }
 
 .buttonArrow {
-    font-size: 1.1rem;
+    font-size: var(--text-lead);
     line-height: 1;
 }
 
@@ -313,3 +310,8 @@
         position: static;
     }
 }
+.dragHandle { min-width: 44px; min-height: 44px; display: grid; place-items: center; touch-action: none; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text-muted); cursor: grab; }
+
+.backButton { width: 44px !important; min-width: 44px !important; height: 44px; padding: 0; }
+
+@media (max-width: 640px) { .summaryGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; } }

@@ -1,3 +1,5 @@
+import { ArrowLeft, Trash2 } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -94,7 +96,7 @@ export default function ProfileWorkoutsPage() {
             if (error instanceof Error) {
                 setDeleteAction(error.message || "Failed to delete");
             } else {
-                setDeleteAction("Something went wrong");
+                setDeleteAction("Unable to complete this request. Please try again.");
             }
         } finally {
             setIsDeleting(false);
@@ -119,9 +121,9 @@ export default function ProfileWorkoutsPage() {
             {isLoading && <LoadingAnnouncement message="Updating content..." />}
             <div className={styles.header}>
                 <div>
-                    <p className={styles.kicker}>History</p>
 
-                    <h2 className={styles.title}>Workout history</h2>
+
+                    <h1 className={styles.title}>Workout history</h1>
 
                     <p className={styles.subtitle}>
                         Review your saved workout sessions.
@@ -131,10 +133,12 @@ export default function ProfileWorkoutsPage() {
                         type="button"
                         variant="secondary"
                         style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+                        iconOnly
                         className={styles.backButton}
+                    aria-label="Go back"
                         onClick={() => navigate(-1)}
                     >
-                        <span className={styles.buttonArrow}>←</span>
+                        <Icon icon={ArrowLeft} />
                     </Button>
                 </div>
 
@@ -149,23 +153,23 @@ export default function ProfileWorkoutsPage() {
 
             {error && (
                 <Card className={styles.stateCard}>
-                    <p className={styles.errorText}>{error}</p>
+                    <p className={styles.errorText} role="alert">{error}</p>
                 </Card>
             )}
 
             {actionError && (
                 <Card className={styles.stateCard}>
-                    <p className={styles.errorText}>{actionError}</p>
+                    <p className={styles.errorText} role="alert">{actionError}</p>
                 </Card>
             )}
 
             {deleteAction && (
                 <Card className={styles.stateCard}>
-                    <p className={styles.errorText}>{deleteAction}</p>
+                    <p className={styles.errorText} role="alert">{deleteAction}</p>
                 </Card>
             )}
 
-            {sessions.length === 0 ? (
+            {sessions.length === 0 && !error ? (
                 <Card className={styles.stateCard}>
                     <p className={styles.stateText}>No workouts saved yet.</p>
                 </Card>
@@ -189,11 +193,11 @@ export default function ProfileWorkoutsPage() {
                                 <div className={styles.sessionTopRow}>
                                     <div>
                                         <h3 className={styles.sessionTitle}>
-                                            Workout Session
+                                            {completedDate}
                                         </h3>
 
                                         <p className={styles.sessionDate}>
-                                            {completedDate} at {endTime}
+                                            Completed at {endTime}
                                         </p>
                                     </div>
 
@@ -232,42 +236,14 @@ export default function ProfileWorkoutsPage() {
                                                 )
                                             }
                                         >
-                                            View Details
+                                            View details
                                         </Button>
                                     </div>
                                 </div>
 
-                                <div className={styles.summaryGrid}>
-                                    <div className={styles.summaryItem}>
-                                        <span className={styles.summaryLabel}>
-                                            Exercises
-                                        </span>
-
-                                        <span className={styles.summaryValue}>
-                                            {session.exercises.length}
-                                        </span>
-                                    </div>
-
-                                    <div className={styles.summaryItem}>
-                                        <span className={styles.summaryLabel}>
-                                            Total Sets
-                                        </span>
-
-                                        <span className={styles.summaryValue}>
-                                            {totalSets}
-                                        </span>
-                                    </div>
-
-                                    <div className={styles.summaryItem}>
-                                        <span className={styles.summaryLabel}>
-                                            End Time
-                                        </span>
-
-                                        <span className={styles.summaryValue}>
-                                            {endTime}
-                                        </span>
-                                    </div>
-                                </div>
+                                <p className={styles.sessionSummary}>
+                                    {session.exercises.length} exercises / {totalSets} sets
+                                </p>
 
                                 <div className={styles.exercisePreview}>
                                     {session.exercises.slice(0, 3).map((exercise) => (
@@ -288,7 +264,7 @@ export default function ProfileWorkoutsPage() {
                                 <div className={styles.deleteButton}>
                                     <Button
                                         type="button"
-                                        variant="danger"
+                                        variant="danger" icon={Trash2}
                                         disabled={isDeleting || Boolean(repeatingSessionId)}
                                         onClick={() => handleDeleteSession(session._id)}
                                     >

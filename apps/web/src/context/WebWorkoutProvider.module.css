@@ -1,0 +1,4 @@
+.recovery { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: max(1rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) max(1rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px)); }
+.recoveryCard { width: min(100%, 440px); padding: 1.5rem; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
+.recoveryCard h1 { margin: 0; font-size: var(--text-heading-md); }
+.recoveryCard p { margin: 1rem 0; color: var(--color-text-muted); }

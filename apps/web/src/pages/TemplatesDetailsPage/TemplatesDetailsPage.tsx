@@ -1,3 +1,5 @@
+import { ArrowLeft } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
@@ -96,7 +98,7 @@ export default function TemplatesDetailsPage({
                 if (error instanceof Error) {
                     setError(error.message || "Failed to fetch template details");
                 } else {
-                    setError("Something went wrong");
+                    setError("Unable to complete this request. Please try again.");
                 }
             } finally {
                 if (!shouldIgnore) {
@@ -115,7 +117,7 @@ export default function TemplatesDetailsPage({
     if (isLoading && !template) {
         return (
             <LoadingState
-                layout="details"
+                layout="templateDetails"
                 className={styles.page}
                 title="Workout template"
                 message="Loading workout details..."
@@ -127,7 +129,7 @@ export default function TemplatesDetailsPage({
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>
-                    <p className={styles.errorText}>{error}</p>
+                    <p className={styles.errorText} role="alert">{error}</p>
                 </Card>
             </Box>
         );
@@ -165,17 +167,19 @@ export default function TemplatesDetailsPage({
                         <h2 className={styles.sectionTitle}>Exercises</h2>
 
                         <p className={styles.sectionText}>
-                            Full exercise overview with muscles, instructions and planned sets.
+                            Exercise order, technique, and planned sets.
                         </p>
 
                         <Button
                             type="button"
                             variant="secondary"
                             style={{ minWidth: "3.25rem", marginTop: "1rem" }}
-                            className={styles.backButton}
+                            iconOnly
+                        className={styles.backButton}
+                    aria-label="Go back"
                             onClick={() => navigate(-1)}
                         >
-                            <span className={styles.buttonArrow}>←</span>
+                            <Icon icon={ArrowLeft} />
                         </Button>
                     </div>
 
@@ -184,6 +188,7 @@ export default function TemplatesDetailsPage({
                     </span>
                 </div>
 
+                {template.exercises.length === 0 && <Card className={styles.stateCard}><p>This template has no exercises.</p></Card>}
                 <div className={styles.exerciseCardGrid}>
                     {template.exercises.map((templateExercise, index) => {
                         const exercise = templateExercise.exercise;
@@ -208,9 +213,7 @@ export default function TemplatesDetailsPage({
                                             </div>
 
                                             <p className={styles.emptyText}>
-                                                This exercise no longer exists or is no longer
-                                                available. You may need to edit or recreate this
-                                                workout template.
+                                                This exercise is unavailable. Update the template to replace it.
                                             </p>
                                         </div>
                                     </div>
@@ -301,16 +304,14 @@ export default function TemplatesDetailsPage({
                                             </div>
                                         )}
 
-                                        <div className={styles.instructionsBlock}>
-                                            <p className={styles.blockTitle}>
-                                                Instructions
-                                            </p>
+                                        <details className={styles.instructionsBlock}>
+                                            <summary className={styles.blockTitle}>Technique</summary>
 
                                             <p className={styles.instructions}>
                                                 {fullExercise?.instructions ||
                                                     "No instructions available."}
                                             </p>
-                                        </div>
+                                        </details>
 
                                         <div className={styles.setsBlock}>
                                             <p className={styles.blockTitle}>
@@ -358,52 +359,6 @@ export default function TemplatesDetailsPage({
                                         )}
 
                                         <div className={styles.muscleGroups}>
-                                            <div className={styles.muscleGroup}>
-                                                <p className={styles.muscleGroupTitle}>
-                                                    Primary
-                                                </p>
-
-                                                <div className={styles.muscleChipList}>
-                                                    {primaryMuscles.length > 0 ? (
-                                                        primaryMuscles.map((muscle) => (
-                                                            <span
-                                                                key={muscle}
-                                                                className={styles.primaryChip}
-                                                            >
-                                                                {muscle}
-                                                            </span>
-                                                        ))
-                                                    ) : (
-                                                        <span className={styles.emptyChip}>
-                                                            None
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            <div className={styles.muscleGroup}>
-                                                <p className={styles.muscleGroupTitle}>
-                                                    Secondary
-                                                </p>
-
-                                                <div className={styles.muscleChipList}>
-                                                    {secondaryMuscles.length > 0 ? (
-                                                        secondaryMuscles.map((muscle) => (
-                                                            <span
-                                                                key={muscle}
-                                                                className={styles.secondaryChip}
-                                                            >
-                                                                {muscle}
-                                                            </span>
-                                                        ))
-                                                    ) : (
-                                                        <span className={styles.emptyChip}>
-                                                            None
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-
                                             <div className={styles.muscleDummy}>
                                                 <MuscleDummy
                                                     variant="full"

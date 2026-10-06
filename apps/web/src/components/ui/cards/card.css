@@ -1,6 +1,6 @@
 .card {
     border-radius: var(--radius-lg);
-    padding: 16px;
+    padding: var(--space-6);
     transition:
         transform 0.25s ease,
         box-shadow 0.25s ease,
@@ -13,12 +13,12 @@
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     color: var(--color-text);
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
 }
 
-.card--default:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+.card--default:is([role="button"], [tabindex="0"]):hover {
+
+    box-shadow: none;
 }
 
 /* primary */
@@ -26,13 +26,13 @@
     background: var(--gradient-surface);
     color: var(--color-text);
     border: 1px solid var(--color-primary-border);
-    box-shadow: var(--shadow-md);
+    box-shadow: none;
     cursor: pointer;
 }
 
 .card--primary:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
+
+    box-shadow: none;
 }
 
 .card--primary:active {
@@ -49,12 +49,12 @@
     background: var(--gradient-surface);
     color: var(--color-text);
     border: 1px solid var(--color-primary-border);
-    box-shadow: var(--shadow-md);
+    box-shadow: none;
 }
 
 .card--image:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
+
+    box-shadow: none;
 }
 
 .card--image:active {
@@ -88,15 +88,15 @@
     background: var(--gradient-primary);
     color: var(--color-on-primary);
     border: 1px solid var(--color-primary-border);
-    box-shadow: var(--shadow-md);
+    box-shadow: none;
     border-radius: 0;
     padding: 20px 24px;
 }
 
 .card__title {
     margin: 0 0 8px;
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: var(--text-lead);
+    font-weight: var(--weight-semibold);
 }
 
 /* selection cards */
@@ -111,35 +111,17 @@
 }
 
 .muscle-group-card:hover {
-    transform: translateY(-4px);
+
     box-shadow: 0 12px 24px var(--color-primary-soft);
 }
 
 .muscle-group-card--selected {
-    border-color: var(--color-primary);
+    border-color: var(--color-accent-border);
     box-shadow:
-        0 0 0 3px var(--color-primary-soft),
-        0 12px 24px var(--color-primary-soft);
+        0 0 0 3px var(--color-accent-soft),
+        0 12px 24px var(--color-accent-soft);
 }
 
-.homepage-workout-card {
-    cursor: pointer;
-}
-
-.homepage-workout-card__content {
-    flex-direction: column;
-    text-align: center;
-    gap: 0.5rem;
-}
-
-.homepage-workout-card__title {
-    margin: 0;
-    font-size: 1.4rem;
-    font-weight: 700;
-}
-
-.homepage-workout-card__text {
-    margin: 0;
-    opacity: 0.9;
-    font-size: 0.95rem;
-}
+.card { min-width: 0; }
+.card--timer { background: var(--color-accent-soft); color: var(--color-accent-text); border-color: var(--color-accent-border); border-radius: var(--radius-lg); }
+@media (max-width: 640px) { .card { padding: var(--space-4); } .card--image { padding: 0; } }

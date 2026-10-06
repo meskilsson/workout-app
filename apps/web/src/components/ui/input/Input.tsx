@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes } from "react";
+import { useId, type InputHTMLAttributes } from "react";
 import "./input.css";
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & {
@@ -20,7 +20,9 @@ export default function Input({
     errorClassName,
     ...rest
 }: InputProps) {
-    const inputId = id || name;
+    const generatedId = useId();
+    const inputId = id || name || generatedId;
+    const errorId = `${inputId}-error`;
 
     return (
         <div className={wrapperClassName ?? "input-wrapper"}>
@@ -36,11 +38,13 @@ export default function Input({
             <input
                 id={inputId}
                 name={name}
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? errorId : undefined}
                 className={className ?? "input-field"}
                 {...rest}
             />
 
-            {error && <p className={errorClassName ?? "input-error"}>{error}</p>}
+            {error && <p id={errorId} role="alert" className={errorClassName ?? "input-error"}>{error}</p>}
         </div>
     );
 }

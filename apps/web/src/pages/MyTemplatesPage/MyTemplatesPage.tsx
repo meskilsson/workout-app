@@ -1,3 +1,5 @@
+import { Plus, ArrowLeft, Trash2 } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -52,7 +54,7 @@ export default function MyTemplatesPage() {
                 if (error instanceof Error) {
                     setError(error.message);
                 } else {
-                    setError("Something went wrong");
+                    setError("Unable to complete this request. Please try again.");
                 }
             } finally {
                 setIsLoading(false);
@@ -141,35 +143,37 @@ export default function MyTemplatesPage() {
             {isLoading && <LoadingAnnouncement message="Updating content..." />}
             <div className={styles.sectionHeader}>
                 <div>
-                    <h2 className={styles.sectionTitle}>My workouts</h2>
+                    <h2 className={styles.sectionTitle}>My templates</h2>
 
                     <p className={styles.sectionText}>
-                        Workouts you have created yourself.
+                        Your reusable training routines.
                     </p>
 
                     <Button
                         type="button"
                         variant="secondary"
                         style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+                        iconOnly
                         className={styles.backButton}
+                    aria-label="Go back"
                         onClick={() => navigate(-1)}
                     >
-                        <span className={styles.buttonArrow}>←</span>
+                        <Icon icon={ArrowLeft} />
                     </Button>
                 </div>
 
-                <Button
+                <Button icon={Plus}
                     type="button"
                     variant="secondary"
                     onClick={() => navigate("/templates/create")}
                 >
-                    Create workout
+                    Create template
                 </Button>
             </div>
 
             {error && (
                 <Card className={styles.stateCard}>
-                    <p className={styles.errorText}>{error}</p>
+                    <p className={styles.errorText} role="alert">{error}</p>
                 </Card>
             )}
 
@@ -194,9 +198,6 @@ export default function MyTemplatesPage() {
                             >
                                 <div className={styles.cardHeader}>
                                     <div>
-                                        <p className={styles.templateType}>
-                                            My workout
-                                        </p>
 
                                         <h2 className={styles.templateName}>
                                             {template.name}
@@ -291,7 +292,7 @@ export default function MyTemplatesPage() {
 
                                         <Button
                                             type="button"
-                                            variant="danger"
+                                            variant="danger" icon={Trash2}
                                             disabled={isBusy}
                                             onClick={() => setTemplateToDelete(template)}
                                         >
@@ -305,7 +306,7 @@ export default function MyTemplatesPage() {
                 </div>
             ) : (
                 <Card className={styles.stateCard}>
-                    <p>You have not created any workouts yet.</p>
+                    <p>No templates yet. Create one to save a routine.</p>
                 </Card>
             )}
 
@@ -321,7 +322,7 @@ export default function MyTemplatesPage() {
                     <div className={styles.templateActions}>
                         <Button
                             type="button"
-                            variant="danger"
+                            variant="danger" icon={Trash2}
                             onClick={handleConfirmDeleteTemplate}
                             disabled={isDeleting}
                         >
@@ -353,6 +354,7 @@ export default function MyTemplatesPage() {
                     <strong>{templateToDelete?.name}</strong>? This cannot be
                     undone.
                 </p>
+                {error && <p className={styles.errorText} role="alert">{error}</p>}
             </Modal>
         </section>
     );

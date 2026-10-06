@@ -18,7 +18,7 @@
     background: var(--gradient-surface);
     border: 1px solid var(--color-border-soft);
     border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-lg);
+    box-shadow: none;
 }
 
 .header {
@@ -29,8 +29,8 @@
     margin: 0;
 
     color: var(--color-text);
-    font-size: clamp(1.75rem, 3vw, 2.25rem);
-    font-weight: 750;
+    font-size: var(--text-heading-md);
+    font-weight: var(--weight-semibold);
     letter-spacing: -0.03em;
 }
 
@@ -38,7 +38,7 @@
     margin: 0.5rem 0 0;
 
     color: var(--color-text-muted);
-    font-size: 0.98rem;
+    font-size: var(--text-sm);
 }
 
 .form {
@@ -55,8 +55,8 @@
 
 .field label {
     color: var(--color-text-soft);
-    font-size: 0.95rem;
-    font-weight: 650;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
 }
 
 .field input,
@@ -68,7 +68,7 @@
     background: var(--color-background-soft);
     color: var(--color-text);
 
-    border: 1px solid var(--color-border-soft);
+    border: 1px solid var(--color-input-border);
     border-radius: var(--radius-md);
     outline: none;
 
@@ -106,14 +106,14 @@
     margin: 0;
     padding: 0.8rem 1rem;
 
-    color: var(--color-danger);
+    color: var(--color-danger-text);
     background: var(--color-danger-soft);
 
     border: 1px solid color-mix(in srgb, var(--color-danger) 35%, transparent);
     border-radius: var(--radius-md);
 
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
 }
 
 .actions {
@@ -155,7 +155,7 @@
 .checkboxOption:hover {
     background: var(--color-surface);
     border-color: var(--color-primary-border);
-    transform: translateY(-1px);
+
 }
 
 .checkboxOption:has(input:checked) {
@@ -173,13 +173,13 @@
 
 .checkboxOption span {
     color: var(--color-text-soft);
-    font-size: 0.95rem;
+    font-size: var(--text-sm);
     text-transform: capitalize;
 }
 
 .checkboxOption:has(input:checked) span {
     color: var(--color-text);
-    font-weight: 700;
+    font-weight: var(--weight-semibold);
 }
 
 @media (max-width: 640px) {

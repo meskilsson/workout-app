@@ -1,3 +1,4 @@
+import { LogIn } from "lucide-react";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
@@ -37,7 +38,7 @@ export default function LoginPage() {
             if (err instanceof Error) {
                 setError(err.message);
             } else {
-                setError("Something went wrong");
+                setError("Unable to complete this request. Please try again.");
             }
         } finally {
             setIsLoading(false);
@@ -52,7 +53,7 @@ export default function LoginPage() {
 
                     <h1>Log in</h1>
 
-                    <p>Continue building and saving your workouts.</p>
+                    <p>Log in to plan and track your training.</p>
                 </div>
 
                 <Card className={styles.card}>
@@ -63,7 +64,7 @@ export default function LoginPage() {
                             <input
                                 id="email"
                                 type="email"
-                                placeholder="123@example.com"
+                                placeholder="you@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 autoComplete="email"
@@ -91,7 +92,7 @@ export default function LoginPage() {
                             </p>
                         )}
 
-                        <Button type="submit" disabled={isLoading}>
+                        <Button icon={LogIn} type="submit" disabled={isLoading}>
                             {isLoading ? (
                                 <LoadingPredator
                                     size="small"
@@ -109,7 +110,7 @@ export default function LoginPage() {
                 <p className={styles.bottomText}>
                     Don&apos;t have an account?{" "}
                     <button type="button" onClick={() => navigate("/signup")}>
-                        Create one
+                        Create account
                     </button>
                 </p>
             </div>

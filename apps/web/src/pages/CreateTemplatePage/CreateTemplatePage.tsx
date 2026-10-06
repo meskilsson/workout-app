@@ -1,3 +1,5 @@
+import { ArrowRight, ArrowLeft } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
 import { useNavigate } from "react-router-dom";
 
 import Card from "../../components/ui/cards/Card";
@@ -15,15 +17,17 @@ export default function CreateTemplatePage() {
                     type="button"
                     variant="secondary"
                     style={{ minWidth: "3.25rem", marginBottom: "1rem" }}
-                    className={styles.backButton}
+                    iconOnly
+                        className={styles.backButton}
+                    aria-label="Go back"
                     onClick={() => navigate(-1)}
 
                 >
-                    <span className={styles.buttonArrow}>←</span>
+                    <Icon icon={ArrowLeft} />
                 </Button>
-                <p className={styles.kicker}>Create workout</p>
+                <p className={styles.kicker}>Workout template</p>
 
-                <h1 className={styles.title}>Build a reusable workout</h1>
+                <h1 className={styles.title}>Create a template</h1>
 
 
 
@@ -40,14 +44,14 @@ export default function CreateTemplatePage() {
                         <span>2</span>
                         <div>
                             <h2>Pick exercises</h2>
-                            <p>Add the exercises that should belong to the workout.</p>
+                            <p>Choose your exercises and their order.</p>
                         </div>
                     </div>
 
                     <div className={styles.step}>
                         <span>3</span>
                         <div>
-                            <h2>Save as workout</h2>
+                            <h2>Save your template</h2>
                             <p>Name it, choose a category, and save it for later.</p>
                         </div>
                     </div>
@@ -62,11 +66,11 @@ export default function CreateTemplatePage() {
                         Cancel
                     </Button>
 
-                    <Button
+                    <Button icon={ArrowRight}
                         type="button"
                         onClick={() => navigate("/workout-select?purpose=template")}
                     >
-                        Start building workout
+                        Choose muscles
                     </Button>
                 </div>
             </Card>

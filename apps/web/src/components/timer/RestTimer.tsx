@@ -1,3 +1,5 @@
+import { Play, Pause, RotateCcw, Timer } from "lucide-react";
+import Icon from "../ui/icon/Icon";
 import Button from "../ui/button/Button";
 import styles from "./RestTimer.module.css";
 import {
@@ -6,9 +8,6 @@ import {
     useRestTimerControls,
 } from "@workout-app/shared/timer/rest";
 
-import PlayIcon from "../../assets/icons/play.svg?react";
-import PauseIcon from "../../assets/icons/pause.svg?react";
-import ResetIcon from "../../assets/icons/rotate-ccw.svg?react";
 
 export default function RestTimer() {
     const { state, start, pause, reset, adjustTime } = useRestTimerControls();
@@ -16,7 +15,7 @@ export default function RestTimer() {
     return (
         <section className={styles.timer}>
             <div className={styles.info}>
-                <span className={styles.label}>Rest timer</span>
+                <span className={styles.label}><Icon icon={Timer} /> Rest timer</span>
 
                 <strong className={styles.time}>
                     {formatCountdownMilliseconds(state.timeLeft)}
@@ -46,12 +45,12 @@ export default function RestTimer() {
                 <div className={styles.actions}>
                     <Button
                         type="button"
-                        variant="primary"
+                        variant="secondary"
                         onClick={start}
                         className={styles.iconButton}
                         aria-label="Start rest timer"
                     >
-                        <PlayIcon className={styles.timerIcon} />
+                        <Icon icon={Play} className={styles.timerIcon} />
                     </Button>
 
                     <Button
@@ -61,7 +60,7 @@ export default function RestTimer() {
                         className={styles.iconButton}
                         aria-label="Pause rest timer"
                     >
-                        <PauseIcon className={styles.timerIcon} />
+                        <Icon icon={Pause} className={styles.timerIcon} />
                     </Button>
 
                     <Button
@@ -71,7 +70,7 @@ export default function RestTimer() {
                         className={styles.iconButton}
                         aria-label="Reset rest timer"
                     >
-                        <ResetIcon className={styles.timerIcon} />
+                        <Icon icon={RotateCcw} className={styles.timerIcon} />
                     </Button>
                 </div>
             </div>

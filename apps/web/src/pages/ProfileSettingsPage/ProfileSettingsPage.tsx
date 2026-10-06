@@ -1,3 +1,5 @@
+import { ArrowLeft, Trash2 } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import { useAuth } from "../../context/AuthContext";
@@ -49,65 +51,39 @@ export default function ProfileSettingsPage() {
         <div className={styles.page}>
             <div className={styles.header}>
                 <div>
-                    <p className={styles.kicker}>Settings</p>
-                    <h2 className={styles.title}>Account settings</h2>
+                    <h1 className={styles.title}>Account settings</h1>
                     <p className={styles.subtitle}>
-                        Manage your profile details, password, session, and account deletion.
+                        Manage your account and training preferences.
                     </p>
 
                     <Button
                         type="button"
                         variant="secondary"
                         style={{ minWidth: "3.25rem", marginTop: "1rem" }}
+                        iconOnly
                         className={styles.backButton}
+                    aria-label="Go back"
                         onClick={() => navigate(-1)}
 
                     >
-                        <span className={styles.buttonArrow}>←</span>
+                        <Icon icon={ArrowLeft} />
                     </Button>
                 </div>
             </div>
 
             <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                    <div>
-                        <h3 className={styles.sectionTitle}>Profile details</h3>
-                        <p className={styles.sectionText}>
-                            Update your name, username, or email address.
-                        </p>
-                    </div>
-                </div>
-
                 <Card className={`${styles.settingsCard} ${styles.formCard}`}>
                     <UpdateAccountForm />
                 </Card>
             </section>
 
             <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                    <div>
-                        <h3 className={styles.sectionTitle}>Security</h3>
-                        <p className={styles.sectionText}>
-                            Change your password to keep your account secure.
-                        </p>
-                    </div>
-                </div>
-
                 <Card className={`${styles.settingsCard} ${styles.formCard}`}>
                     <ChangePasswordForm />
                 </Card>
             </section>
 
             <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                    <div>
-                        <h3 className={styles.sectionTitle}>Body model</h3>
-                        <p className={styles.sectionText}>
-                            Choose which body model is used for muscle previews.
-                        </p>
-                    </div>
-                </div>
-
                 <Card className={styles.settingsCard}>
                     <div>
                         <h3 className={styles.settingsTitle}>Muscle preview model</h3>
@@ -121,15 +97,6 @@ export default function ProfileSettingsPage() {
             </section>
 
             <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                    <div>
-                        <h3 className={styles.sectionTitle}>Session</h3>
-                        <p className={styles.sectionText}>
-                            Log out from your current account.
-                        </p>
-                    </div>
-                </div>
-
                 <Card className={styles.settingsCard}>
                     <div>
                         <h3 className={styles.settingsTitle}>Current session</h3>
@@ -146,13 +113,6 @@ export default function ProfileSettingsPage() {
             </section>
 
             <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                    <div>
-                        <h3 className={styles.sectionTitle}>Danger zone</h3>
-
-                    </div>
-                </div>
-
                 <Card className={`${styles.settingsCard} ${styles.dangerCard}`}>
                     <div>
                         <h3 className={styles.dangerTitle}>Delete account</h3>
@@ -161,7 +121,7 @@ export default function ProfileSettingsPage() {
 
                     <Button
                         type="button"
-                        variant="danger"
+                        variant="danger" icon={Trash2}
                         onClick={() => setIsDeleteModalOpen(true)}
                     >
                         Delete account
@@ -190,7 +150,7 @@ export default function ProfileSettingsPage() {
 
                         <Button
                             type="button"
-                            variant="danger"
+                            variant="danger" icon={Trash2}
                             onClick={handleConfirmDeleteAccount}
                             disabled={isDeletingAccount}
                         >
@@ -209,7 +169,7 @@ export default function ProfileSettingsPage() {
                 }
             >
                 <p className={styles.modalText}>
-                    Are you sure you want to delete your account?
+                    Delete your account permanently? This cannot be undone.
                 </p>
 
                 {deleteError && (

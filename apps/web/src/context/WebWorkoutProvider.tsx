@@ -3,6 +3,8 @@ import { CurrentWorkoutStateProvider, useCurrentWorkout } from "@workout-app/sha
 import { WorkoutTimerProvider } from "@workout-app/shared/timer";
 import { useAuth } from "./AuthContext";
 import AppLoadingSkeleton from "../components/Loading/AppLoadingSkeleton";
+import { RotateCcw } from "lucide-react";
+import styles from "./WebWorkoutProvider.module.css";
 import Button from "../components/ui/button/Button";
 import { getWorkoutDraftByIdRequest } from "../services/workoutDraftApi";
 import { restoreSavedWorkout } from "../utils/restoreSavedWorkout";
@@ -35,10 +37,11 @@ function UserWorkoutProvider({ userId, children }: { userId: string | null; chil
     }, [userId, phase, currentWorkoutId]);
     const value = useMemo(() => ({ currentWorkoutId, setCurrentWorkoutId }), [currentWorkoutId]);
     if (phase === "loading") return <AppLoadingSkeleton message="Checking your saved workout..." />;
-    if (phase === "unavailable") return <div role="alert">
+    if (phase === "unavailable") return <main className={styles.recovery}><section className={styles.recoveryCard} role="alert">
+        <h1>Unable to restore your workout</h1>
         <p>We couldn't verify your saved workout. Your progress is still saved.</p>
-        <Button onClick={() => { setPhase("loading"); setAttempt(previous => previous + 1); }}>Retry</Button>
-    </div>;
+        <Button icon={RotateCcw} onClick={() => { setPhase("loading"); setAttempt(previous => previous + 1); }}>Retry</Button>
+    </section></main>;
     return <CurrentWorkoutStateProvider value={value}>
         <ScopedWorkoutTimer userId={userId}>{children}</ScopedWorkoutTimer>
     </CurrentWorkoutStateProvider>;

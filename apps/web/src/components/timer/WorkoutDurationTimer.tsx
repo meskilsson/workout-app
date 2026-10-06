@@ -1,3 +1,5 @@
+import { Play, Pause, Timer } from "lucide-react";
+import Icon from "../ui/icon/Icon";
 import {
     useWorkoutTimer,
     formatElapsedMilliseconds,
@@ -5,8 +7,6 @@ import {
 
 import Button from "../ui/button/Button";
 
-import PlayIcon from "../../assets/icons/play.svg?react";
-import PauseIcon from "../../assets/icons/pause.svg?react";
 
 import styles from "./WorkoutDurationTimer.module.css";
 
@@ -25,7 +25,7 @@ export default function WorkoutDurationTimer() {
 
     return (
         <section className={styles.timerCard}>
-            <p className={styles.kicker}>Workout duration</p>
+            <p className={styles.kicker}><Icon icon={Timer} /> Workout duration</p>
 
             <div className={styles.timeActions}>
                 <strong className={styles.time}>
@@ -40,9 +40,9 @@ export default function WorkoutDurationTimer() {
                     aria-label={isPaused ? "Start workout timer" : "Pause workout timer"}
                 >
                     {isPaused ? (
-                        <PlayIcon className={styles.timerIcon} />
+                        <Icon icon={Play} className={styles.timerIcon} />
                     ) : (
-                        <PauseIcon className={styles.timerIcon} />
+                        <Icon icon={Pause} className={styles.timerIcon} />
                     )}
                 </Button>
             </div>

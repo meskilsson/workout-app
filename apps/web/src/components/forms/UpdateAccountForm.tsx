@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { updateUserRequest } from "../../services/userApi";
 import { useAuth } from "../../context/AuthContext";
 import type { UpdateUserBody } from "@workout-app/shared";
+import styles from "./AccountForm.module.css";
 import Button from "../ui/button/Button";
 import LoadingPredator from "../Loading/LoadingPredator";
 
@@ -53,7 +54,7 @@ export default function UpdateAccountForm() {
     }
 
     return (
-        <section>
+        <section className={styles.section}>
             <h2>Update account</h2>
             <p>Change your name, username, or email address.</p>
 
@@ -85,8 +86,8 @@ export default function UpdateAccountForm() {
                     />
                 </label>
 
-                {error && <p>{error}</p>}
-                {success && <p>{success}</p>}
+                {error && <p className={styles.error} role="alert">{error}</p>}
+                {success && <p className={styles.success} role="status">{success}</p>}
 
                 <Button variant="primary" type="submit" disabled={isLoading}>
                     {isLoading ? (

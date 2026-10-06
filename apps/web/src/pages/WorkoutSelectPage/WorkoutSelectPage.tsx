@@ -1,3 +1,5 @@
+import { ArrowLeft, CheckCircle2, Circle } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -106,11 +108,13 @@ export default function WorkoutSelectPage() {
           type="button"
           variant="secondary"
           style={{ minWidth: "3.25rem", marginTop: "1rem" }}
-          className={styles.backButton}
+          iconOnly
+                        className={styles.backButton}
+                    aria-label="Go back"
           onClick={() => navigate(-1)}
 
         >
-          <span className={styles.buttonArrow}>←</span>
+          <Icon icon={ArrowLeft} />
         </Button>
       </div>
 
@@ -121,11 +125,15 @@ export default function WorkoutSelectPage() {
           return (
             <Card
               key={group.id}
-              title={group.title}
+              aria-label={group.title}
+              aria-pressed={isSelected}
+              aria-disabled={isCreatingDraft}
               className={`${styles.muscleGroupCard} ${isSelected ? styles.selectedCard : ""
                 } ${isCreatingDraft ? styles.disabledCard : ""}`}
               onClick={() => handleToggleGroup(group.id)}
-            />
+            >
+              <span>{group.title}</span><Icon icon={isSelected ? CheckCircle2 : Circle} />
+            </Card>
           );
         })}
       </Box>
@@ -138,7 +146,7 @@ export default function WorkoutSelectPage() {
               : `${selectedGroups.length} selected`}
           </p>
 
-          {error && <p className={styles.errorText}>{error}</p>}
+          {error && <p className={styles.errorText} role="alert">{error}</p>}
         </div>
 
         <Button

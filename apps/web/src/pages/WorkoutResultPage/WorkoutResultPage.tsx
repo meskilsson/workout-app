@@ -172,7 +172,7 @@ export default function WorkoutResultPage() {
     if (isLoadingSession && !workoutSession) {
         return (
             <LoadingState
-                layout="details"
+                layout="result"
                 className={styles.page}
                 title="Workout result"
                 message="Loading your saved workout..."
@@ -185,7 +185,6 @@ export default function WorkoutResultPage() {
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>
-                    <p className={styles.kicker}>Workout result</p>
                     <h1 className={styles.title}>No workout result found</h1>
                     <p className={styles.stateText}>
                         {sessionError || "This workout result could not be loaded."}
@@ -193,7 +192,7 @@ export default function WorkoutResultPage() {
 
                     <div className={styles.actions}>
                         <Button onClick={() => navigate("/")}>
-                            Back to dashboard
+                            Back to home
                         </Button>
                     </div>
                 </Card>
@@ -218,7 +217,7 @@ export default function WorkoutResultPage() {
                     <p className={styles.kicker}>Workout complete</p>
                     <h1 className={styles.title}>Workout saved</h1>
                     <p className={styles.subtitle}>
-                        Saved successfully to your workout history.
+                        Your session is in workout history.
                     </p>
                 </div>
             </div>
@@ -250,12 +249,10 @@ export default function WorkoutResultPage() {
             <Card className={styles.muscleCard}>
                 <div className={styles.muscleCardContent}>
                     <div className={styles.muscleInfo}>
-                        <p className={styles.kicker}>Muscle profile</p>
                         <h2 className={styles.sectionTitle}>Muscles trained</h2>
 
                         <p className={styles.sectionText}>
-                            This highlights the primary and secondary muscles targeted by
-                            this workout.
+                            Primary and secondary muscles targeted by your exercises.
                         </p>
 
                         {isLoadingMuscles && exerciseLibrary.length === 0 && (
@@ -268,27 +265,9 @@ export default function WorkoutResultPage() {
                         )}
 
                         {muscleError && (
-                            <p className={styles.errorText}>{muscleError}</p>
+                            <p className={styles.errorText} role="alert">{muscleError}</p>
                         )}
 
-                        <div className={styles.muscleLegend}>
-                            <span className={styles.primaryLegend}>Primary</span>
-                            <span className={styles.secondaryLegend}>Secondary</span>
-                        </div>
-
-                        <div className={styles.muscleTags}>
-                            {trainedMuscles.primaryMuscles.map((muscle) => (
-                                <span key={muscle} className={styles.primaryTag}>
-                                    {muscle}
-                                </span>
-                            ))}
-
-                            {trainedMuscles.secondaryMuscles.map((muscle) => (
-                                <span key={muscle} className={styles.secondaryTag}>
-                                    {muscle}
-                                </span>
-                            ))}
-                        </div>
                     </div>
 
                     <div className={styles.muscleDummyWrap}>
@@ -304,13 +283,14 @@ export default function WorkoutResultPage() {
             <section className={styles.section}>
                 <div className={styles.sectionHeader}>
                     <div>
-                        <h2 className={styles.sectionTitle}>Exercise breakdown</h2>
+                        <h2 className={styles.sectionTitle}>Recorded sets</h2>
                         <p className={styles.sectionText}>
                             Sets, reps, and weight recorded during this workout.
                         </p>
                     </div>
                 </div>
 
+                {workoutSession.exercises.length === 0 && <Card className={styles.stateCard}><p className={styles.stateText}>No sets were recorded for this session.</p></Card>}
                 <div className={styles.exerciseList}>
                     {workoutSession.exercises.map((exercise, exerciseIndex) => (
                         <Card
@@ -358,7 +338,7 @@ export default function WorkoutResultPage() {
 
             <div className={styles.actions}>
                 <Button variant="secondary" onClick={() => navigate("/")}>
-                    Back to dashboard
+                    Back to home
                 </Button>
 
                 <Button onClick={() => navigate("/workout-select")}>
