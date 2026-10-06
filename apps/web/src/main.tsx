@@ -10,10 +10,7 @@ import { AuthProvider } from "./context/AuthContext.tsx";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
 import { BodyModelProvider } from "./context/BodyModelContext.tsx";
 
-import { WorkoutTimerProvider } from "@workout-app/shared/timer";
-import { CurrentWorkoutProvider } from "@workout-app/shared/currentWorkoutContext";
-
-import { webCurrentWorkoutStorage } from "./utils/currentWorkoutStorage";
+import WebWorkoutProvider from "./context/WebWorkoutProvider";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -21,11 +18,9 @@ createRoot(document.getElementById("root")!).render(
       <ThemeProvider>
         <BodyModelProvider>
           <AuthProvider>
-            <CurrentWorkoutProvider storage={webCurrentWorkoutStorage}>
-              <WorkoutTimerProvider>
-                <App />
-              </WorkoutTimerProvider>
-            </CurrentWorkoutProvider>
+            <WebWorkoutProvider>
+              <App />
+            </WebWorkoutProvider>
           </AuthProvider>
         </BodyModelProvider>
       </ThemeProvider>

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Types } from "mongoose";
 import { MUSCLE_OPTIONS, type Muscle } from "@workout-app/shared";
 import Exercise from "../models/Exercises";
@@ -20,6 +21,7 @@ interface UpdateExercisesInput {
 }
 
 interface WorkoutDraftSetInput {
+    id?: string;
     weight?: string | number | null;
     reps?: string | number | null;
 }
@@ -152,6 +154,7 @@ function normalizeDraftSets(value: unknown) {
         const draftSet = set as WorkoutDraftSetInput;
 
         return {
+            id: draftSet.id ?? randomUUID(),
             weight: normalizeNullableNumber(draftSet.weight, "weight"),
             reps: normalizeNullableNumber(draftSet.reps, "reps"),
         };
@@ -263,7 +266,24 @@ export async function getCurrentWorkoutDraft(userId: string) {
 }
 
 export async function getWorkoutDraftById(draftId: string, userId: string) {
-    return getOwnedDraft(draftId, userId);
+    const draft = await getOwnedDraft(draftId, userId);
+    let migrated = false;
+    // Assign identities to legacy sets once, without overwriting concurrent edits.
+    for (const [exerciseIndex, exercise] of draft.exercises.entries()) {
+        for (const [setIndex, set] of exercise.sets.entries()) {
+            if (set.id) continue;
+            migrated = true;
+            const path = `exercises.${exerciseIndex}.sets.${setIndex}.id`;
+            await WorkoutDraft.updateOne(
+                { _id: draft._id, userId, [path]: { $exists: false },
+                    [`exercises.${exerciseIndex}.exerciseId`]: exercise.exerciseId,
+                    [`exercises.${exerciseIndex}.sets.${setIndex}`]: { $exists: true } },
+                { $set: { [path]: randomUUID() } },
+                { timestamps: false },
+            );
+        }
+    }
+    return migrated ? getOwnedDraft(draftId, userId) : draft;
 }
 
 export async function updateWorkoutDraftMuscleGroups(

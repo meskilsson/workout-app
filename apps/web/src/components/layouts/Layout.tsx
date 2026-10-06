@@ -4,7 +4,7 @@ import Navbar from "./Navbar";
 import RestTimer from "../timer/RestTimer";
 import Box from "../ui/box/Box";
 import styles from "./Layout.module.css";
-import { RestTimerProvider } from "@workout-app/shared/timer/rest";
+import WebRestTimerProvider from "../timer/WebRestTimerProvider";
 
 export default function Layout() {
   const { pathname } = useLocation();
@@ -12,7 +12,7 @@ export default function Layout() {
   const isWorkoutPage = pathname === `/workout/${draftId}`;
 
   return (
-    <RestTimerProvider>
+    <WebRestTimerProvider>
       <div className={styles.appLayout}>
         <Navbar />
 
@@ -66,6 +66,6 @@ export default function Layout() {
           </Footer>
         )}
       </div>
-    </RestTimerProvider>
+    </WebRestTimerProvider>
   );
 }

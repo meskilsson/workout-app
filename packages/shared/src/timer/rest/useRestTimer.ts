@@ -1,11 +1,17 @@
-import { useEffect, useReducer } from "react";
+import { useCallback, useEffect, useReducer } from "react";
+import type { RestTimerState } from "./restTimer.types";
 import { createRestTimerInitialState, restTimerReducer } from "./restTimer.reducer";
 
-export function useRestTimer(durationMs: number) {
+export type RestTimerStorage = {
+    load: (durationMs: number) => RestTimerState;
+    save: (state: RestTimerState) => void;
+};
+
+export function useRestTimer(durationMs: number, storage?: RestTimerStorage) {
     const [state, dispatch] = useReducer(
         restTimerReducer,
         durationMs,
-        createRestTimerInitialState,
+        (duration) => storage?.load(duration) ?? createRestTimerInitialState(duration),
     );
 
     useEffect(() => {
@@ -20,12 +26,14 @@ export function useRestTimer(durationMs: number) {
         };
     }, [state.isRunning]);
 
-    return {
-        state,
-        start: () => dispatch({ type: "START" }),
-        pause: () => dispatch({ type: "PAUSE" }),
-        reset: () => dispatch({ type: "RESET" }),
-        adjustTime: (amountMs: number) =>
-            dispatch({ type: "ADJUST_TIME", amountMs }),
-    };
+    useEffect(() => {
+        storage?.save(state);
+    }, [state, storage]);
+
+    const start = useCallback(() => dispatch({ type: "START" }), []);
+    const pause = useCallback(() => dispatch({ type: "PAUSE" }), []);
+    const reset = useCallback(() => dispatch({ type: "RESET" }), []);
+    const adjustTime = useCallback((amountMs: number) =>
+        dispatch({ type: "ADJUST_TIME", amountMs }), []);
+    return { state, start, pause, reset, adjustTime };
 }

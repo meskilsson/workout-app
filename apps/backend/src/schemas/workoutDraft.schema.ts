@@ -50,6 +50,7 @@ const draftSetValueSchema = z.union([
 ]).optional();
 
 const draftSetSchema = z.strictObject({
+    id: z.uuid().optional(),
     weight: draftSetValueSchema,
     reps: draftSetValueSchema,
 });
@@ -57,7 +58,13 @@ const draftSetSchema = z.strictObject({
 export const updateWorkoutDraftSetsSchema = z.strictObject({
     exerciseId: objectIdSchema,
 
-    sets: z.array(draftSetSchema),
+    sets: z.array(draftSetSchema).refine(
+        sets => {
+            const ids = sets.flatMap(set => set.id ? [set.id] : []);
+            return new Set(ids).size === ids.length;
+        },
+        "Set IDs must be unique within an exercise",
+    ),
 });
 
 export const reorderWorkoutDraftExercisesSchema = z.strictObject({

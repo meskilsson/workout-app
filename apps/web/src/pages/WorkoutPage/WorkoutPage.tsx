@@ -26,7 +26,7 @@ import {
 
 import { CSS } from "@dnd-kit/utilities";
 
-import { useWorkoutTimer } from "@workout-app/shared/timer";
+import { isFreshWorkoutTimer, useWorkoutTimer } from "@workout-app/shared/timer";
 import { useRestTimerControls } from "@workout-app/shared/timer/rest";
 import { useCurrentWorkout } from "@workout-app/shared/currentWorkoutContext";
 
@@ -37,12 +37,17 @@ import LoadingState from "../../components/Loading/LoadingState";
 import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import {
+    abandonWorkoutDraftRequest,
     completeWorkoutDraftRequest,
     getWorkoutDraftByIdRequest,
     removeWorkoutDraftExerciseRequest,
     reorderWorkoutDraftExercisesRequest,
     updateWorkoutDraftSetsRequest,
 } from "../../services/workoutDraftApi";
+
+import { isInaccessibleDraftError, isWorkoutDraftResponse } from "../../utils/restoreSavedWorkout";
+import { useAuth } from "../../context/AuthContext";
+import { clearWorkoutSnapshot, restoreWorkoutSets, saveWorkoutSets, workoutScope } from "../../utils/workoutProgressStorage";
 
 import styles from "./WorkoutPage.module.css";
 
@@ -52,12 +57,14 @@ type SelectedExercise = {
 };
 
 type WorkoutSet = {
+    id: string;
     weight: string;
     reps: string;
     isCompleted: boolean;
 };
 
 type DraftSet = {
+    id: string;
     weight: number | null;
     reps: number | null;
 };
@@ -69,6 +76,7 @@ type DraftExercise = {
 };
 
 type WorkoutDraft = {
+    userId: string;
     _id: string;
     status: "building" | "active" | "completed" | "abandoned";
     selectedMuscleGroups: string[];
@@ -79,6 +87,7 @@ type WorkoutDraft = {
 
 function draftSetToInputSet(set: DraftSet): WorkoutSet {
     return {
+        id: set.id,
         weight: set.weight === null ? "" : String(set.weight),
         reps: set.reps === null ? "" : String(set.reps),
         isCompleted: false,
@@ -232,7 +241,7 @@ function SortableWorkoutExerciseCard({
             <div className={styles.setsList}>
                 {exerciseSets.map((set, setIndex) => (
                     <div
-                        key={setIndex}
+                        key={set.id}
                         className={styles.setRow}
                     >
                         <div className={styles.inputGroup}>
@@ -336,13 +345,24 @@ function SortableWorkoutExerciseCard({
 }
 
 export default function WorkoutPage() {
+    const { user } = useAuth();
+    const { draftId } = useParams();
+    if (!user) return null;
+    return <ActiveWorkoutPage key={`${user._id}:${draftId}`} userId={user._id} />;
+}
+
+function ActiveWorkoutPage({ userId }: { userId: string }) {
     const { draftId } = useParams();
     const navigate = useNavigate();
+    const scope = workoutScope(userId, draftId ?? "");
+    const hasLoadedDraft = useRef(false);
+    const hasEnded = useRef(false);
 
     const { setCurrentWorkoutId } =
         useCurrentWorkout();
 
     const {
+        state: workoutTimerState,
         start: startWorkoutTimer,
         reset: resetWorkoutTimer,
     } = useWorkoutTimer();
@@ -387,8 +407,13 @@ export default function WorkoutPage() {
 
     const [error, setError] = useState("");
 
+    const [isAbandoning, setIsAbandoning] = useState(false);
+    const [isAbandonModalOpen, setIsAbandonModalOpen] = useState(false);
+    const actionRequestPending = useRef(false);
+
     const [isSaving, setIsSaving] =
         useState(false);
+    const isActionPending = isSaving || isAbandoning;
 
     const [
         isRemovingExercise,
@@ -420,6 +445,7 @@ export default function WorkoutPage() {
 
     function toDraftSets(sets: WorkoutSet[]) {
         return sets.map((set) => ({
+            id: set.id,
             weight: set.weight,
             reps: set.reps,
         }));
@@ -435,6 +461,7 @@ export default function WorkoutPage() {
                 ...(previousSets[exerciseId] ?? []),
 
                 {
+                    id: crypto.randomUUID(),
                     weight: "",
                     reps: "",
                     isCompleted: false,
@@ -444,6 +471,7 @@ export default function WorkoutPage() {
     }
 
     useEffect(() => {
+        let cancelled = false;
         async function loadDraft() {
             if (!draftId) {
                 navigate("/workout-select");
@@ -458,6 +486,26 @@ export default function WorkoutPage() {
                     await getWorkoutDraftByIdRequest(
                         draftId,
                     );
+
+                if (cancelled) return;
+
+                if (!isWorkoutDraftResponse(draft)) {
+                    throw new Error("Could not verify this workout. Your saved progress has been kept.");
+                }
+
+                if (draft.userId !== userId || draft._id !== draftId) {
+                    hasEnded.current = true;
+                    clearWorkoutSnapshot(scope);
+                    setError("This workout is not accessible to your account.");
+                    return;
+                }
+
+                if (draft.status !== "active") {
+                    hasEnded.current = true;
+                    clearWorkoutSnapshot(scope);
+                    resetRestTimer();
+                    setCurrentWorkoutId(null);
+                }
 
                 if (draft.status === "building") {
                     navigate(
@@ -512,6 +560,7 @@ export default function WorkoutPage() {
                                 )
                                 : [
                                     {
+                                        id: crypto.randomUUID(),
                                         weight: "",
                                         reps: "",
                                         isCompleted:
@@ -525,26 +574,36 @@ export default function WorkoutPage() {
                 setSelectedExercises(exercises);
 
                 setSetsByExercise(
-                    initialSetsByExercise,
+                    restoreWorkoutSets(scope, initialSetsByExercise),
                 );
 
+                hasLoadedDraft.current = true;
                 setHasUserEditedSets(false);
             } catch (err) {
+                if (cancelled) return;
+                if (isInaccessibleDraftError(err)) {
+                    hasEnded.current = true;
+                    clearWorkoutSnapshot(scope);
+                }
                 setError(
                     err instanceof Error
                         ? err.message
                         : "Failed to load workout draft.",
                 );
             } finally {
-                setIsLoadingDraft(false);
+                if (!cancelled) setIsLoadingDraft(false);
             }
         }
 
-        loadDraft();
+        void loadDraft();
+        return () => { cancelled = true; };
     }, [
         draftId,
         navigate,
         setCurrentWorkoutId,
+        scope,
+        userId,
+        resetRestTimer,
     ]);
 
     useEffect(() => {
@@ -552,7 +611,9 @@ export default function WorkoutPage() {
             selectedExercises.length > 0 &&
             !hasAutoStartedWorkoutTimer.current
         ) {
-            startWorkoutTimer();
+            if (isFreshWorkoutTimer(workoutTimerState)) {
+                startWorkoutTimer();
+            }
 
             hasAutoStartedWorkoutTimer.current =
                 true;
@@ -560,7 +621,13 @@ export default function WorkoutPage() {
     }, [
         selectedExercises.length,
         startWorkoutTimer,
+        workoutTimerState,
     ]);
+
+    useEffect(() => {
+        if (!hasLoadedDraft.current || hasEnded.current) return;
+        saveWorkoutSets(scope, setsByExercise);
+    }, [scope, setsByExercise]);
 
     useEffect(() => {
         if (
@@ -954,24 +1021,59 @@ export default function WorkoutPage() {
         }
     }
 
+    function handleRequestAbandonWorkout() {
+        if (actionRequestPending.current) return;
+        setError("");
+        setIsAbandonModalOpen(true);
+    }
+
+    function handleCloseAbandonModal() {
+        if (!actionRequestPending.current) setIsAbandonModalOpen(false);
+    }
+
+    async function handleConfirmAbandonWorkout() {
+        if (!draftId || actionRequestPending.current) return;
+        actionRequestPending.current = true;
+        setError("");
+        setIsAbandoning(true);
+        try {
+            await abandonWorkoutDraftRequest(draftId);
+            hasEnded.current = true;
+            clearWorkoutSnapshot(scope);
+            resetWorkoutTimer();
+            resetRestTimer();
+            setCurrentWorkoutId(null);
+            setIsAbandonModalOpen(false);
+            navigate("/workout-select", { replace: true });
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to abandon workout. Please try again.");
+        } finally {
+            actionRequestPending.current = false;
+            setIsAbandoning(false);
+        }
+    }
+
     function handleEndSession() {
+        if (actionRequestPending.current) return;
         setError("");
         setOpenModal(true);
     }
 
     function handleCloseModal() {
-        if (!isSaving) {
+        if (!actionRequestPending.current) {
             setOpenModal(false);
         }
     }
 
     async function handleConfirmEndWorkout() {
+        if (actionRequestPending.current) return;
         if (!draftId) {
             navigate("/workout-select");
             return;
         }
 
         setError("");
+        actionRequestPending.current = true;
         setIsSaving(true);
 
         try {
@@ -1002,6 +1104,8 @@ export default function WorkoutPage() {
                     draftId,
                 );
 
+            hasEnded.current = true;
+            clearWorkoutSnapshot(scope);
             resetWorkoutTimer();
             resetRestTimer();
             setCurrentWorkoutId(null);
@@ -1018,6 +1122,7 @@ export default function WorkoutPage() {
                     : "Failed to save workout session.",
             );
         } finally {
+            actionRequestPending.current = false;
             setIsSaving(false);
         }
     }
@@ -1154,18 +1259,29 @@ export default function WorkoutPage() {
                         type="button"
                         variant="danger"
                         size="medium"
+                        className={styles.endSessionButton}
+                        onClick={handleRequestAbandonWorkout}
+                        disabled={isActionPending || isRemovingExercise || isOpeningExerciseSelect || selectedExercises.length === 0}
+                    >
+                        Abandon Workout
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="success"
+                        size="medium"
                         className={
                             styles.endSessionButton
                         }
                         onClick={handleEndSession}
                         disabled={
+                            isActionPending ||
                             selectedExercises.length ===
                             0 ||
                             isRemovingExercise ||
                             isOpeningExerciseSelect
                         }
                     >
-                        End Session
+                        End Workout
                     </Button>
                 </div>
 
@@ -1238,6 +1354,44 @@ export default function WorkoutPage() {
                 </Modal>
 
                 <Modal
+                    title="Abandon workout?"
+                    isOpen={isAbandonModalOpen}
+                    onClose={handleCloseAbandonModal}
+                    actions={
+                        <div className={styles.modalActions}>
+                            <Button
+                                type="button"
+                                variant="danger"
+                                size="medium"
+                                className={styles.modalPrimaryButton}
+                                onClick={handleConfirmAbandonWorkout}
+                                disabled={isActionPending}
+                            >
+                                {isAbandoning ? (
+                                    <LoadingPredator size="small" color="currentColor" label="Abandoning..." showLabel />
+                                ) : "Abandon Workout"}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                size="medium"
+                                className={styles.modalSecondaryButton}
+                                onClick={handleCloseAbandonModal}
+                                disabled={isActionPending}
+                            >
+                                Cancel
+                            </Button>
+                        </div>
+                    }
+                >
+                    <p className={styles.modalText}>
+                        This workout will be discarded without saving it as a completed session.
+                        Are you sure you want to abandon it?
+                    </p>
+                    {error && <p className={styles.errorText} role="alert">{error}</p>}
+                </Modal>
+
+                <Modal
                     title="End session?"
                     isOpen={openModal}
                     onClose={handleCloseModal}
@@ -1249,7 +1403,7 @@ export default function WorkoutPage() {
                         >
                             <Button
                                 type="button"
-                                variant="danger"
+                                variant="success"
                                 size="medium"
                                 className={
                                     styles.modalPrimaryButton
@@ -1257,7 +1411,7 @@ export default function WorkoutPage() {
                                 onClick={
                                     handleConfirmEndWorkout
                                 }
-                                disabled={isSaving}
+                                disabled={isActionPending}
                             >
                                 {isSaving ? (
                                     <LoadingPredator
@@ -1281,7 +1435,7 @@ export default function WorkoutPage() {
                                 onClick={
                                     handleCloseModal
                                 }
-                                disabled={isSaving}
+                                disabled={isActionPending}
                             >
                                 Close
                             </Button>

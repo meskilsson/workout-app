@@ -1,3 +1,10 @@
+import type { WorkoutTimerState } from "./workoutTimer.types";
+
+export function isFreshWorkoutTimer(state: WorkoutTimerState): boolean {
+    return state.startTime === null && state.elapsedTime === 0
+        && !state.isRunning && state.lastTickAt === null;
+}
+
 export function formatElapsedMilliseconds(milliseconds: number): string {
     if (!Number.isFinite(milliseconds)) {
         return "00:00";

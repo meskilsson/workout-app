@@ -1,3 +1,4 @@
+import { clearUserSnapshots } from "../utils/workoutProgressStorage";
 import { createContext, useContext, useEffect, useState } from "react";
 import {
     getMeRequest,
@@ -47,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     async function logout() {
         await logoutRequest();
+        if (user) clearUserSnapshots(user._id);
         setUser(null);
     }
 

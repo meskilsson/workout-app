@@ -8,6 +8,7 @@ export type WorkoutDraftStatus =
     | "abandoned";
 
 export interface WorkoutDraftSet {
+    id?: string;
     weight: number | null;
     reps: number | null;
 }
@@ -34,6 +35,7 @@ export type WorkoutDraftPurpose = "workout" | "template";
 
 const workoutDraftSetSchema = new Schema<WorkoutDraftSet>(
     {
+        id: { type: String },
         weight: {
             type: Number,
             min: 0,

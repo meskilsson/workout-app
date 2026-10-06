@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
     useWorkoutTimer,
     formatElapsedMilliseconds,
@@ -13,17 +12,15 @@ import styles from "./WorkoutDurationTimer.module.css";
 
 export default function WorkoutDurationTimer() {
     const { state, start, pause } = useWorkoutTimer();
-    const [isPaused, setIsPaused] = useState(false);
+    const isPaused = !state.isRunning;
 
     function handleToggleTimer() {
         if (isPaused) {
             start();
-            setIsPaused(false);
             return;
         }
 
         pause();
-        setIsPaused(true);
     }
 
     return (
