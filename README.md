@@ -25,15 +25,6 @@ The Expo client implements login, stored authentication with Expo SecureStore, p
 
 The native Workouts screen is a placeholder. Native weight/reps entry, completed-workout saving, history, templates, and admin screens are not implemented. API helpers for set updates and workout completion exist but are not connected to the current Train screen. An `ExercisesScreen` exists, but the current navigator does not register it; the Home screen's Exercises button therefore has no matching route. Create an account through the web app before using native login.
 
-## Screenshots
-
-The existing galleries are historical snapshots of the earlier UI and removed themes, rather than screenshots of the current Light/Dark design.
-
-| Historical theme | Body model | Gallery |
-| --- | --- | --- |
-| Charcoal | Male | [View screenshots](docs/screenshots/charcoal-male) |
-| Pink | Female | [View screenshots](docs/screenshots/pink-female) |
-
 ## Technology stack
 
 | Area | Technologies |
