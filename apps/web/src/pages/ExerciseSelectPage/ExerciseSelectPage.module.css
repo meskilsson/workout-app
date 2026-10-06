@@ -709,3 +709,30 @@
 .secondaryTag { background: var(--color-dummy-muscle-secondary); color: var(--color-muscle-secondary-text); border-color: var(--color-dummy-muscle-secondary); }
 
 .backButton { width: 44px !important; min-width: 44px !important; height: 44px; padding: 0; }
+
+/* Compact selection cards retain muscle tags and a small body preview. */
+.exerciseGrid { align-items: stretch; grid-auto-rows: 1fr; }
+.exerciseCard.exerciseCard { min-height: 0; height: 100%; padding: 1rem; }
+.exerciseCardContent { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 140px; grid-template-rows: auto 1fr; gap: 0.75rem; align-items: start; }
+.exerciseCardTop { display: contents; }
+.exerciseMainInfo { gap: 0.5rem; }
+.exerciseName { font-size: var(--text-base); }
+.cardDummy { grid-column: 2; grid-row: 1 / span 2; align-self: stretch; width: 100%; min-height: 0; padding: 0.5rem; overflow: hidden; }
+.cardDummy figure { height: 100%; min-height: 0; max-width: none; gap: 0; }
+.cardDummy figure > div { height: 100%; align-items: stretch; gap: 0.35rem; }
+.cardDummy figure > div > div { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 0.35rem; justify-items: center; }
+.cardDummy figure > div > div > span { white-space: nowrap; font-size: 0.6875rem; letter-spacing: 0; }
+.cardDummy svg { width: 100%; height: 100%; max-height: none; min-height: 0; transform: scaleY(1.2); transform-origin: center; }
+.cardDummy figcaption { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.muscleInfo { grid-column: 1; gap: 0.5rem; margin-top: 0; }
+.muscleLabel { margin-bottom: 0.25rem; }
+.primaryTag, .secondaryTag { padding: 0.2rem 0.4rem; }
+@media (max-width: 640px) {
+    .exerciseGrid { grid-template-columns: 1fr; }
+    .exerciseCard.exerciseCard { padding: 0.75rem; }
+    .exerciseCardContent { grid-template-columns: minmax(0, 1fr) 132px; }
+}
+@media (max-width: 380px) {
+    .exerciseCardContent { grid-template-columns: minmax(0, 1fr) 116px; gap: 0.5rem; }
+    .cardDummy { padding: 0.35rem; }
+}

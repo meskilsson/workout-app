@@ -19,3 +19,22 @@ test("primary takes precedence, normalizes names and produces unique body parts"
 test("unknown names do not accidentally highlight unrelated muscles", () => {
     assert(mapMusclesToBodyHighlighterData(["unknown"], []).every(part => part.intensity === 3));
 });
+
+test("back includes trapezius in primary and secondary highlights", () => {
+    for (const [primary, secondary, intensity] of [
+        [["Back"], [], 2],
+        [[], ["back"], 1],
+    ]) {
+        const parts = mapMusclesToBodyHighlighterData(primary, secondary);
+        assert.equal(parts.find(part => part.slug === "trapezius").intensity, intensity);
+    }
+});
+
+test("explicit trapezius names highlight only the traps and preserve primary precedence", () => {
+    for (const muscle of [" trapezius ", "TRAPS"]) {
+        const parts = mapMusclesToBodyHighlighterData([muscle], ["back"]);
+        assert.equal(parts.find(part => part.slug === "trapezius").intensity, 2);
+        assert.equal(parts.find(part => part.slug === "upper-back").intensity, 1);
+        assert.equal(parts.find(part => part.slug === "deltoids").intensity, 3);
+    }
+});

@@ -4,7 +4,9 @@ const neutralBodyParts: Slug[] = ["abs", "adductors", "ankles", "biceps", "calve
 
 const muscleToBodyPartSlugs: Record<string, Slug[]> = {
     chest: ["chest"],
-    back: ["upper-back", "lower-back"],
+    back: ["upper-back", "lower-back", "trapezius"],
+    trapezius: ["trapezius"],
+    traps: ["trapezius"],
     shoulders: ["deltoids"],
     biceps: ["biceps"],
     triceps: ["triceps"],

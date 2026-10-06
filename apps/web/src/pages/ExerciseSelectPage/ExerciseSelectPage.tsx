@@ -101,7 +101,6 @@ export default function ExerciseSelectPage() {
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
     const [limit] = useState(12);
-    const [total, setTotal] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
 
     const { page, setPage, pageTopRef, handlePageChange } =
@@ -142,7 +141,6 @@ export default function ExerciseSelectPage() {
                     : await getPublicExercisesRequest(options);
 
                 setExercises(data.exercises);
-                setTotal(data.total);
                 setTotalPages(data.totalPages);
             } catch (err) {
                 setExerciseError(
@@ -320,7 +318,7 @@ export default function ExerciseSelectPage() {
         }
 
         const exerciseIdsToShow = isActiveWorkout
-            ? existingExerciseIds
+            ? [...existingExerciseIds, ...selectedExercises]
             : selectedExercises;
 
         return exerciseIdsToShow
@@ -337,36 +335,32 @@ export default function ExerciseSelectPage() {
         selectedExercises,
     ]);
 
-    const groupedExercises: ExerciseGroup[] = debouncedSearchTerm
-        ? [
-            {
-                id: "matching-exercises",
-                title: `Search results for "${debouncedSearchTerm}"`,
-                count: total,
-                exercises,
-            },
-        ]
-        : [
-            ...(isEditingExistingDraft ||
-                currentWorkoutExerciseCards.length > 0
-                ? [
-                    {
-                        id: "current-workout-exercises",
-                        title: "Current workout exercises",
-                        count:
-                            currentWorkoutExerciseCards.length,
-                        exercises:
-                            currentWorkoutExerciseCards,
-                    },
-                ]
-                : []),
-            {
-                id: "matching-exercises",
-                title: exerciseGroupTitle,
-                count: total,
-                exercises,
-            },
-        ];
+    const hiddenExerciseIds = new Set([
+        ...selectedExercises,
+        ...(isActiveWorkout ? existingExerciseIds : []),
+    ]);
+    const availableExercises = exercises.filter(
+        (exercise) => !hiddenExerciseIds.has(exercise._id),
+    );
+
+    const groupedExercises: ExerciseGroup[] = [
+        ...(currentWorkoutExerciseCards.length > 0
+            ? [{
+                id: "current-workout-exercises",
+                title: "Current workout exercises",
+                count: currentWorkoutExerciseCards.length,
+                exercises: currentWorkoutExerciseCards,
+            }]
+            : []),
+        {
+            id: "matching-exercises",
+            title: debouncedSearchTerm
+                ? `Search results for "${debouncedSearchTerm}"`
+                : exerciseGroupTitle,
+            count: availableExercises.length,
+            exercises: availableExercises,
+        },
+    ];
 
     async function handleContinue() {
         if (!draftId) {
@@ -675,7 +669,9 @@ export default function ExerciseSelectPage() {
                                 )
                             ) : (
                                 <p className={styles.emptyText}>
-                                    No matching exercises found.
+                                    {exercises.length > 0
+                                        ? "All exercises on this page are already in your workout. Remove one above to select it again, or browse another page."
+                                        : "No matching exercises found."}
                                 </p>
                             )}
                         </Box>
