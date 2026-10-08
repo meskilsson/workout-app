@@ -15,6 +15,7 @@ import styles from "./WorkoutSelectPage.module.css";
 
 
 const muscleGroupCards = [
+  { id: "cardio", title: "Cardio" },
   { id: "back", title: "Back" },
   { id: "shoulders", title: "Shoulders" },
   { id: "biceps", title: "Biceps" },
@@ -25,6 +26,7 @@ const muscleGroupCards = [
 ];
 
 const backendMuscleGroupMap: Record<string, string[]> = {
+  cardio: [],
   back: ["back"],
   shoulders: ["shoulders"],
   biceps: ["biceps"],
@@ -77,6 +79,7 @@ export default function WorkoutSelectPage() {
 
       const draft = await createWorkoutDraftRequest({
         selectedMuscleGroups,
+        includeCardio: selectedGroups.includes("cardio"),
         purpose,
       });
 

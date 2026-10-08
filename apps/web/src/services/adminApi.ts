@@ -1,7 +1,8 @@
+import type { TrainingConfig, CardioCompletion } from "@workout-app/shared";
 import { parseJsonResponse } from "../utils/parseJsonResponse";
 export type Resource = "users" | "exercises" | "templates" | "sessions";
 export type AdminSet = { reps?: number | null; weight?: number | null; restSeconds?: number | null; notes?: string };
-export type AdminExerciseRow = { exercise?: string; exerciseId?: string | null; exerciseName?: string; plannedSets?: AdminSet[]; sets?: AdminSet[] };
+export type AdminExerciseRow = { training?: TrainingConfig; cardioCompletion?: CardioCompletion; exercise?: string; exerciseId?: string | null; exerciseName?: string; plannedSets?: AdminSet[]; sets?: AdminSet[] };
 export type AdminItem = {
   _id: string; name?: string; username?: string; email?: string; role?: "user" | "admin"; deletedAt?: string | null;
   createdAt?: string; updatedAt?: string; createdBy?: string | null; userId?: string;

@@ -5,3 +5,5 @@ export * from './constants/difficulty';
 export * from './constants/muscleRegions';
 export * from './constants/bodyModel';
 export * from './types';
+export * from './training';
+export * from './cardioTimer';

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { trainingSchema, cardioCompletionSchema } from "./trainingSchemas";
 import { MUSCLE_OPTIONS } from "@workout-app/shared";
 
 const objectIdSchema = z
@@ -18,9 +19,10 @@ export const workoutDraftIdParamsSchema = z.strictObject({
 });
 
 export const createWorkoutDraftSchema = z.strictObject({
+    includeCardio: z.boolean().optional(),
     selectedMuscleGroups: z
         .array(muscleSchema)
-        .min(1, "At least one muscle group is required"),
+        .max(20),
 
     purpose: z.enum(["workout", "template"]).optional(),
 });
@@ -28,7 +30,7 @@ export const createWorkoutDraftSchema = z.strictObject({
 export const updateWorkoutDraftMuscleGroupsSchema = z.strictObject({
     selectedMuscleGroups: z
         .array(muscleSchema)
-        .min(1, "At least one muscle group is required"),
+        .max(20),
 });
 
 export const updateWorkoutDraftExercisesSchema = z.strictObject({
@@ -109,3 +111,4 @@ export type AddWorkoutDraftExercisesInput = z.infer<
 export type WorkoutDraftExerciseParams = z.infer<
     typeof workoutDraftExerciseParamsSchema
 >;
+export const updateWorkoutDraftTrainingSchema = z.strictObject({ exerciseId: objectIdSchema, training: trainingSchema, cardioCompletion: cardioCompletionSchema.optional() });

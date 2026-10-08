@@ -91,6 +91,7 @@ export function clearWorkoutSnapshot(scope: string): void {
         localStorage.removeItem(`${scope}:sets`);
         localStorage.removeItem(`${scope}:rest`);
         localStorage.removeItem(`${scope}:duration`);
+        localStorage.removeItem(`${scope}:cardio`);
         localStorage.setItem(`${scope}:cleared`, "true");
     } catch { /* Storage may be unavailable. */ }
     if (typeof window !== "undefined") {
@@ -110,7 +111,7 @@ export function clearDraftSnapshots(draftId: string): void {
                 } catch { /* Ignore malformed reference keys. */ }
             }
             if (!key?.startsWith(PREFIX)) continue;
-            const scope = key.replace(/:(sets|rest|duration|cleared)$/, "");
+            const scope = key.replace(/:(sets|rest|duration|cardio|cleared)$/, "");
             if (scope.endsWith(suffix)) scopes.add(scope);
         }
         for (const scope of scopes) clearWorkoutSnapshot(scope);
@@ -179,4 +180,14 @@ export function saveCurrentWorkoutReference(userId: string, draftId: string | nu
             localStorage.setItem(key, JSON.stringify(draftId));
         else localStorage.removeItem(key);
     } catch { /* Storage may be unavailable. */ }
+}
+
+export function readCardioSnapshot(scope: string, exerciseId: string): unknown {
+    if (read(scope, "cleared") === true) return null;
+    const saved = read(scope, "cardio");
+    return saved && typeof saved === "object" ? (saved as Record<string, unknown>)[exerciseId] : null;
+}
+export function saveCardioSnapshot(scope: string, exerciseId: string, value: unknown): void {
+    const saved = read(scope, "cardio");
+    write(scope, "cardio", { ...(saved && typeof saved === "object" ? saved : {}), [exerciseId]: value });
 }

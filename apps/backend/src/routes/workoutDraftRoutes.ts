@@ -12,6 +12,7 @@ import {
     updateWorkoutDraftExercises,
     updateWorkoutDraftMuscleGroups,
     updateWorkoutDraftSets,
+    updateWorkoutDraftTraining,
     addWorkoutDraftExercises,
     removeWorkoutDraftExercise,
 } from "../controllers/workoutDraftController";
@@ -20,6 +21,7 @@ import {
     updateWorkoutDraftExercisesSchema,
     updateWorkoutDraftMuscleGroupsSchema,
     updateWorkoutDraftSetsSchema,
+    updateWorkoutDraftTrainingSchema,
     workoutDraftIdParamsSchema,
     reorderWorkoutDraftExercisesSchema,
     addWorkoutDraftExercisesSchema,
@@ -98,6 +100,7 @@ workoutDraftRouter.patch(
         body: updateWorkoutDraftSetsSchema,
     }),
     updateWorkoutDraftSets,
+    updateWorkoutDraftTraining,
 );
 
 workoutDraftRouter.post(
@@ -122,4 +125,5 @@ workoutDraftRouter.patch(
     reorderWorkoutDraftExercises,
 );
 
+workoutDraftRouter.patch("/:draftId/training", validateRequest({ params: workoutDraftIdParamsSchema, body: updateWorkoutDraftTrainingSchema }), updateWorkoutDraftTraining);
 export default workoutDraftRouter;

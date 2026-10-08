@@ -1,3 +1,4 @@
+import { trainingField, cardioCompletionField, type TrainingFields } from "./trainingFields";
 import { Schema, model, Types } from "mongoose";
 
 export type WorkoutTemplateCategory =
@@ -16,7 +17,7 @@ export type WorkoutTemplateSet = {
     notes?: string;
 };
 
-export type WorkoutTemplateExercise = {
+export type WorkoutTemplateExercise = TrainingFields & {
     exercise: Types.ObjectId;
     exerciseName: string;
     order: number;
@@ -70,6 +71,8 @@ const workoutTemplateExerciseSchema = new Schema<WorkoutTemplateExercise>(
             ref: "Exercise",
             required: true,
         },
+        training: trainingField,
+        cardioCompletion: cardioCompletionField,
         exerciseName: {
             type: String,
             required: true,

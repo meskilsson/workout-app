@@ -1,3 +1,4 @@
+import type { TrainingConfig, CardioCompletion } from "./training";
 import type { Muscle } from "./constants/muscles";
 import type { Equipment } from "./constants/equipment";
 import type { ExerciseType } from "./constants/exercise";
@@ -13,6 +14,8 @@ export type WorkoutSet = {
 export type WorkoutSessionExercise = {
     exerciseId: string | null;
     exerciseName: string;
+    training?: TrainingConfig;
+    cardioCompletion?: CardioCompletion;
     sets: WorkoutSet[];
 };
 
@@ -111,6 +114,8 @@ export type PaginatedExercisesResponse = {
 export type ExerciseSort = "name" | "popular" | "mostUsed";
 
 export type GetExercisesParams = {
+    includeCardio?: boolean;
+    exerciseType?: ExerciseType;
     sort?: ExerciseSort;
     page?: number;
     limit?: number;
@@ -119,6 +124,8 @@ export type GetExercisesParams = {
 }
 
 export type GetExercisesOptions = {
+    includeCardio?: boolean;
+    exerciseType?: ExerciseType;
     sort?: ExerciseSort;
     page: number;
     limit: number;
@@ -154,6 +161,7 @@ export type WorkoutTemplateExercise = {
         exerciseType?: "strength" | "cardio" | "mobility";
     };
     exerciseName: string;
+    training?: TrainingConfig;
     order: number;
     plannedSets: WorkoutTemplateSet[];
 };
@@ -177,6 +185,7 @@ export type CreateWorkoutTemplateInput = {
     exercises: {
         exerciseId: string;
         plannedSets?: WorkoutTemplateSet[];
+        training?: TrainingConfig;
     }[];
 };
 
@@ -186,6 +195,7 @@ export type UpdateWorkoutTemplateInput = Partial<CreateWorkoutTemplateInput>;
 export type WorkoutDraftPurpose = "workout" | "template";
 
 export type CreateWorkoutDraftInput = {
+    includeCardio?: boolean;
     selectedMuscleGroups: string[];
     purpose?: WorkoutDraftPurpose;
 };
@@ -197,6 +207,7 @@ export type CreateWorkoutTemplateFromDraftInput = {
 };
 
 export type StartedWorkoutDraft = {
+    includeCardio?: boolean;
     _id: string;
     userId: string;
     status: "building" | "active" | "completed" | "abandoned";
@@ -205,6 +216,8 @@ export type StartedWorkoutDraft = {
     exercises: {
         exerciseId: string;
         exerciseName: string;
+        training?: TrainingConfig;
+        cardioCompletion?: CardioCompletion;
         sets: {
             weight: number | null;
             reps: number | null;

@@ -1,3 +1,6 @@
+import TrainingConfigForm from "../../components/training/TrainingConfigForm";
+import CardioSession, { CARDIO_START } from "../../components/training/CardioSession";
+import type { TrainingConfig, CardioCompletion } from "@workout-app/shared";
 import { Plus, Trash2, Check, Circle, Flag, GripVertical, MoreHorizontal, ArrowUp, ArrowDown } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import {
@@ -45,17 +48,21 @@ import {
     removeWorkoutDraftExerciseRequest,
     reorderWorkoutDraftExercisesRequest,
     updateWorkoutDraftSetsRequest,
+    updateWorkoutDraftTrainingRequest,
 } from "../../services/workoutDraftApi";
 
 import { isInaccessibleDraftError, isWorkoutDraftResponse } from "../../utils/restoreSavedWorkout";
 import { useAuth } from "../../context/AuthContext";
-import { clearWorkoutSnapshot, restoreWorkoutSets, saveWorkoutSets, workoutScope } from "../../utils/workoutProgressStorage";
+import { clearWorkoutSnapshot, restoreWorkoutSets, saveWorkoutSets, saveCardioSnapshot, workoutScope } from "../../utils/workoutProgressStorage";
 
 import styles from "./WorkoutPage.module.css";
 
 type SelectedExercise = {
     _id: string;
     name: string;
+    training?: TrainingConfig;
+    cardioCompletion?: CardioCompletion;
+    revision?: number;
 };
 
 type WorkoutSet = {
@@ -74,6 +81,8 @@ type DraftSet = {
 type DraftExercise = {
     exerciseId: string;
     exerciseName: string;
+    training?: TrainingConfig;
+    cardioCompletion?: CardioCompletion;
     sets: DraftSet[];
 };
 
@@ -104,6 +113,9 @@ function hasCompletedSet(sets: WorkoutSet[]) {
 
 type SortableWorkoutExerciseCardProps = {
     exercise: SelectedExercise;
+    scope: string;
+    onCardioCompletion: (result: CardioCompletion | undefined) => void;
+    onTrainingSave: (config: TrainingConfig) => Promise<void>;
     exerciseSets: WorkoutSet[];
 
     onAddSet: (exerciseId: string) => void;
@@ -137,6 +149,7 @@ type SortableWorkoutExerciseCardProps = {
 
 function SortableWorkoutExerciseCard({
     exercise,
+    scope, onCardioCompletion, onTrainingSave,
     exerciseSets,
     onAddSet,
     onSetChange,
@@ -191,12 +204,12 @@ function SortableWorkoutExerciseCard({
 
                     <div>
                         <h2 className={styles.exerciseName}>{exercise.name}</h2>
-                        <p className={styles.exerciseProgress}>{exerciseSets.filter(set => set.isCompleted).length} of {exerciseSets.length} sets completed</p>
+                        {(!exercise.training || exercise.training.format === "strength") && <p className={styles.exerciseProgress}>{exerciseSets.filter(set => set.isCompleted).length} of {exerciseSets.length} sets completed</p>}
                     </div>
                 </div>
 
                 <div className={styles.exerciseActions}>
-                    <Button
+                    {(!exercise.training || exercise.training.format === "strength") && <Button
                         type="button"
                         variant="primary"
                         size="small"
@@ -207,7 +220,7 @@ function SortableWorkoutExerciseCard({
                         }
                     >
                         Add set
-                    </Button>
+                    </Button>}
 
                     <details className={styles.exerciseMenu}>
                         <summary
@@ -250,7 +263,7 @@ function SortableWorkoutExerciseCard({
                 </div>
             </div>
 
-            <div className={styles.setsList}>
+            {exercise.training && exercise.training.format !== "strength" ? <CardioSession key={`${exercise.revision ?? 0}:${JSON.stringify(exercise.training)}`} scope={scope} exerciseId={exercise._id} config={exercise.training} completion={exercise.cardioCompletion} onCompletion={onCardioCompletion} /> : <div className={styles.setsList}>
                 {exerciseSets.map((set, setIndex) => (
                     <div
                         key={set.id}
@@ -356,7 +369,8 @@ function SortableWorkoutExerciseCard({
                         </Button>
                     </div>
                 ))}
-            </div>
+            </div>}
+            <details><summary>Configure training (resets cardio progress)</summary><TrainingConfigForm key={`${exercise.revision ?? 0}:${JSON.stringify(exercise.training)}`} initial={exercise.training} onDirty={() => {}} onSave={onTrainingSave} /></details>
         </section>
     );
 }
@@ -372,6 +386,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
     const { draftId } = useParams();
     const navigate = useNavigate();
     const scope = workoutScope(userId, draftId ?? "");
+    const cardioResults = useRef<Record<string, CardioCompletion | undefined>>({});
     const hasLoadedDraft = useRef(false);
     const hasEnded = useRef(false);
 
@@ -561,6 +576,8 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                         (exercise) => ({
                             _id: exercise.exerciseId,
                             name: exercise.exerciseName,
+                            training: exercise.training,
+                            cardioCompletion: exercise.cardioCompletion,
                         }),
                     );
 
@@ -663,6 +680,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                     setIsSavingDraft(true);
 
                     for (const exercise of selectedExercises) {
+                        if (exercise.training && exercise.training.format !== "strength") continue;
                         await updateWorkoutDraftSetsRequest(
                             draftId,
                             {
@@ -736,6 +754,10 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
 
         try {
             for (const exercise of selectedExercises) {
+                if (exercise.training && exercise.training.format !== "strength") {
+                    await updateWorkoutDraftTrainingRequest(draftId, { exerciseId: exercise._id, training: exercise.training, cardioCompletion: cardioResults.current[exercise._id] });
+                    continue;
+                }
                 await updateWorkoutDraftSetsRequest(
                     draftId,
                     {
@@ -935,6 +957,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                 }),
             );
 
+            window.dispatchEvent(new CustomEvent(CARDIO_START, { detail: "strength" }));
             resetRestTimer();
             startRestTimer();
         } catch (err) {
@@ -1102,7 +1125,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             const incompleteExercise =
                 selectedExercises.find(
                     (exercise) =>
-                        !hasCompletedSet(
+                        exercise.training && exercise.training.format !== "strength" ? !cardioResults.current[exercise._id] : !hasCompletedSet(
                             setsByExercise[
                             exercise._id
                             ] ?? [],
@@ -1111,7 +1134,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
 
             if (incompleteExercise) {
                 setError(
-                    `Add at least one completed set for ${incompleteExercise.name}.`,
+                    `Complete ${incompleteExercise.name} before ending the workout.`,
                 );
 
                 setIsSaving(false);
@@ -1219,6 +1242,16 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                             {selectedExercises.map(
                                 (exercise, index) => (
                                     <SortableWorkoutExerciseCard
+                                        onTrainingSave={async training => {
+                                            window.dispatchEvent(new CustomEvent(CARDIO_START, { detail: "configure" }));
+                                            await updateWorkoutDraftTrainingRequest(draftId!, { exerciseId: exercise._id, training });
+                                            saveCardioSnapshot(scope, exercise._id, null);
+                                            setSetsByExercise(prev => ({ ...prev, [exercise._id]: training.format === "strength" ? (prev[exercise._id]?.length ? prev[exercise._id] : [{ id: crypto.randomUUID(), weight: "", reps: "", isCompleted: false }]) : [] }));
+                                            cardioResults.current[exercise._id] = undefined;
+                                            setSelectedExercises(prev => prev.map(e => e._id === exercise._id ? { ...e, training, cardioCompletion: undefined, revision: (e.revision ?? 0) + 1 } : e));
+                                        }}
+                                        scope={scope}
+                                        onCardioCompletion={result => { cardioResults.current[exercise._id] = result; }}
                                         canMoveUp={index > 0 && !isReorderingExercises && !isRemovingExercise}
                                         canMoveDown={index < selectedExercises.length - 1 && !isReorderingExercises && !isRemovingExercise}
                                         onMove={(direction) => moveExercise(index, index + direction)}

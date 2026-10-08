@@ -281,40 +281,47 @@
     line-height: 1;
 }
 
-@media (max-width: 640px) {
-    .page {
-        padding: 2rem 1rem 3rem;
-    }
-
-    .header,
-    .exerciseHeader,
-    .footer {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .header button,
-    .actions button {
-        width: 100%;
-    }
-
-    .actions {
-        flex-direction: column;
-    }
-
-    .exerciseBadge {
-        width: fit-content;
-    }
-
-    .footer {
-        position: static;
-    }
+.dragHandle {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    touch-action: none;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    cursor: grab;
 }
-.dragHandle { min-width: 44px; min-height: 44px; display: grid; place-items: center; touch-action: none; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text-muted); cursor: grab; }
-
 .backButton { width: 44px !important; min-width: 44px !important; height: 44px; padding: 0; }
+.reorderControls { display: flex; align-items: center; gap: .35rem; flex-shrink: 0; }
+.reorderControls button { width: 44px; min-width: 44px; min-height: 44px; }
+.page { box-sizing: border-box; min-width: 0; padding: clamp(1rem, 3vw, 2rem) clamp(.75rem, 3vw, 1.5rem) 3rem; }
+.header > div, .sectionHeader > div, .exerciseHeader > div:first-child { min-width: 0; }
+.summaryCard, .exerciseCard, .stateCard { min-width: 0; padding: clamp(.85rem, 2.5vw, 1.25rem); }
+.summaryGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(.5rem, 2vw, 1rem); }
+.summaryValue, .exerciseTitle, .footerText { overflow-wrap: anywhere; }
+.summaryValue { font-size: clamp(1rem, 3vw, var(--text-lead)); }
+.exerciseCard { cursor: auto; }
+.exerciseCard:active { cursor: auto; }
+.exerciseHeader { flex-wrap: wrap; align-items: center; }
+.exerciseHeader > div:first-child { flex: 1 1 12rem; }
+.footer { flex-wrap: wrap; }
+.footerText { flex: 1 1 12rem; }
+.actions { min-width: 0; }
+.actions button { min-height: 48px; white-space: normal; }
 
-@media (max-width: 640px) { .summaryGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; } }
-.reorderControls { display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0; }
-.reorderControls button { width: 44px; min-width: 44px; }
-@media (max-width: 640px) { .reorderControls { align-self: flex-end; } .summaryGrid { grid-template-columns: 1fr; } }
+@media (max-width: 480px) {
+    .page { gap: 1.25rem; }
+    .exerciseHeader { gap: .75rem; }
+    .exerciseHeader > div:first-child { flex-basis: 100%; }
+    .reorderControls { margin-left: auto; }
+    .footer { align-items: stretch; }
+    .actions { flex: 1 1 100%; }
+    .actions button { width: 100%; }
+}
+
+@media (max-width: 359px) {
+    .summaryGrid { grid-template-columns: minmax(0, 1fr); }
+}

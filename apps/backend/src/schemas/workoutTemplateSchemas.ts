@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { trainingSchema } from './trainingSchemas';
 
 const objectIdSchema = z
     .string()
@@ -14,6 +15,10 @@ const plannedSetSchema = z.object({
 const templateExerciseSchema = z.object({
     exerciseId: objectIdSchema,
     plannedSets: z.array(plannedSetSchema).optional(),
+    training: trainingSchema.optional(),
+}).superRefine((entry, ctx) => {
+    if (entry.training && entry.training.format !== "strength" && entry.plannedSets?.length)
+        ctx.addIssue({ code: "custom", message: "Cardio cannot contain strength sets" });
 });
 
 export const createWorkoutTemplateSchema = z.object({

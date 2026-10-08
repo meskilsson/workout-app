@@ -44,6 +44,7 @@ type WorkoutDraft = {
     _id: string;
     status: "building" | "active" | "completed" | "abandoned";
     selectedMuscleGroups: string[];
+    includeCardio?: boolean;
     exercises: {
         exerciseId: string;
         exerciseName: string;
@@ -62,6 +63,7 @@ type ExerciseGroup = {
 };
 
 function formatMuscleTitle(muscle: string) {
+    if (muscle === "core") return "Abs";
     return muscle.charAt(0).toUpperCase() + muscle.slice(1);
 }
 
@@ -73,6 +75,8 @@ export default function ExerciseSelectPage() {
     const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<
         SelectedMuscleGroup[]
     >([]);
+
+    const [includeCardio, setIncludeCardio] = useState(true);
 
     const [draftStatus, setDraftStatus] = useState<
         WorkoutDraft["status"] | null
@@ -112,6 +116,7 @@ export default function ExerciseSelectPage() {
     const error = draftError || exerciseError || actionError;
 
     const isActiveWorkout = draftStatus === "active";
+    const isCardioOnly = selectedMuscleGroups.length === 0;
 
     const selectedMuscleQuery = useMemo(() => {
         return selectedMuscleGroups.map((group) => group.id).join(",");
@@ -122,7 +127,7 @@ export default function ExerciseSelectPage() {
     useEffect(() => {
         let cancelled = false;
         async function loadExercises() {
-            if (!isActiveWorkout && !selectedMuscleQuery) {
+            if (isLoadingDraft) {
                 return;
             }
 
@@ -135,9 +140,10 @@ export default function ExerciseSelectPage() {
                     page,
                     limit,
                     search: debouncedSearchTerm,
+                    ...(isCardioOnly ? { exerciseType: "cardio" as const } : { includeCardio }),
                     muscles: isActiveWorkout
                         ? []
-                        : selectedMuscleQuery.split(","),
+                        : selectedMuscleQuery ? selectedMuscleQuery.split(",") : [],
                 };
 
                 const data = isAuthenticated
@@ -171,7 +177,10 @@ export default function ExerciseSelectPage() {
         debouncedSearchTerm,
         selectedMuscleQuery,
         isActiveWorkout,
+        isCardioOnly,
+        includeCardio,
         effectiveSort,
+        isLoadingDraft,
     ]);
 
     useEffect(() => {
@@ -215,6 +224,7 @@ export default function ExerciseSelectPage() {
                     .map((result) => result.value);
 
                 setDraftStatus(data.status);
+                setIncludeCardio(data.includeCardio ?? true);
                 setExistingExerciseIds(draftExerciseIds);
 
                 setSelectedMuscleGroups(
@@ -306,12 +316,10 @@ export default function ExerciseSelectPage() {
         });
     }
 
-    const exerciseGroupTitle = isActiveWorkout
+    const exerciseGroupTitle = isCardioOnly ? "Cardio" : isActiveWorkout
         ? "All exercises"
         : selectedMuscleGroups.length > 0
-            ? selectedMuscleGroups
-                .map((group) => group.title)
-                .join(" and ")
+            ? [...selectedMuscleGroups.map((group) => group.title), ...(includeCardio ? ["Cardio"] : [])].join(" and ")
             : "Exercises";
 
     const currentWorkoutExerciseCards = useMemo(() => {
@@ -592,7 +600,7 @@ export default function ExerciseSelectPage() {
                     <p className={styles.subtitle}>
                         {isActiveWorkout
                             ? "Choose new exercises to add to your active workout."
-                            : "Choose exercises for the muscle groups you selected."}
+                            : isCardioOnly ? "Choose cardio activities for continuous or interval training." : includeCardio ? "Choose exercises for your selected muscles and cardio activities." : "Choose exercises for the muscle groups you selected."}
                     </p>
 
                     <Button

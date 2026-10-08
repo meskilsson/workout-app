@@ -1,3 +1,4 @@
+import { validateTraining, validateCardioCompletion, type TrainingConfig, type CardioCompletion } from "@workout-app/shared";
 import { Types } from "mongoose";
 import type { Muscle } from "@workout-app/shared";
 
@@ -11,6 +12,8 @@ interface CreateWorkoutSessionInput {
     exercises: {
         exerciseId?: string | null;
         exerciseName: string;
+        training?: TrainingConfig;
+        cardioCompletion?: CardioCompletion;
         sets: {
             weight: string | number;
             reps: string | number;
@@ -46,6 +49,16 @@ export async function createWorkoutSession(
             normalizedExerciseId = new Types.ObjectId(exercise.exerciseId);
         }
 
+        if (exercise.training && exercise.training.format !== "strength") {
+            try {
+                const training = validateTraining(exercise.training);
+                const cardioCompletion = validateCardioCompletion(exercise.cardioCompletion, training);
+                if (exercise.sets?.length) throw new Error("Cardio cannot contain strength sets");
+                return { exerciseId: normalizedExerciseId, exerciseName, sets: [], training, cardioCompletion };
+            } catch (error) { throw new ValidationError(error instanceof Error ? error.message : "Invalid cardio completion"); }
+        }
+        if (exercise.cardioCompletion) throw new ValidationError("Strength cannot contain cardio completion");
+        if (exercise.training) validateTraining(exercise.training);
         const normalizedSets = (exercise.sets ?? [])
             .map((set) => ({
                 weight: Number(set.weight),
@@ -225,6 +238,7 @@ export async function repeatWorkoutSession(
         return {
             exerciseId: new Types.ObjectId(exercise.id),
             exerciseName: sessionExercise.exerciseName || exercise.name,
+            training: sessionExercise.training,
             sets: sessionExercise.sets.map((set) => ({
                 weight: set.weight ?? null,
                 reps: set.reps ?? null,

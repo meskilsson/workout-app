@@ -52,3 +52,37 @@ test('rankings preserve visibility and search filters, scope personal history, a
         assert.deepEqual(pipelines.at(-1)[0].$match.$and[0], { isCustom: false, createdBy: null });
     } finally { mock.restoreAll(); }
 });
+
+test('exercise type filters validate query values and restrict results before sorting/pagination', async () => {
+    assert.equal(parseExerciseQuery({ query: { exerciseType: 'cardio' } }).exerciseType, 'cardio');
+    assert.equal(parseExerciseQuery({ query: {} }).exerciseType, undefined);
+    for (const exerciseType of ['intervals', 'unknown', ['cardio', 'strength']]) assert.throws(() => parseExerciseQuery({ query: { exerciseType } }), /Invalid exercise type/);
+    const matches = [], counts = [];
+    mock.method(Exercise, 'aggregate', async pipeline => { matches.push(pipeline[0].$match); return []; });
+    mock.method(Exercise, 'countDocuments', async filter => { counts.push(filter); return 0; });
+    try {
+        await getPublicExercises({ page: 1, limit: 12, sort: 'popular', exerciseType: 'cardio', search: 'bike' });
+        await getExerciseLibrary('0123456789abcdef01234567', { page: 1, limit: 12, sort: 'mostUsed', exerciseType: 'cardio' });
+        for (let i = 0; i < matches.length; i++) {
+            assert(matches[i].$and.some(filter => filter.exerciseType === 'cardio'));
+            assert.deepEqual(counts[i], matches[i]);
+        }
+    } finally { mock.restoreAll(); }
+});
+
+test('Abs plus Cardio uses a union filter and preserves that union before pagination', async () => {
+    const { buildMuscleFilter } = require('../src/utils/exerciseFilters.ts');
+    const mixed = buildMuscleFilter(['core'], true);
+    assert.deepEqual(mixed.$or, [{ exerciseType: 'cardio' }, { primaryMuscles: { $in: ['core'] } }, { secondaryMuscles: { $in: ['core'] } }]);
+    assert.equal(buildMuscleFilter(['core'], false).$or.length, 2);
+    assert.equal(parseExerciseQuery({ query: { includeCardio: 'true', muscles: 'core' } }).includeCardio, true);
+    assert.equal(parseExerciseQuery({ query: { includeCardio: 'false' } }).includeCardio, false);
+    assert.throws(() => parseExerciseQuery({ query: { includeCardio: ['true','false'] } }));
+    let match;
+    mock.method(Exercise, 'aggregate', async pipeline => { match = pipeline[0].$match; return []; });
+    mock.method(Exercise, 'countDocuments', async () => 0);
+    try {
+        await getExerciseLibrary('0123456789abcdef01234567', { page: 1, limit: 12, sort: 'popular', muscles: ['core'], includeCardio: true });
+        assert.deepEqual(match.$and[1], mixed);
+    } finally { mock.restoreAll(); }
+});

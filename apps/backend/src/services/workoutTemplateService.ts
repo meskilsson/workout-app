@@ -16,6 +16,7 @@ import type {
     UpdateWorkoutTemplateInput,
     CreateWorkoutTemplateFromDraftInput,
 } from "../schemas/workoutTemplateSchemas";
+import { validateTraining } from "@workout-app/shared";
 import type { Muscle } from "@workout-app/shared";
 
 type PopulatedTemplateExercise = {
@@ -64,11 +65,17 @@ async function buildTemplateExercises(
             throw new ValidationError("Exercise could not be found");
         }
 
+        if (inputExercise.training) {
+            try { validateTraining(inputExercise.training); }
+            catch (error) { throw new ValidationError(error instanceof Error ? error.message : "Invalid training"); }
+            if (inputExercise.training.format !== "strength" && inputExercise.plannedSets?.length) throw new ValidationError("Cardio cannot contain strength sets");
+        }
         return {
             exercise: exercise._id,
             exerciseName: exercise.name,
             order: index,
             plannedSets: inputExercise.plannedSets ?? [],
+            training: inputExercise.training,
         };
     });
 }
@@ -301,6 +308,7 @@ export async function startWorkoutFromTemplate(
             return {
                 exerciseId: exercise._id,
                 exerciseName: templateExercise.exerciseName,
+                training: templateExercise.training,
                 sets: templateExercise.plannedSets.map((set) => ({
                     weight: set.weight ?? null,
                     reps: set.reps ?? null,
@@ -346,6 +354,7 @@ export async function createWorkoutTemplateFromDraft(
     const templateExercises = draft.exercises.map((draftExercise, index) => ({
         exercise: draftExercise.exerciseId,
         exerciseName: draftExercise.exerciseName,
+        training: draftExercise.training,
         order: index,
         plannedSets: draftExercise.sets.map((set) => ({
             reps: set.reps,
@@ -441,6 +450,7 @@ export async function createTemplateEditDraft(
             return {
                 exerciseId: exercise._id,
                 exerciseName: templateExercise.exerciseName,
+                training: templateExercise.training,
                 sets: templateExercise.plannedSets.map((set) => ({
                     weight: set.weight ?? null,
                     reps: set.reps ?? null,

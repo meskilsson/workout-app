@@ -1,3 +1,4 @@
+import { trainingField, cardioCompletionField, type TrainingFields } from "./trainingFields";
 import { Schema, model, Types } from "mongoose";
 
 interface WorkoutSet {
@@ -5,7 +6,7 @@ interface WorkoutSet {
     reps: number;
 };
 
-interface WorkoutSessionExercise {
+interface WorkoutSessionExercise extends TrainingFields {
     exerciseId: Types.ObjectId | null;
     exerciseName: string;
     sets: WorkoutSet[];
@@ -44,6 +45,8 @@ const workoutSessionExerciseSchema = new Schema<WorkoutSessionExercise>(
             ref: "Exercise",
             default: null,
         },
+        training: trainingField,
+        cardioCompletion: cardioCompletionField,
         exerciseName: {
             type: String,
             required: [true, "Exercise name is required"],
@@ -53,7 +56,7 @@ const workoutSessionExerciseSchema = new Schema<WorkoutSessionExercise>(
             type: [workoutSetSchema],
             required: true,
             validate: {
-                validator: (value: WorkoutSet[]) => value.length > 0,
+                validator: function (value: WorkoutSet[]) { const training = (this as unknown as TrainingFields).training; return training && training.format !== "strength" ? value.length === 0 : value.length > 0; },
                 message: "At least one set is required",
             },
         },

@@ -1,5 +1,5 @@
 import { Play, Pause, RotateCcw, Timer } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { restAlertsEnabled, setRestAlertsEnabled } from "../../utils/restTimerAlerts";
 import Icon from "../ui/icon/Icon";
 import Button from "../ui/button/Button";
@@ -13,12 +13,19 @@ import {
 
 export default function RestTimer() {
     const { state, start, pause, reset, adjustTime } = useRestTimerControls();
+    const [cardioActive, setCardioActive] = useState(false);
+    useEffect(() => {
+        const listener = (event: Event) => setCardioActive(Boolean((event as CustomEvent).detail));
+        window.addEventListener("cardio-session-active", listener);
+        return () => window.removeEventListener("cardio-session-active", listener);
+    }, []);
     const [alertsEnabled, setAlertsEnabled] = useState(restAlertsEnabled);
 
+    if (cardioActive) return <p role="status">Cardio session controls its work and rest phases. Pause cardio to use the manual rest timer.</p>;
     return (
         <section className={styles.timer}>
             <div className={styles.info}>
-                <span className={styles.label}><Icon icon={Timer} /> Rest timer</span>
+                <span className={styles.label}><Icon icon={Timer} /> Strength / manual rest</span>
 
                 <strong className={styles.time}>
                     {formatCountdownMilliseconds(state.timeLeft)}

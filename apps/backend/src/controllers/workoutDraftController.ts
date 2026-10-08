@@ -288,3 +288,9 @@ export async function reorderWorkoutDraftExercises(
         next(error);
     }
 }
+
+export async function updateWorkoutDraftTraining(req: Request<{ draftId: string }>, res: Response, next: NextFunction): Promise<void> {
+    try { if (!req.user?.id) throw new UnauthorizedError("Unauthorized");
+        res.json(await workoutDraftService.updateWorkoutDraftTraining(req.params.draftId, req.body, req.user.id));
+    } catch (error) { next(error); }
+}

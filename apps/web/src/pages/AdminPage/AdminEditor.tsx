@@ -1,3 +1,5 @@
+import TrainingConfigForm from "../../components/training/TrainingConfigForm";
+import { trainingTotalSeconds } from "@workout-app/shared";
 import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { MUSCLE_OPTIONS, EQUIPMENT_OPTIONS, DIFFICULTY_OPTIONS, EXERCISE_TYPE_OPTIONS } from "@workout-app/shared";
 import Input from "../../components/ui/input/Input";
@@ -16,6 +18,8 @@ export default function AdminEditor({ resource, item, onSaved, onCancel }: Props
   const [primary, setPrimary] = useState(item?.primaryMuscles ?? []);
   const [secondary, setSecondary] = useState(item?.secondaryMuscles ?? []);
   const [rows, setRows] = useState<AdminExerciseRow[]>(item?.exercises ?? []);
+  const [dirtyConfigs, setDirtyConfigs] = useState<Record<number, boolean>>({});
+  const hasUnsavedConfigs = Object.values(dirtyConfigs).some(Boolean);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -45,10 +49,10 @@ export default function AdminEditor({ resource, item, onSaved, onCancel }: Props
           ...(values.equipment ? { equipment: values.equipment } : {}), ...(values.difficulty ? { difficulty: values.difficulty } : {}), ...(values.exerciseType ? { exerciseType: values.exerciseType } : {}) };
       } else if (resource === "templates") {
         body = { name: values.name, description: values.description, category: values.category || "custom",
-          exercises: rows.map(row => ({ exerciseId: row.exerciseId ?? row.exercise, plannedSets: row.plannedSets ?? [] })) };
+          exercises: rows.map(row => ({ exerciseId: row.exerciseId ?? row.exercise, plannedSets: row.plannedSets ?? [], training: row.training })) };
       } else {
         body = { userId: values.userId, startedAt: values.startedAt, endedAt: values.endedAt,
-          exercises: rows.map(row => ({ exerciseId: row.exerciseId || null, exerciseName: row.exerciseName, sets: row.sets ?? [] })) };
+          exercises: rows.map(row => ({ exerciseId: row.exerciseId || null, exerciseName: row.exerciseName, sets: row.sets ?? [], training: row.training, cardioCompletion: row.cardioCompletion })) };
       }
       await adminRequest(`/${resource}${item ? `/${item._id}` : ""}`, item ? "PUT" : "POST", body); onSaved();
     } catch (cause) {
@@ -76,6 +80,13 @@ export default function AdminEditor({ resource, item, onSaved, onCancel }: Props
       {rows.map((row, index) => <fieldset key={index}><legend>Exercise {index + 1}</legend>
         <Input label="Exercise ID" value={row.exerciseId ?? row.exercise ?? ""} required={resource === "templates"} pattern="[0-9a-fA-F]{24}" onChange={event => rowSet(index, { exerciseId: event.target.value })} error={errors[`exercises.${index}.exerciseId`]} />
         {resource === "sessions" && <Input label="Exercise name" value={row.exerciseName ?? ""} required onChange={event => rowSet(index, { exerciseName: event.target.value })} error={errors[`exercises.${index}.exerciseName`]} />}
+        <TrainingConfigForm embedded initial={row.training} onDirty={dirty => setDirtyConfigs(prev => ({ ...prev, [index]: dirty }))} onSave={async training => rowSet(index, { training, ...(training.format !== "strength" ? { sets: [], plannedSets: [] } : {}), cardioCompletion: undefined })} />
+        {resource === "sessions" && row.training && row.training.format !== "strength" && <Input label="Actual elapsed seconds" type="number" min={0} max={trainingTotalSeconds(row.training)} step="any" required value={row.cardioCompletion?.elapsedSeconds ?? ""} onChange={event => {
+          const training = row.training!;
+          const elapsedSeconds = Number(event.target.value);
+          const completedRounds = training.format === "intervals" ? Math.min(training.rounds, Math.floor((elapsedSeconds + training.restSeconds) / (training.workSeconds + training.restSeconds))) : training.format === "cardio" && elapsedSeconds >= training.durationSeconds ? 1 : 0;
+          rowSet(index, { cardioCompletion: { elapsedSeconds, completedRounds, manual: true } });
+        }} />}
         {(resource === "templates" ? row.plannedSets ?? [] : row.sets ?? []).map((set, setIndex) => <div className={styles.set} key={setIndex}>
           {(["reps", "weight", ...(resource === "templates" ? ["restSeconds"] : [])] as const).map(key => <Input key={key} label={`${key} (set ${setIndex + 1})`} type="number" min={key === "reps" && resource === "sessions" ? 1 : 0} step={key === "weight" ? "any" : 1} required={resource === "sessions"} value={set[key as keyof typeof set] ?? ""} error={errors[`exercises.${index}.${resource === "templates" ? "plannedSets" : "sets"}.${setIndex}.${key}`]} onChange={event => {
             const sets = [...(resource === "templates" ? row.plannedSets ?? [] : row.sets ?? [])];
@@ -85,12 +96,12 @@ export default function AdminEditor({ resource, item, onSaved, onCancel }: Props
           {resource === "templates" && <Input label={`Notes (set ${setIndex + 1})`} maxLength={200} value={set.notes ?? ""} onChange={event => { const sets = [...row.plannedSets!]; sets[setIndex] = { ...set, notes: event.target.value }; rowSet(index, { plannedSets: sets }); }} />}
           <Button type="button" variant="ghost" onClick={() => { const sets = (resource === "templates" ? row.plannedSets ?? [] : row.sets ?? []).filter((_, i) => i !== setIndex); rowSet(index, resource === "templates" ? { plannedSets: sets } : { sets }); }}>Remove set {setIndex + 1}</Button>
         </div>)}
-        <Button type="button" variant="secondary" onClick={() => { const sets = [...(resource === "templates" ? row.plannedSets ?? [] : row.sets ?? []), { reps: 10, weight: 0 }]; rowSet(index, resource === "templates" ? { plannedSets: sets } : { sets }); }}>Add set</Button>
-        <Button type="button" variant="ghost" onClick={() => setRows(current => current.filter((_, i) => i !== index))}>Remove exercise {index + 1}</Button>
+        <Button type="button" variant="secondary" disabled={!!row.training && row.training.format !== "strength"} onClick={() => { const sets = [...(resource === "templates" ? row.plannedSets ?? [] : row.sets ?? []), { reps: 10, weight: 0 }]; rowSet(index, resource === "templates" ? { plannedSets: sets } : { sets }); }}>Add set</Button>
+        <Button type="button" variant="ghost" onClick={() => { setRows(current => current.filter((_, i) => i !== index)); setDirtyConfigs(prev => Object.fromEntries(Object.entries(prev).filter(([i]) => Number(i) !== index).map(([i, dirty]) => [Number(i) > index ? Number(i) - 1 : Number(i), dirty]))); }}>Remove exercise {index + 1}</Button>
       </fieldset>)}
       <Button type="button" variant="secondary" onClick={() => setRows(current => [...current, { exerciseId: "", exerciseName: "", sets: [{ reps: 10, weight: 0 }], plannedSets: [{ reps: 10, weight: 0 }] }])}>Add exercise</Button>
     </fieldset>}
     {error && <p role="alert" className={styles.error}>{error}</p>}
-    <div className={styles.actions}><Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save"}</Button><Button type="button" variant="ghost" disabled={busy} onClick={onCancel}>Cancel</Button></div>
+    <div className={styles.actions}><Button type="submit" disabled={busy || hasUnsavedConfigs}>{busy ? "Saving…" : "Save"}</Button><Button type="button" variant="ghost" disabled={busy} onClick={onCancel}>Cancel</Button></div>
   </form>;
 }

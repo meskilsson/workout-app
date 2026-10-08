@@ -1,3 +1,4 @@
+import { formatTrainingSeconds, trainingTotalSeconds, type TrainingConfig, type CardioCompletion } from "@workout-app/shared";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -22,6 +23,8 @@ type WorkoutSet = {
 type WorkoutSessionExercise = {
     exerciseId: string | null;
     exerciseName: string;
+    training?: TrainingConfig;
+    cardioCompletion?: CardioCompletion;
     sets: WorkoutSet[];
 };
 
@@ -315,6 +318,7 @@ export default function WorkoutResultPage() {
                             </div>
 
                             <div className={styles.setsList}>
+                                {exercise.training && exercise.training.format !== "strength" && <p>Planned: {formatTrainingSeconds(trainingTotalSeconds(exercise.training))} · Actual: {formatTrainingSeconds(exercise.cardioCompletion?.elapsedSeconds ?? 0)}{exercise.training.format === "intervals" ? ` · ${exercise.cardioCompletion?.completedRounds ?? 0} of ${exercise.training.rounds} rounds` : ""}{exercise.cardioCompletion?.manual ? " · Completed manually" : ""}</p>}
                                 {exercise.sets.map((set, index) => (
                                     <div key={index} className={styles.setRow}>
                                         <span className={styles.setIndex}>

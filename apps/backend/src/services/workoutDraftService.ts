@@ -1,3 +1,4 @@
+import { validateTraining, validateCardioCompletion } from "@workout-app/shared";
 import { randomUUID } from "node:crypto";
 import { Types } from "mongoose";
 import { MUSCLE_OPTIONS, type Muscle } from "@workout-app/shared";
@@ -8,6 +9,7 @@ import { ConflictError, NotFoundError, ValidationError } from "../errors/AppErro
 import type { WorkoutDraftStatus, WorkoutDraftPurpose } from "../models/WorkoutDraft";
 
 interface CreateWorkoutDraftInput {
+    includeCardio?: unknown;
     selectedMuscleGroups?: unknown;
     purpose?: unknown;
 }
@@ -78,10 +80,6 @@ function normalizeMuscleGroups(value: unknown): Muscle[] {
         }
 
         uniqueMuscles.add(normalizedMuscle as Muscle);
-    }
-
-    if (uniqueMuscles.size === 0) {
-        throw new ValidationError("At least one muscle group is required");
     }
 
     return [...uniqueMuscles];
@@ -230,6 +228,7 @@ export async function createWorkoutDraft(
     );
 
     const purpose = normalizeDraftPurpose(draftData.purpose);
+    if (draftData.includeCardio !== undefined && typeof draftData.includeCardio !== "boolean") throw new ValidationError("includeCardio must be a boolean");
 
     await WorkoutDraft.updateMany(
         {
@@ -247,6 +246,7 @@ export async function createWorkoutDraft(
         status: "building",
         purpose,
         selectedMuscleGroups,
+        includeCardio: draftData.includeCardio,
         exercises: [],
         startedAt: null,
         completedSessionId: null,
@@ -328,6 +328,7 @@ export async function updateWorkoutDraftExercises(
         );
     }
 
+    const existingTraining = new Map(draft.exercises.map(e => [e.exerciseId.toString(), e.training]));
     const existingSetsByExerciseId = new Map(
         draft.exercises.map((exercise) => [
             exercise.exerciseId.toString(),
@@ -351,7 +352,7 @@ export async function updateWorkoutDraftExercises(
             throw new ValidationError("Exercise not found");
         }
 
-        if (!exerciseMatchesSelectedMuscle(exercise, selectedMuscleGroups)) {
+        if (selectedMuscleGroups.length > 0 && exercise.exerciseType !== "cardio" && !exerciseMatchesSelectedMuscle(exercise, selectedMuscleGroups)) {
             throw new ValidationError(
                 `${exercise.name} does not match your selected muscle groups`,
             );
@@ -361,6 +362,7 @@ export async function updateWorkoutDraftExercises(
             exerciseId: exercise._id as Types.ObjectId,
             exerciseName: exercise.name,
             sets: existingSetsByExerciseId.get(exerciseId) ?? [],
+            training: existingTraining.has(exerciseId) ? existingTraining.get(exerciseId) : (exercise.exerciseType === "cardio" ? { format: "cardio", durationSeconds: 600 } : undefined),
         };
     });
 
@@ -421,6 +423,7 @@ export async function addWorkoutDraftExercises(
             exerciseId: exercise._id as Types.ObjectId,
             exerciseName: exercise.name,
             sets: [],
+            training: exercise.exerciseType === "cardio" ? { format: "cardio" as const, durationSeconds: 600 } : undefined,
         };
     });
 
@@ -511,7 +514,7 @@ export async function updateWorkoutDraftSets(
             _id: draftObjectId,
             userId,
             status: "active",
-            "exercises.exerciseId": exerciseObjectId,
+            exercises: { $elemMatch: { exerciseId: exerciseObjectId, "training.format": { $nin: ["cardio", "intervals"] } } },
         },
         {
             $set: {
@@ -557,6 +560,10 @@ export async function completeWorkoutDraft(draftId: string, userId: string) {
     ensureDraftIsActive(draft.status);
 
     const exercises = draft.exercises.map((exercise) => {
+        if (exercise.training && exercise.training.format !== "strength") {
+            if (!exercise.cardioCompletion) throw new ValidationError(`Complete cardio for ${exercise.exerciseName} before ending the workout`);
+            return { exerciseId: exercise.exerciseId.toString(), exerciseName: exercise.exerciseName, sets: [], training: exercise.training, cardioCompletion: exercise.cardioCompletion };
+        }
         const validSets = exercise.sets.filter(isCompletedWorkoutSet);
 
         if (validSets.length === 0) {
@@ -659,4 +666,27 @@ export async function reorderWorkoutDraftExercises(
 
     return draft;
 
+}
+export async function updateWorkoutDraftTraining(draftId: string, input: { exerciseId: string; training: unknown; cardioCompletion?: unknown }, userId: string) {
+    const draft = await getOwnedDraft(draftId, userId);
+    if (!isEditableStatus(draft.status)) throw new ConflictError("This workout cannot be edited");
+    const id = normalizeObjectId(input.exerciseId, "exercise id");
+    const exercise = draft.exercises.find(e => e.exerciseId.toString() === id.toString());
+    if (!exercise) throw new NotFoundError("Exercise is not part of this draft");
+    let training, completion;
+    try {
+        training = validateTraining(input.training);
+        if (input.cardioCompletion !== undefined) {
+            ensureDraftIsActive(draft.status);
+            completion = validateCardioCompletion(input.cardioCompletion, training);
+        }
+    } catch (error) { throw new ValidationError(error instanceof Error ? error.message : "Invalid training"); }
+    const changed = JSON.stringify(exercise.training ?? { format: "strength" }) !== JSON.stringify(training);
+    const updated = await WorkoutDraft.findOneAndUpdate({ _id: draft._id, userId, status: draft.status, "exercises.exerciseId": id },
+        { $set: { "exercises.$.training": training,
+            ...(completion ? { "exercises.$.cardioCompletion": completion } : {}),
+            ...(changed && training.format !== "strength" ? { "exercises.$.sets": [] } : {}) },
+            ...(!completion ? { $unset: { "exercises.$.cardioCompletion": 1 } } : {}) }, { returnDocument: "after", runValidators: true });
+    if (!updated) throw new ConflictError("Workout changed; reload before saving");
+    return updated;
 }
