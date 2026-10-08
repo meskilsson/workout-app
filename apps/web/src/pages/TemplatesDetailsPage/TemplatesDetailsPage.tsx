@@ -18,6 +18,7 @@ import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import LoadingState from "../../components/Loading/LoadingState";
 
+import { formatTrainingSeconds, trainingTotalSeconds } from "@workout-app/shared";
 import styles from "./TemplatesDetailsPage.module.css";
 
 type TemplatesDetailsPageProps = {
@@ -318,6 +319,7 @@ export default function TemplatesDetailsPage({
                                                 Planned sets
                                             </p>
 
+                                            {templateExercise.training && templateExercise.training.format !== "strength" && <p>{templateExercise.training.format === "intervals" ? `${templateExercise.training.rounds} rounds · ${formatTrainingSeconds(templateExercise.training.workSeconds)} work · ${formatTrainingSeconds(templateExercise.training.restSeconds)} rest · ` : "Continuous cardio · "}Total: {formatTrainingSeconds(trainingTotalSeconds(templateExercise.training))}</p>}
                                             {plannedSets.length > 0 ? (
                                                 <div className={styles.setList}>
                                                     {plannedSets.map((plannedSet, index) => (

@@ -77,7 +77,7 @@ export function saveResource(resource: Resource, editing: boolean): RequestHandl
       if (new Set(ids).size !== ids.length) throw new ValidationError("A template cannot contain duplicate exercises", [{ field: "exercises", message: "Remove duplicate exercises" }]);
       const available = await Exercise.find({ _id: { $in: ids }, deletedAt: null, $or: [{ isCustom: false, createdBy: null }, ...(owner ? [{ createdBy: owner }] : [])] });
       if (available.length !== ids.length) throw new ValidationError("Exercises must be shared or belong to the template owner", [{ field: "exercises", message: "One or more exercises are unavailable" }]);
-      data.exercises = input.exercises.map((item, order) => ({ exercise: item.exerciseId, exerciseName: available.find(exercise => exercise.id === item.exerciseId)!.name, order, plannedSets: item.plannedSets ?? [] }));
+      data.exercises = input.exercises.map((item, order) => ({ exercise: item.exerciseId, exerciseName: available.find(exercise => exercise.id === item.exerciseId)!.name, order, plannedSets: item.plannedSets ?? [], training: item.training }));
       if (!editing) data = { ...data, isPublic: true, createdBy: null };
     } else if (resource === "exercises") {
       if (!editing) data = { ...data, isCustom: false, createdBy: null };

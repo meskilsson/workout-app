@@ -1,3 +1,5 @@
+import TrainingConfigForm from "../../components/training/TrainingConfigForm";
+import type { TrainingConfig } from "@workout-app/shared";
 import { ArrowLeft, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useEffect, useState, type FormEvent } from "react";
@@ -32,6 +34,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 import {
   getWorkoutDraftByIdRequest,
+  updateWorkoutDraftTrainingRequest,
   startWorkoutDraftRequest,
   reorderWorkoutDraftExercisesRequest,
 } from "../../services/workoutDraftApi";
@@ -45,6 +48,7 @@ import styles from "./WorkoutSummaryPage.module.css";
 type DraftExercise = {
   exerciseId: string;
   exerciseName: string;
+  training?: TrainingConfig;
   sets: {
     weight: number | null;
     reps: number | null;
@@ -65,6 +69,8 @@ type SortableSummaryExerciseCardProps = {
   total: number;
   isReordering: boolean;
   onMove: (from: number, to: number) => void;
+  onSave: (config: TrainingConfig) => Promise<void>;
+  onDirty: (dirty: boolean) => void;
 };
 
 const categoryOptions: WorkoutTemplateCategory[] = [
@@ -91,6 +97,7 @@ function SortableSummaryExerciseCard({
   total,
   isReordering,
   onMove,
+  onSave, onDirty,
 }: SortableSummaryExerciseCardProps) {
   const {
     attributes,
@@ -134,6 +141,7 @@ function SortableSummaryExerciseCard({
             aria-label={`Reorder ${exercise.exerciseName}`}><Icon icon={GripVertical} /></button>
           </div>
         </div>
+      <TrainingConfigForm initial={exercise.training} onSave={onSave} onDirty={onDirty} />
       </Card>
     </div>
   );
@@ -143,6 +151,8 @@ export default function WorkoutSummaryPage() {
   const { draftId } = useParams();
   const navigate = useNavigate();
 
+  const [dirtyConfigs, setDirtyConfigs] = useState<Record<string, boolean>>({});
+  const hasUnsavedConfigs = Object.values(dirtyConfigs).some(Boolean);
   const [draft, setDraft] = useState<WorkoutDraft | null>(null);
   const [isLoadingDraft, setIsLoadingDraft] = useState(true);
   const [isStartingWorkout, setIsStartingWorkout] = useState(false);
@@ -476,6 +486,11 @@ export default function WorkoutSummaryPage() {
                     total={selectedExercises.length}
                     isReordering={isReordering}
                     onMove={moveExercise}
+                    onDirty={dirty => setDirtyConfigs(prev => ({ ...prev, [exercise.exerciseId]: dirty }))}
+                    onSave={async training => {
+                      await updateWorkoutDraftTrainingRequest(draftId!, { exerciseId: exercise.exerciseId, training });
+                      setOrderedExercises(prev => prev.map(e => e.exerciseId === exercise.exerciseId ? { ...e, training } : e));
+                    }}
                   />
                 ))}
               </div>
@@ -491,6 +506,7 @@ export default function WorkoutSummaryPage() {
         )}
       </section>
 
+      {hasUnsavedConfigs && <p role="status">Save each changed training configuration before continuing.</p>}
       <div className={styles.footer}>
         <p className={styles.footerText}>
           {selectedExercises.length === 0
@@ -507,7 +523,7 @@ export default function WorkoutSummaryPage() {
               variant="primary"
               onClick={handleOpenTemplateModal}
               disabled={
-                selectedExercises.length === 0 || isSavingTemplate
+                hasUnsavedConfigs || isReordering || selectedExercises.length === 0 || isSavingTemplate
               }
             >
               {isSavingTemplate ? (
@@ -527,7 +543,7 @@ export default function WorkoutSummaryPage() {
               variant="primary"
               onClick={handleStartWorkout}
               disabled={
-                selectedExercises.length === 0 ||
+                hasUnsavedConfigs || isReordering || selectedExercises.length === 0 ||
                 isStartingWorkout
               }
             >

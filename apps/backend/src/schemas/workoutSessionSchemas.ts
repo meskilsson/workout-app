@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { trainingSchema, cardioCompletionSchema } from "./trainingSchemas";
+import { validateCardioCompletion } from "@workout-app/shared";
 
 export const workoutSessionIdParamsSchema = z.strictObject({
     id: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid workout session id"),
@@ -33,9 +35,16 @@ const workoutSessionExerciseSchema = z.strictObject({
         .trim()
         .min(1, "Exercise name is required"),
 
-    sets: z
-        .array(workoutSetSchema)
-        .min(1, "At least one set is required"),
+    training: trainingSchema.optional(),
+    cardioCompletion: cardioCompletionSchema.optional(),
+    sets: z.array(workoutSetSchema),
+}).superRefine((exercise, ctx) => {
+    try {
+        if (exercise.training && exercise.training.format !== "strength") {
+            validateCardioCompletion(exercise.cardioCompletion, exercise.training);
+            if (exercise.sets.length) throw new Error("Cardio cannot contain strength sets");
+        } else if (!exercise.sets.length || exercise.cardioCompletion) throw new Error("Strength requires sets and cannot contain cardio completion");
+    } catch (error) { ctx.addIssue({ code: "custom", message: error instanceof Error ? error.message : "Invalid exercise" }); }
 });
 
 export const createWorkoutSessionSchema = z.strictObject({

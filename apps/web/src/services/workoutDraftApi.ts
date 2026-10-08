@@ -193,3 +193,7 @@ export async function reorderWorkoutDraftExercisesRequest(
 
     return handleResponse(response, "Failed to reorder workout exercises");
 }
+export async function updateWorkoutDraftTrainingRequest(draftId: string, input: { exerciseId: string; training: import("@workout-app/shared").TrainingConfig; cardioCompletion?: import("@workout-app/shared").CardioCompletion }) {
+    const response = await fetch(`${API_URL}/api/workout-drafts/${draftId}/training`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
+    return handleResponse(response, "Failed to save training configuration");
+}

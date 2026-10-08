@@ -1,3 +1,4 @@
+import { trainingField, cardioCompletionField, type TrainingFields } from "./trainingFields";
 import { Schema, model, Types } from "mongoose";
 import { MUSCLE_OPTIONS, type Muscle } from "@workout-app/shared";
 
@@ -13,7 +14,7 @@ export interface WorkoutDraftSet {
     reps: number | null;
 }
 
-export interface WorkoutDraftExercise {
+export interface WorkoutDraftExercise extends TrainingFields {
     exerciseId: Types.ObjectId;
     exerciseName: string;
     sets: WorkoutDraftSet[];
@@ -24,6 +25,7 @@ export interface IWorkoutDraft {
     status: WorkoutDraftStatus;
     purpose: WorkoutDraftPurpose;
     selectedMuscleGroups: Muscle[];
+    includeCardio?: boolean;
     exercises: WorkoutDraftExercise[];
     startedAt?: Date | null;
     completedSessionId?: Types.ObjectId | null;
@@ -57,6 +59,8 @@ const workoutDraftExerciseSchema = new Schema<WorkoutDraftExercise>(
             ref: "Exercise",
             required: true,
         },
+        training: trainingField,
+        cardioCompletion: cardioCompletionField,
         exerciseName: {
             type: String,
             required: [true, "Exercise name is required"],
@@ -91,6 +95,7 @@ const workoutDraftSchema = new Schema<IWorkoutDraft>(
             required: true,
             index: true,
         },
+        includeCardio: { type: Boolean, default: undefined },
         selectedMuscleGroups: {
             type: [{ type: String, enum: MUSCLE_OPTIONS }],
             default: [],

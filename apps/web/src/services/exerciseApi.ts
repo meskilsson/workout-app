@@ -16,12 +16,16 @@ function buildExerciseQueryParams({
     search = "",
     muscles = [],
     sort = "name",
+    exerciseType,
+    includeCardio,
 }: GetExercisesParams) {
     const params = new URLSearchParams();
 
     params.set("page", String(page));
     params.set("limit", String(limit));
     params.set("sort", sort);
+    if (exerciseType) params.set("exerciseType", exerciseType);
+    if (includeCardio !== undefined) params.set("includeCardio", String(includeCardio));
 
     if (search.trim()) {
         params.set("search", search.trim());

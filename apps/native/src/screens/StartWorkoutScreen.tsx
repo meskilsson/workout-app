@@ -5,8 +5,9 @@ import {
   Pressable,
   ScrollView,
   Alert,
+  TextInput,
 } from "react-native";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   type Muscle,
   type WorkoutDraft,
@@ -14,7 +15,10 @@ import {
   createWorkoutDraftRequest,
   updateWorkoutDraftExercisesRequest,
   startWorkoutDraftRequest,
+  updateWorkoutDraftTrainingRequest, updateWorkoutDraftSetsRequest, completeWorkoutDraftRequest,
 } from "../services/workoutDraftApi";
+import type { TrainingConfig, CardioCompletion } from "@workout-app/shared";
+import TrainingActivity from "../components/TrainingActivity";
 import Button from "../components/UI/Button/Button";
 import { useAuth } from "../context/AuthContext";
 import { type Exercise, exerciseLibraryRequest } from "../services/exerciseApi";
@@ -35,6 +39,23 @@ const MUSCLES: Muscle[] = [
 
 export default function StartWorkoutScreen() {
   const { token } = useAuth();
+  const actionPending = useRef(false);
+  const [isSaving, setIsSaving] = useState(false);
+  async function perform(action: () => Promise<void>) {
+    if (actionPending.current) return;
+    actionPending.current = true; setIsSaving(true);
+    try { await action(); } catch (error) { Alert.alert("Workout could not be saved", error instanceof Error ? error.message : "Try again"); }
+    finally { actionPending.current = false; setIsSaving(false); }
+  }
+  async function saveActivity(exerciseId: string, training: TrainingConfig, completion?: CardioCompletion) {
+    if (!token || !draft) throw new Error("Workout unavailable");
+    if (actionPending.current) throw new Error("Wait for the current save to finish");
+    actionPending.current = true; setIsSaving(true);
+    try { setDraft(await updateWorkoutDraftTrainingRequest(token, draft._id, exerciseId, training, completion)); }
+    finally { actionPending.current = false; setIsSaving(false); }
+  }
+  const [activeCardioId, setActiveCardioId] = useState<string | null>(null);
+  const [dirtyConfigs, setDirtyConfigs] = useState<Record<string, boolean>>({});
 
   const [selectedMuscles, setSelectedMuscles] = useState<Muscle[]>([]);
   const [draft, setDraft] = useState<WorkoutDraft | null>(null);
@@ -110,7 +131,7 @@ export default function StartWorkoutScreen() {
     setDraft(createdDraft);
 
     const exercises = await exerciseLibraryRequest(token, {
-      muscles: createdDraft.selectedMuscleGroups,
+      muscles: [],
       limit: 50,
     });
 
@@ -175,7 +196,7 @@ export default function StartWorkoutScreen() {
             Choose the muscle groups you want to train.
           </Text>
 
-          <Text>Selected: {selectedMuscles.length}</Text>
+          <Text>Selected: {selectedMuscles.length}. Leave empty for cardio or all activities.</Text>
 
           <View style={styles.muscleGrid}>
             {MUSCLES.map((muscle) => {
@@ -195,8 +216,8 @@ export default function StartWorkoutScreen() {
             })}
           </View>
           <Button
-            onPress={handleCreateWorkout}
-            disabled={selectedMuscles.length === 0 || !token}
+            onPress={() => perform(handleCreateWorkout)}
+            disabled={isSaving || !token}
           >
             Create Workout
           </Button>
@@ -229,15 +250,16 @@ export default function StartWorkoutScreen() {
                 );
               })}
               <Button
-                onPress={handleSaveExercises}
-                disabled={selectedExerciseIds.length === 0 || !token}
+                onPress={() => perform(handleSaveExercises)}
+                disabled={isSaving || selectedExerciseIds.length === 0 || !token}
               >
                 Save Exercises
               </Button>
 
+              {draft.exercises.map(exercise => <View key={exercise.exerciseId}><Text>{exercise.exerciseName}</Text><TrainingActivity initial={exercise.training} building activeId={null} exerciseId={exercise.exerciseId} onStart={() => {}} onDirty={dirty => setDirtyConfigs(prev => ({ ...prev, [exercise.exerciseId]: dirty }))} onSave={(training, completion) => saveActivity(exercise.exerciseId, training, completion)} /></View>)}
               <Button
-                onPress={handleStartWorkout}
-                disabled={draft.exercises.length === 0 || !token}
+                onPress={() => perform(handleStartWorkout)}
+                disabled={isSaving || draft.exercises.length === 0 || !token || Object.values(dirtyConfigs).some(Boolean)}
               >
                 Start Workout
               </Button>
@@ -253,12 +275,16 @@ export default function StartWorkoutScreen() {
           {draft.exercises.map((exercise) => (
             <View key={exercise.exerciseId}>
               <Text>{exercise.exerciseName}</Text>
-              <Text>Sets: {exercise.sets.length}</Text>
-              <Button
-              onPress={() => addSet(exercise.exerciseId)}
-              >Add set</Button>
+              {exercise.training && exercise.training.format !== "strength" ? <TrainingActivity initial={exercise.training} building={false} activeId={activeCardioId} exerciseId={exercise.exerciseId} onStart={() => setActiveCardioId(exercise.exerciseId)} onDirty={() => {}} onSave={(training, completion) => saveActivity(exercise.exerciseId, training, completion)} /> : <><Text>Sets: {exercise.sets.length}</Text>{exercise.sets.map((set, index) => <View key={index}><Text>Set {index + 1}</Text>{(["weight", "reps"] as const).map(field => <TextInput key={field} accessibilityLabel={`${field} for set ${index + 1}`} placeholder={field} keyboardType="numeric" value={set[field] === null ? "" : String(set[field])} onChangeText={value => setDraft(prev => prev ? { ...prev, exercises: prev.exercises.map(e => e.exerciseId === exercise.exerciseId ? { ...e, sets: e.sets.map((s, i) => i === index ? { ...s, [field]: value === "" ? null : Number(value) } : s) } : e) } : prev)} />)}</View>)}</>}
+              {(!exercise.training || exercise.training.format === "strength") && <Button onPress={() => { setActiveCardioId(null); addSet(exercise.exerciseId); }}>Add set</Button>}
             </View>
           ))}
+          <Button disabled={isSaving} onPress={() => perform(async () => {
+            if (!token) return;
+            try { for (const e of draft.exercises) { if (!e.training || e.training.format === "strength") await updateWorkoutDraftSetsRequest(token, draft._id, e.exerciseId, e.sets); }
+              await completeWorkoutDraftRequest(token, draft._id); setActiveCardioId(null); setDraft(null); setSelectedExerciseIds([]); Alert.alert("Workout saved");
+            } catch (e) { Alert.alert("Could not complete workout", e instanceof Error ? e.message : "Try again"); }
+          })}>Finish workout</Button>
         </View>
       )}
     </ScrollView>

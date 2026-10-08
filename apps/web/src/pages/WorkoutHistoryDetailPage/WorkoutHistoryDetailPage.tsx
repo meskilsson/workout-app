@@ -11,6 +11,7 @@ import formatDuration from "../../utils/formatDuration";
 import { formatCompletedDate } from "../../utils/formatCompletedDate";
 import { formatEndTime } from "../../utils/formatEndTime";
 
+import { formatTrainingSeconds, trainingTotalSeconds } from "@workout-app/shared";
 import type { WorkoutSession } from "@workout-app/shared";
 
 import Box from "../../components/ui/box/Box";
@@ -378,6 +379,7 @@ export default function WorkoutHistoryDetailPage() {
                             </div>
 
                             <div className={styles.setsList}>
+                                {exercise.training && exercise.training.format !== "strength" && <p>Planned: {formatTrainingSeconds(trainingTotalSeconds(exercise.training))} · Actual: {formatTrainingSeconds(exercise.cardioCompletion?.elapsedSeconds ?? 0)}{exercise.training.format === "intervals" ? ` · ${exercise.cardioCompletion?.completedRounds ?? 0} of ${exercise.training.rounds} rounds` : ""}{exercise.cardioCompletion?.manual ? " · Completed manually" : ""}</p>}
                                 {exercise.sets.map((set, setIndex) => (
                                     <div key={setIndex} className={styles.setRow}>
                                         <span className={styles.setIndex}>

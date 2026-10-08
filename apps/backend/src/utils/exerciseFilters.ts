@@ -34,9 +34,10 @@ export function buildSearchFilter(search: string) {
     };
 }
 
-export function buildMuscleFilter(muscles: Muscle[]) {
+export function buildMuscleFilter(muscles: Muscle[], includeCardio = true) {
     return {
         $or: [
+            ...(includeCardio ? [{ exerciseType: "cardio" }] : []),
             { primaryMuscles: { $in: muscles } },
             { secondaryMuscles: { $in: muscles } },
         ],

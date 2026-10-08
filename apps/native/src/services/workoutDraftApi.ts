@@ -1,3 +1,4 @@
+import type { TrainingConfig, CardioCompletion } from "@workout-app/shared";
 import { apiFetch } from "./apiClient";
 
 export type Muscle =
@@ -21,6 +22,8 @@ export type WorkoutDraftSet = {
 export type WorkoutDraftExercise = {
     exerciseId: string;
     exerciseName: string;
+    training?: TrainingConfig;
+    cardioCompletion?: CardioCompletion;
     sets: WorkoutDraftSet[];
 };
 
@@ -45,6 +48,8 @@ export type WorkoutSessionSet = {
 export type WorkoutSessionExercise = {
     exerciseId: string | null;
     exerciseName: string;
+    training?: TrainingConfig;
+    cardioCompletion?: CardioCompletion;
     sets: WorkoutSessionSet[];
 };
 
@@ -130,3 +135,7 @@ export async function completeWorkoutDraftRequest(
 }
 
 
+
+export async function updateWorkoutDraftTrainingRequest(token: string, draftId: string, exerciseId: string, training: TrainingConfig, cardioCompletion?: CardioCompletion) {
+    return apiFetch<WorkoutDraft>(`/api/workout-drafts/${draftId}/training`, { method: "PATCH", token, body: JSON.stringify({ exerciseId, training, cardioCompletion }) });
+}

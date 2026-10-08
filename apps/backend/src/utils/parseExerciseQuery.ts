@@ -1,6 +1,8 @@
 import { Request } from "express";
 import {
     MUSCLE_OPTIONS,
+    EXERCISE_TYPE_OPTIONS,
+    type ExerciseType,
     muscleSearchAliases,
     type Muscle,
     type ExerciseSort,
@@ -9,6 +11,8 @@ import {
 import { ValidationError } from "../errors/AppError";
 
 export type ExerciseQueryOptions = {
+    includeCardio?: boolean;
+    exerciseType?: ExerciseType;
     sort?: ExerciseSort;
     page: number;
     limit: number;
@@ -61,6 +65,12 @@ function normalizeMuscles(rawMuscles: string[]): Muscle[] {
 }
 
 export function parseExerciseQuery(req: Request): ExerciseQueryOptions {
+    const includeCardio = req.query.includeCardio;
+    if (includeCardio !== undefined && includeCardio !== "true" && includeCardio !== "false") throw new ValidationError("includeCardio must be true or false");
+    const exerciseType = req.query.exerciseType;
+    if (exerciseType !== undefined && (typeof exerciseType !== "string" || !EXERCISE_TYPE_OPTIONS.includes(exerciseType as ExerciseType))) {
+        throw new ValidationError("Invalid exercise type");
+    }
     const sort = req.query.sort ?? "name";
     if (sort !== "name" && sort !== "popular" && sort !== "mostUsed") {
         throw new ValidationError("Sort must be name, popular, or mostUsed");
@@ -105,5 +115,7 @@ export function parseExerciseQuery(req: Request): ExerciseQueryOptions {
         limit,
         search,
         ...(muscles.length > 0 ? { muscles } : {}),
+        ...(exerciseType ? { exerciseType: exerciseType as ExerciseType } : {}),
+        ...(includeCardio !== undefined ? { includeCardio: includeCardio === "true" } : {}),
     };
 }
