@@ -1,3 +1,6 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { draftDetailOptions } from "../../query/resourceQueries";
+import { useDraftMutations } from "../../query/useDraftMutations";
 import { finishWorkout } from "../../utils/finishWorkout";
 import CardioSession, { CARDIO_START } from "../../components/training/CardioSession";
 import type { TrainingConfig, CardioCompletion } from "@workout-app/shared";
@@ -9,7 +12,7 @@ import {
     useState,
     type CSSProperties,
 } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "../../routes/navigationHooks";
 
 import {
     closestCenter,
@@ -42,13 +45,7 @@ import LoadingState from "../../components/Loading/LoadingState";
 import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 import {
-    abandonWorkoutDraftRequest,
     completeWorkoutDraftRequest,
-    getWorkoutDraftByIdRequest,
-    removeWorkoutDraftExerciseRequest,
-    reorderWorkoutDraftExercisesRequest,
-    updateWorkoutDraftSetsRequest,
-    updateWorkoutDraftTrainingRequest,
 } from "../../services/workoutDraftApi";
 
 import { isInaccessibleDraftError, isWorkoutDraftResponse } from "../../utils/restoreSavedWorkout";
@@ -382,6 +379,12 @@ export default function WorkoutPage() {
 function ActiveWorkoutPage({ userId }: { userId: string }) {
     const { draftId } = useParams();
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
+    const { sets: setsMutation, training: trainingMutation, reorder: reorderMutation,
+        remove: removeMutation, abandon: abandonMutation, complete: completionMutation } = useDraftMutations(draftId ?? "");
+    const saveSets = setsMutation.mutateAsync;
+    const saveTraining = trainingMutation.mutateAsync;
+
     const scope = workoutScope(userId, draftId ?? "");
     const cardioResults = useRef<Record<string, CardioCompletion | undefined>>({});
     const hasLoadedDraft = useRef(false);
@@ -513,9 +516,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                 setIsLoadingDraft(true);
 
                 const draft: WorkoutDraft =
-                    await getWorkoutDraftByIdRequest(
-                        draftId,
-                    );
+                    await queryClient.fetchQuery(draftDetailOptions(userId, draftId));
 
                 if (cancelled) return;
 
@@ -636,6 +637,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         scope,
         userId,
         resetRestTimer,
+        queryClient,
     ]);
 
     useEffect(() => {
@@ -685,8 +687,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                         for (const exercise of selectedExercises) {
                             if (actionRequestPending.current || hasEnded.current) break;
                             if (exercise.training && exercise.training.format !== "strength") continue;
-                            await updateWorkoutDraftSetsRequest(
-                                draftId,
+                            await saveSets(
                                 {
                                     exerciseId:
                                         exercise._id,
@@ -725,6 +726,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         isRemovingExercise,
         isOpeningExerciseSelect,
         isActionPending,
+        saveSets,
     ]);
 
     async function saveExerciseSets(
@@ -737,8 +739,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         setIsSavingDraft(true);
 
         try {
-            await updateWorkoutDraftSetsRequest(
-                draftId,
+            await saveSets(
                 {
                     exerciseId,
 
@@ -763,11 +764,10 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         try {
             for (const exercise of selectedExercises) {
                 if (exercise.training && exercise.training.format !== "strength") {
-                    await updateWorkoutDraftTrainingRequest(draftId, { exerciseId: exercise._id, training: exercise.training, cardioCompletion: cardioResults.current[exercise._id] });
+                    await saveTraining({ exerciseId: exercise._id, training: exercise.training, cardioCompletion: cardioResults.current[exercise._id] });
                     continue;
                 }
-                await updateWorkoutDraftSetsRequest(
-                    draftId,
+                await saveSets(
                     {
                         exerciseId: exercise._id,
 
@@ -796,8 +796,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         setError("");
 
         try {
-            await reorderWorkoutDraftExercisesRequest(
-                draftId,
+            await reorderMutation.mutateAsync(
                 nextOrder.map(
                     (exercise) => exercise._id,
                 ),
@@ -1033,8 +1032,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                 await saveAllExerciseSets();
             }
 
-            await removeWorkoutDraftExerciseRequest(
-                draftId,
+            await removeMutation.mutateAsync(
                 exerciseToRemove._id,
             );
 
@@ -1090,7 +1088,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         setError("");
         setIsAbandoning(true);
         try {
-            await abandonWorkoutDraftRequest(draftId);
+            await abandonMutation.mutateAsync();
             hasEnded.current = true;
             clearWorkoutSnapshot(scope);
             resetWorkoutTimer();
@@ -1153,11 +1151,11 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             // Drain earlier writes before saving the final values. Never retry a
             // completion blindly: the server may have saved it despite a lost response.
             await autosaveRequest.current;
-            const sessionId = await finishWorkout({
-                readDraft: () => getWorkoutDraftByIdRequest(draftId),
+            const sessionId = await completionMutation.mutateAsync(() => finishWorkout({
+                readDraft: () => queryClient.fetchQuery(draftDetailOptions(userId, draftId)),
                 save: saveAllExerciseSets,
                 complete: () => completeWorkoutDraftRequest(draftId),
-            });
+            }));
             hasEnded.current = true;
             clearWorkoutSnapshot(scope);
             resetWorkoutTimer();

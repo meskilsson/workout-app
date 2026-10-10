@@ -1,7 +1,11 @@
 import { ArrowLeft, Trash2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "../../context/AuthContext";
+import { sessionListOptions } from "../../query/resourceQueries";
+import { useRepeatSessionMutation, useDeleteSessionMutation } from "../../query/useSessionMutations";
+import { useNavigate } from "../../routes/navigationHooks";
 
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
@@ -9,64 +13,34 @@ import { LoadingAnnouncement } from "../../components/Loading/Skeleton";
 import LoadingState from "../../components/Loading/LoadingState";
 import LoadingPredator from "../../components/Loading/LoadingPredator";
 
-import {
-    getMyWorkoutSessionsRequest,
-    repeatWorkoutSessionRequest,
-    deleteWorkoutSessionRequest,
-
-} from "../../services/workoutSessionApi";
-
 import { formatCompletedDate } from "../../utils/formatCompletedDate";
 import { formatEndTime } from "../../utils/formatEndTime";
 
-import type { WorkoutSession } from "@workout-app/shared";
 
 import styles from "./ProfileWorkoutsPage.module.css";
 
 export default function ProfileWorkoutsPage() {
     const navigate = useNavigate();
 
-    const [sessions, setSessions] = useState<WorkoutSession[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
-    const [error, setError] = useState("");
+    const { user } = useAuth();
+    const sessionsQuery = useQuery(sessionListOptions(user?._id ?? ""));
+    const sessions = sessionsQuery.data ?? [];
+    const isLoading = sessionsQuery.isFetching;
+    const hasLoadedOnce = !sessionsQuery.isPending;
+    const error = sessionsQuery.error?.message ?? "";
     const [actionError, setActionError] = useState("");
-    const [repeatingSessionId, setRepeatingSessionId] = useState<string | null>(
-        null,
-    );
-    const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
     const [deleteAction, setDeleteAction] = useState("");
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    useEffect(() => {
-        async function loadWorkoutHistory() {
-            setError("");
-            setIsLoading(true);
-
-            try {
-                const sessionsData = await getMyWorkoutSessionsRequest();
-                setSessions(sessionsData);
-            } catch (err) {
-                if (err instanceof Error) {
-                    setError(err.message);
-                } else {
-                    setError("Failed to load workout history");
-                }
-            } finally {
-                setIsLoading(false);
-                setHasLoadedOnce(true);
-            }
-        }
-
-        loadWorkoutHistory();
-    }, []);
+    const repeatMutation = useRepeatSessionMutation();
+    const deleteMutation = useDeleteSessionMutation();
+    const repeatingSessionId = repeatMutation.isPending ? repeatMutation.variables : null;
+    const deleteSessionId = deleteMutation.isPending ? deleteMutation.variables : null;
+    const isDeleting = deleteMutation.isPending;
 
     async function handleTrainAgain(sessionId: string) {
         setActionError("");
-        setRepeatingSessionId(sessionId);
 
         try {
-            const draft = await repeatWorkoutSessionRequest(sessionId);
+            const draft = await repeatMutation.mutateAsync(sessionId);
             navigate(`/workout-summary/${draft._id}`);
         } catch (error) {
             if (error instanceof Error) {
@@ -74,23 +48,14 @@ export default function ProfileWorkoutsPage() {
             } else {
                 setActionError("Failed to prepare workout.");
             }
-        } finally {
-            setRepeatingSessionId(null);
         }
     }
 
     async function handleDeleteSession(sessionId: string) {
         setDeleteAction("");
-        setDeleteSessionId(sessionId);
-        setIsDeleting(true);
 
         try {
-            await deleteWorkoutSessionRequest(sessionId);
-
-            setSessions((currentSessions) =>
-                currentSessions.filter((session) => session._id !== sessionId),
-            );
-
+            await deleteMutation.mutateAsync(sessionId);
 
         } catch (error) {
             if (error instanceof Error) {
@@ -98,9 +63,6 @@ export default function ProfileWorkoutsPage() {
             } else {
                 setDeleteAction("Unable to complete this request. Please try again.");
             }
-        } finally {
-            setIsDeleting(false);
-            setDeleteSessionId(null);
         }
     }
 

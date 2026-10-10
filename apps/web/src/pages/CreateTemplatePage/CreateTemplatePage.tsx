@@ -1,6 +1,6 @@
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "../../routes/navigationHooks";
 
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";

@@ -41,8 +41,9 @@ export async function createWorkoutSessionRequest(
     return data;
 }
 
-export async function getMyWorkoutSessionsRequest() {
+export async function getMyWorkoutSessionsRequest(signal?: AbortSignal): Promise<WorkoutSession[]> {
     const response = await fetch(`${API_URL}/api/workout-sessions/me`, {
+        signal,
         credentials: "include",
     });
 
@@ -55,8 +56,9 @@ export async function getMyWorkoutSessionsRequest() {
     return data;
 }
 
-export async function getWorkoutSessionByIdRequest(sessionId: string) {
+export async function getWorkoutSessionByIdRequest(sessionId: string, signal?: AbortSignal): Promise<WorkoutSession> {
     const response = await fetch(`${API_URL}/api/workout-sessions/${sessionId}`, {
+        signal,
         credentials: "include",
     });
 

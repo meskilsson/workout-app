@@ -9,10 +9,10 @@ import type {
 
 import { parseJsonResponse } from "../utils/parseJsonResponse";
 
-export async function getPublicWorkoutTemplatesRequest(): Promise<
+export async function getPublicWorkoutTemplatesRequest(signal?: AbortSignal): Promise<
     WorkoutTemplate[]
 > {
-    const response = await fetch(`${API_URL}/api/workout-templates/public`);
+    const response = await fetch(`${API_URL}/api/workout-templates/public`, { signal });
 
     return parseJsonResponse<WorkoutTemplate[]>(
         response,
@@ -22,9 +22,11 @@ export async function getPublicWorkoutTemplatesRequest(): Promise<
 
 export async function getPublicWorkoutTemplateByIdRequest(
     templateId: string,
+    signal?: AbortSignal,
 ): Promise<WorkoutTemplate> {
     const response = await fetch(
         `${API_URL}/api/workout-templates/public/${templateId}`,
+        { signal },
     );
 
     return parseJsonResponse<WorkoutTemplate>(
@@ -33,8 +35,9 @@ export async function getPublicWorkoutTemplateByIdRequest(
     );
 }
 
-export async function getMyWorkoutTemplatesRequest(): Promise<WorkoutTemplate[]> {
+export async function getMyWorkoutTemplatesRequest(signal?: AbortSignal): Promise<WorkoutTemplate[]> {
     const response = await fetch(`${API_URL}/api/workout-templates/my`, {
+        signal,
         credentials: "include",
     });
 
@@ -46,10 +49,12 @@ export async function getMyWorkoutTemplatesRequest(): Promise<WorkoutTemplate[]>
 
 export async function getMyWorkoutTemplateByIdRequest(
     templateId: string,
+    signal?: AbortSignal,
 ): Promise<WorkoutTemplate> {
     const response = await fetch(
         `${API_URL}/api/workout-templates/my/${templateId}`,
         {
+            signal,
             credentials: "include",
         },
     );

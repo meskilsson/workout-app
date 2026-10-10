@@ -1,7 +1,8 @@
 import { ArrowLeft, CheckCircle2, Circle } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import { useNavigate, useSearchParams } from "../../routes/navigationHooks";
 
 import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
@@ -47,7 +48,8 @@ export default function WorkoutSelectPage() {
 
 
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
-  const [isCreatingDraft, setIsCreatingDraft] = useState(false);
+  const createDraft = useMutation({ mutationFn: createWorkoutDraftRequest });
+  const isCreatingDraft = createDraft.isPending;
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
@@ -65,9 +67,9 @@ export default function WorkoutSelectPage() {
   };
 
   async function handleContinue() {
+    if (isCreatingDraft || selectedGroups.length === 0) return;
     try {
       setError("");
-      setIsCreatingDraft(true);
 
       const selectedMuscleGroups = [
         ...new Set(
@@ -77,7 +79,7 @@ export default function WorkoutSelectPage() {
         ),
       ];
 
-      const draft = await createWorkoutDraftRequest({
+      const draft = await createDraft.mutateAsync({
         selectedMuscleGroups,
         includeCardio: selectedGroups.includes("cardio"),
         purpose,
@@ -88,8 +90,6 @@ export default function WorkoutSelectPage() {
       setError(
         err instanceof Error ? err.message : "Failed to create workout draft",
       );
-    } finally {
-      setIsCreatingDraft(false);
     }
   }
 

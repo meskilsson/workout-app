@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query";
 import { changePasswordRequest } from "../../services/userApi";
 import { useAuth } from "../../context/AuthContext";
 import { useState } from "react";
@@ -14,7 +15,11 @@ export default function ChangePasswordForm() {
     const [confirmPassword, setConfirmPassword] = useState("");
 
     const [success, setSuccess] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+    const passwordMutation = useMutation({
+        mutationFn: (data: Parameters<typeof changePasswordRequest>[1]) => changePasswordRequest(authUser?._id ?? "", data),
+        gcTime: 0,
+    });
+    const isLoading = passwordMutation.isPending;
     const [error, setError] = useState("");
     const [invalidField, setInvalidField] = useState("");
 
@@ -42,10 +47,9 @@ export default function ChangePasswordForm() {
             return;
         }
 
-        setIsLoading(true);
 
         try {
-            await changePasswordRequest(authUser._id, {
+            await passwordMutation.mutateAsync({
                 currentPassword,
                 newPassword,
             });
@@ -60,7 +64,7 @@ export default function ChangePasswordForm() {
                 error instanceof Error ? error.message : "Failed to update password"
             );
         } finally {
-            setIsLoading(false);
+            passwordMutation.reset();
         }
     }
 

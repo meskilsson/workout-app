@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "../../routes/navigationHooks";
 import { ArrowRight, BookOpen, Dumbbell, History, Plus } from "lucide-react";
 import { useCurrentWorkout } from "@workout-app/shared/currentWorkoutContext";
 import { useWorkoutTimer, formatElapsedMilliseconds } from "@workout-app/shared/timer";

@@ -1,7 +1,10 @@
 import { Plus, ArrowLeft, Trash2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "../../context/AuthContext";
+import { authKey, templateKeys } from "../../query/queryClient";
+import { useNavigate } from "../../routes/navigationHooks";
 
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
@@ -24,53 +27,41 @@ import styles from "../TemplatesPage/TemplatesPage.module.css";
 export default function MyTemplatesPage() {
     const navigate = useNavigate();
 
-    const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
-    const [error, setError] = useState("");
-    const [isLoading, setIsLoading] = useState(true);
-    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
-
-    const [startingTemplateId, setStartingTemplateId] = useState<string | null>(
-        null,
-    );
-
-    const [editingTemplateId, setEditingTemplateId] = useState<string | null>(
-        null,
-    );
-
-    const [templateToDelete, setTemplateToDelete] =
-        useState<WorkoutTemplate | null>(null);
-
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    useEffect(() => {
-        async function fetchMyTemplates() {
-            setError("");
-            setIsLoading(true);
-
-            try {
-                const data = await getMyWorkoutTemplatesRequest();
-                setTemplates(data);
-            } catch (error) {
-                if (error instanceof Error) {
-                    setError(error.message);
-                } else {
-                    setError("Unable to complete this request. Please try again.");
-                }
-            } finally {
-                setIsLoading(false);
-                setHasLoadedOnce(true);
-            }
-        }
-
-        fetchMyTemplates();
-    }, []);
+    const { user } = useAuth();
+    const queryClient = useQueryClient();
+    const queryKey = templateKeys.mine(user?._id ?? "");
+    const templatesQuery = useQuery({
+        queryKey,
+        queryFn: ({ signal }) => getMyWorkoutTemplatesRequest(signal),
+        enabled: !!user,
+    });
+    const templates = templatesQuery.data ?? [];
+    const [actionError, setError] = useState("");
+    const error = actionError || templatesQuery.error?.message || "";
+    const isLoading = templatesQuery.isFetching;
+    const hasLoadedOnce = !templatesQuery.isPending;
+    const startMutation = useMutation({ mutationFn: startWorkoutFromTemplateRequest });
+    const editMutation = useMutation({ mutationFn: createTemplateEditDraftRequest });
+    const deleteMutation = useMutation({
+        mutationFn: deleteWorkoutTemplateRequest,
+        onMutate: () => queryClient.cancelQueries({ queryKey }),
+        onSuccess: (_, id) => {
+            if (queryClient.getQueryData<{ _id: string }>(authKey)?._id !== user?._id) return;
+            queryClient.setQueryData<WorkoutTemplate[]>(queryKey, previous => previous?.filter(template => template._id !== id));
+            if (user?._id) queryClient.removeQueries({ queryKey: templateKeys.detail("my", user._id, id), exact: true });
+            void queryClient.invalidateQueries({ queryKey });
+        },
+    });
+    const startingTemplateId = startMutation.isPending ? startMutation.variables : null;
+    const editingTemplateId = editMutation.isPending ? editMutation.variables : null;
+    const isDeleting = deleteMutation.isPending;
+    const [templateToDelete, setTemplateToDelete] = useState<WorkoutTemplate | null>(null);
 
     async function handleStartTemplate(templateId: string) {
         setError("");
-        setStartingTemplateId(templateId);
 
         try {
-            const draft = await startWorkoutFromTemplateRequest(templateId);
+            const draft = await startMutation.mutateAsync(templateId);
             navigate(`/workout-summary/${draft._id}`);
         } catch (error) {
             if (error instanceof Error) {
@@ -78,17 +69,14 @@ export default function MyTemplatesPage() {
             } else {
                 setError("Failed to start workout from template");
             }
-        } finally {
-            setStartingTemplateId(null);
         }
     }
 
     async function handleEditTemplate(templateId: string) {
         setError("");
-        setEditingTemplateId(templateId);
 
         try {
-            const draft = await createTemplateEditDraftRequest(templateId);
+            const draft = await editMutation.mutateAsync(templateId);
             navigate(`/exercise-select/${draft._id}`);
         } catch (error) {
             if (error instanceof Error) {
@@ -96,8 +84,6 @@ export default function MyTemplatesPage() {
             } else {
                 setError("Failed to prepare workout for editing");
             }
-        } finally {
-            setEditingTemplateId(null);
         }
     }
 
@@ -105,15 +91,9 @@ export default function MyTemplatesPage() {
         if (!templateToDelete) return;
 
         setError("");
-        setIsDeleting(true);
 
         try {
-            await deleteWorkoutTemplateRequest(templateToDelete._id);
-
-            setTemplates((prev) =>
-                prev.filter((template) => template._id !== templateToDelete._id),
-            );
-
+            await deleteMutation.mutateAsync(templateToDelete._id);
             setTemplateToDelete(null);
         } catch (error) {
             if (error instanceof Error) {
@@ -121,8 +101,6 @@ export default function MyTemplatesPage() {
             } else {
                 setError("Failed to delete workout template");
             }
-        } finally {
-            setIsDeleting(false);
         }
     }
 

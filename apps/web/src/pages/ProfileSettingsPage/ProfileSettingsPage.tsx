@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import Card from "../../components/ui/cards/Card";
@@ -7,7 +8,7 @@ import ChangePasswordForm from "../../components/forms/ChangePasswordForm";
 import UpdateAccountForm from "../../components/forms/UpdateAccountForm";
 import styles from "./ProfileSettingsPage.module.css";
 import BodyModelSelect from "../../components/bodyModel/BodyModelSelect";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "../../routes/navigationHooks";
 import { useState } from "react";
 import Modal from "../../components/ui/modal/Modal";
 import { deleteUserRequest } from "../../services/userApi";
@@ -18,7 +19,13 @@ export default function ProfileSettingsPage() {
     const navigate = useNavigate();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+    const deleteMutation = useMutation({
+        mutationFn: async (userId: string) => {
+            await deleteUserRequest(userId);
+            await logout();
+        },
+    });
+    const isDeletingAccount = deleteMutation.isPending;
     const [deleteError, setDeleteError] = useState("");
 
 
@@ -28,12 +35,10 @@ export default function ProfileSettingsPage() {
             return;
         }
 
-        setIsDeletingAccount(true);
         setDeleteError("");
 
         try {
-            await deleteUserRequest(user._id);
-            await logout();
+            await deleteMutation.mutateAsync(user._id);
 
             navigate("/");
         } catch (error) {
@@ -42,8 +47,6 @@ export default function ProfileSettingsPage() {
             } else {
                 setDeleteError("Failed to delete account");
             }
-        } finally {
-            setIsDeletingAccount(false);
         }
     }
 

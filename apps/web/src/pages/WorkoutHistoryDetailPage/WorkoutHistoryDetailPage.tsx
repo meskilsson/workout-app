@@ -1,12 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "../../context/AuthContext";
+import { exerciseListOptions, sessionDetailOptions } from "../../query/resourceQueries";
+import { useRepeatSessionMutation } from "../../query/useSessionMutations";
+import { useLocation, useNavigate, useParams } from "../../routes/navigationHooks";
 
-import {
-    getWorkoutSessionByIdRequest,
-    repeatWorkoutSessionRequest,
-} from "../../services/workoutSessionApi";
-
-import { getExerciseLibraryRequest } from "../../services/exerciseApi";
 import formatDuration from "../../utils/formatDuration";
 import { formatCompletedDate } from "../../utils/formatCompletedDate";
 import { formatEndTime } from "../../utils/formatEndTime";
@@ -27,13 +25,6 @@ type LocationState = {
     workoutSession?: WorkoutSession;
 };
 
-type ExerciseLibraryItem = {
-    _id: string;
-    name: string;
-    primaryMuscles?: string[];
-    secondaryMuscles?: string[];
-};
-
 export default function WorkoutHistoryDetailPage() {
     const navigate = useNavigate();
     const location = useLocation();
@@ -41,83 +32,25 @@ export default function WorkoutHistoryDetailPage() {
 
     const state = location.state as LocationState | null;
 
-    const [session, setSession] = useState<WorkoutSession | null>(
-        state?.workoutSession ?? null,
-    );
-
-    const [exerciseLibrary, setExerciseLibrary] = useState<ExerciseLibraryItem[]>(
-        [],
-    );
-
-    const [isLoading, setIsLoading] = useState(!state?.workoutSession);
-    const [isLoadingMuscles, setIsLoadingMuscles] = useState(false);
-
-    const [error, setError] = useState("");
-    const [muscleError, setMuscleError] = useState("");
+    const { user } = useAuth();
+    const sessionQuery = useQuery({
+        ...sessionDetailOptions(user?._id ?? "", id ?? ""),
+        initialData: state?.workoutSession && state.workoutSession._id === id && state.workoutSession.userId === user?._id
+            ? state.workoutSession : undefined,
+    });
+    const session = sessionQuery.data;
+    const musclesQuery = useQuery({
+        ...exerciseListOptions(user?._id, { page: 1, limit: 100 }),
+        enabled: !!session && !!user,
+    });
+    const exerciseLibrary = useMemo(() => musclesQuery.data?.exercises ?? [], [musclesQuery.data]);
+    const isLoading = !!id && sessionQuery.isPending;
+    const isLoadingMuscles = musclesQuery.isFetching;
+    const error = !id ? "Workout session id is missing." : sessionQuery.error?.message ?? "";
+    const muscleError = musclesQuery.error?.message ?? "";
     const [actionError, setActionError] = useState("");
-
-    const [isRepeatingWorkout, setIsRepeatingWorkout] = useState(false);
-
-    useEffect(() => {
-        if (session) return;
-
-        if (!id) {
-            setError("Workout session id is missing.");
-            setIsLoading(false);
-            return;
-        }
-
-        const sessionId = id;
-
-        async function loadSession() {
-            setError("");
-            setIsLoading(true);
-
-            try {
-                const data = await getWorkoutSessionByIdRequest(sessionId);
-                setSession(data);
-            } catch (err) {
-                setError(
-                    err instanceof Error
-                        ? err.message
-                        : "Failed to load workout session",
-                );
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
-        loadSession();
-    }, [id, session]);
-
-    useEffect(() => {
-        if (!session) return;
-
-        async function loadExerciseLibrary() {
-            setMuscleError("");
-            setIsLoadingMuscles(true);
-
-            try {
-                const options = {
-                    page: 1,
-                    limit: 100,
-                };
-
-                const data = await getExerciseLibraryRequest(options);
-                setExerciseLibrary(data.exercises);
-            } catch (err) {
-                setMuscleError(
-                    err instanceof Error
-                        ? err.message
-                        : "Failed to load muscle profile.",
-                );
-            } finally {
-                setIsLoadingMuscles(false);
-            }
-        }
-
-        loadExerciseLibrary();
-    }, [session]);
+    const repeatMutation = useRepeatSessionMutation();
+    const isRepeatingWorkout = repeatMutation.isPending;
 
     async function handleTrainAgain() {
         if (!session?._id) {
@@ -126,10 +59,9 @@ export default function WorkoutHistoryDetailPage() {
         }
 
         setActionError("");
-        setIsRepeatingWorkout(true);
 
         try {
-            const draft = await repeatWorkoutSessionRequest(session._id);
+            const draft = await repeatMutation.mutateAsync(session._id);
             navigate(`/workout-summary/${draft._id}`);
         } catch (error) {
             if (error instanceof Error) {
@@ -137,8 +69,6 @@ export default function WorkoutHistoryDetailPage() {
             } else {
                 setActionError("Failed to prepare workout.");
             }
-        } finally {
-            setIsRepeatingWorkout(false);
         }
     }
 
@@ -200,7 +130,7 @@ export default function WorkoutHistoryDetailPage() {
         );
     }
 
-    if (error || !session) {
+    if (!session) {
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>

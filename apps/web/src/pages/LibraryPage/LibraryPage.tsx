@@ -4,36 +4,28 @@ import { useEffect, useState } from "react";
 
 
 import { useAuth } from "../../context/AuthContext";
-import {
-    getExerciseLibraryRequest,
-    getPublicExercisesRequest,
-} from "../../services/exerciseApi";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { exerciseListOptions } from "../../query/resourceQueries";
 
 import Box from "../../components/ui/box/Box";
 
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
-import type { Exercise, ExerciseSort } from "@workout-app/shared";
+import type { ExerciseSort } from "@workout-app/shared";
 import { usePaginationScroll } from "../../hooks/usePaginationScroll";
 import Button from "../../components/ui/button/Button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "../../routes/navigationHooks";
 import { LoadingAnnouncement } from "../../components/Loading/Skeleton";
 import LoadingState from "../../components/Loading/LoadingState";
 
 import styles from "./LibraryPage.module.css";
 
-import { Link } from "react-router-dom";
+import { Link } from "../../routes/navigation";
 
 
 
 export default function LibraryPage() {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const navigate = useNavigate();
-
-
-    const [exercises, setExercises] = useState<Exercise[]>([]);
-    const [error, setError] = useState("");
-    const [isLoading, setIsLoading] = useState(true);
-    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
 
     const [searchTerm, setSearchTerm] = useState("");
@@ -42,49 +34,20 @@ export default function LibraryPage() {
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
 
-    const [limit] = useState(12);
-    const [total, setTotal] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
-
-    const { page, setPage, pageTopRef, handlePageChange } = usePaginationScroll<HTMLDivElement>(totalPages)
-
-    useEffect(() => {
-        let cancelled = false;
-        async function loadExercises() {
-            setError("");
-            setIsLoading(true);
-
-            try {
-
-                const options = {
-                    sort: effectiveSort,
-                    page,
-                    limit,
-                    search: debouncedSearchTerm
-                };
-
-                const data = isAuthenticated
-                    ? await getExerciseLibraryRequest(options)
-                    : await getPublicExercisesRequest(options);
-
-                if (cancelled) return;
-                setExercises(data.exercises);
-                setTotal(data.total);
-                setTotalPages(data.totalPages);
-            } catch (err) {
-                if (cancelled) return;
-                setError(err instanceof Error ? err.message : "Failed to load exercises");
-            } finally {
-                if (!cancelled) {
-                    setIsLoading(false);
-                    setHasLoadedOnce(true);
-                }
-            }
-        }
-
-        loadExercises();
-        return () => { cancelled = true; };
-    }, [isAuthenticated, page, limit, debouncedSearchTerm, effectiveSort]);
+    const limit = 12;
+    const [page, setPage] = useState(1);
+    const exercisesQuery = useQuery({
+        ...exerciseListOptions(user?._id, { sort: effectiveSort, page, limit, search: debouncedSearchTerm }),
+        placeholderData: (previous, previousQuery) =>
+            previousQuery?.queryKey[1] === (user?._id ?? "public") ? keepPreviousData(previous) : undefined,
+    });
+    const exercises = exercisesQuery.data?.exercises ?? [];
+    const total = exercisesQuery.data?.total ?? 0;
+    const totalPages = exercisesQuery.data?.totalPages ?? 1;
+    const error = exercisesQuery.error?.message ?? "";
+    const isLoading = exercisesQuery.isFetching;
+    const hasLoadedOnce = !exercisesQuery.isPending;
+    const { pageTopRef, handlePageChange } = usePaginationScroll<HTMLDivElement>(totalPages, { page, onPageChange: setPage });
 
     useEffect(() => {
         const timeoutId = window.setTimeout(() => {

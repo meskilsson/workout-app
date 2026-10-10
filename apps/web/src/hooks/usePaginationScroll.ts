@@ -1,6 +1,8 @@
 import { useCallback, useRef, useState } from "react";
 
 type UsePaginationScrollOptions = {
+    page?: number;
+    onPageChange?: React.Dispatch<React.SetStateAction<number>>;
     initialPage?: number;
     behavior?: ScrollBehavior;
     block?: ScrollLogicalPosition;
@@ -10,11 +12,15 @@ export function usePaginationScroll<TElement extends HTMLElement>(
     totalPages: number,
     {
         initialPage = 1,
+        page: controlledPage,
+        onPageChange,
         behavior = "smooth",
         block = "start",
     }: UsePaginationScrollOptions = {},
 ) {
-    const [page, setPage] = useState(initialPage);
+    const [localPage, setLocalPage] = useState(initialPage);
+    const page = controlledPage ?? localPage;
+    const setPage = onPageChange ?? setLocalPage;
     const pageTopRef = useRef<TElement | null>(null);
 
     const handlePageChange = useCallback(
@@ -31,7 +37,7 @@ export function usePaginationScroll<TElement extends HTMLElement>(
                 });
             });
         },
-        [totalPages, behavior, block],
+        [totalPages, behavior, block, setPage],
     );
 
     return {

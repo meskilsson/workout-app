@@ -56,8 +56,9 @@ export async function getCurrentWorkoutDraftRequest() {
     return handleResponse(response, "Failed to fetch current workout draft");
 }
 
-export async function getWorkoutDraftByIdRequest(draftId: string) {
+export async function getWorkoutDraftByIdRequest(draftId: string, signal?: AbortSignal) {
     const response = await workoutRequest(`${API_URL}/api/workout-drafts/${draftId}`, {
+        signal,
         credentials: "include",
     });
 

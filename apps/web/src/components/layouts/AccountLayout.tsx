@@ -1,6 +1,6 @@
 import { UserRound, History, Dumbbell, Settings } from "lucide-react";
 import Icon from "../ui/icon/Icon";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "../../routes/navigation";
 import styles from "./AccountLayout.module.css";
 
 export default function AccountLayout() {
