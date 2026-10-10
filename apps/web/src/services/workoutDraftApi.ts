@@ -1,3 +1,4 @@
+import { workoutRequest } from "../utils/workoutRequest";
 import { clearDraftSnapshots } from "../utils/workoutProgressStorage";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -35,7 +36,7 @@ async function handleResponse(response: Response, fallbackMessage: string) {
 export async function createWorkoutDraftRequest(
     draftData: CreateWorkoutDraftInput,
 ) {
-    const response = await fetch(`${API_URL}/api/workout-drafts`, {
+    const response = await workoutRequest(`${API_URL}/api/workout-drafts`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -48,7 +49,7 @@ export async function createWorkoutDraftRequest(
 }
 
 export async function getCurrentWorkoutDraftRequest() {
-    const response = await fetch(`${API_URL}/api/workout-drafts/current`, {
+    const response = await workoutRequest(`${API_URL}/api/workout-drafts/current`, {
         credentials: "include",
     });
 
@@ -56,7 +57,7 @@ export async function getCurrentWorkoutDraftRequest() {
 }
 
 export async function getWorkoutDraftByIdRequest(draftId: string) {
-    const response = await fetch(`${API_URL}/api/workout-drafts/${draftId}`, {
+    const response = await workoutRequest(`${API_URL}/api/workout-drafts/${draftId}`, {
         credentials: "include",
     });
 
@@ -67,7 +68,7 @@ export async function updateWorkoutDraftExercisesRequest(
     draftId: string,
     exerciseData: UpdateWorkoutDraftExercisesInput,
 ) {
-    const response = await fetch(
+    const response = await workoutRequest(
         `${API_URL}/api/workout-drafts/${draftId}/exercises`,
         {
             method: "PATCH",
@@ -83,7 +84,7 @@ export async function updateWorkoutDraftExercisesRequest(
 }
 
 export async function startWorkoutDraftRequest(draftId: string) {
-    const response = await fetch(
+    const response = await workoutRequest(
         `${API_URL}/api/workout-drafts/${draftId}/start`,
         {
             method: "PATCH",
@@ -98,7 +99,7 @@ export async function updateWorkoutDraftSetsRequest(
     draftId: string,
     setData: UpdateWorkoutDraftSetsInput,
 ) {
-    const response = await fetch(
+    const response = await workoutRequest(
         `${API_URL}/api/workout-drafts/${draftId}/sets`,
         {
             method: "PATCH",
@@ -117,7 +118,7 @@ export async function addWorkoutDraftExercisesRequest(
     draftId: string,
     exerciseData: UpdateWorkoutDraftExercisesInput,
 ) {
-    const response = await fetch(
+    const response = await workoutRequest(
         `${API_URL}/api/workout-drafts/${draftId}/exercises/add`,
         {
             method: "PATCH",
@@ -136,7 +137,7 @@ export async function removeWorkoutDraftExerciseRequest(
     draftId: string,
     exerciseId: string,
 ) {
-    const response = await fetch(
+    const response = await workoutRequest(
         `${API_URL}/api/workout-drafts/${draftId}/exercises/${exerciseId}`,
         {
             method: "DELETE",
@@ -148,7 +149,7 @@ export async function removeWorkoutDraftExerciseRequest(
 }
 
 export async function completeWorkoutDraftRequest(draftId: string) {
-    const response = await fetch(
+    const response = await workoutRequest(
         `${API_URL}/api/workout-drafts/${draftId}/complete`,
         {
             method: "POST",
@@ -162,7 +163,7 @@ export async function completeWorkoutDraftRequest(draftId: string) {
 }
 
 export async function abandonWorkoutDraftRequest(draftId: string) {
-    const response = await fetch(
+    const response = await workoutRequest(
         `${API_URL}/api/workout-drafts/${draftId}/abandon`,
         {
             method: "PATCH",
@@ -179,7 +180,7 @@ export async function reorderWorkoutDraftExercisesRequest(
     draftId: string,
     exerciseIds: string[],
 ) {
-    const response = await fetch(
+    const response = await workoutRequest(
         `${API_URL}/api/workout-drafts/${draftId}/exercises/order`,
         {
             method: "PATCH",
@@ -194,6 +195,6 @@ export async function reorderWorkoutDraftExercisesRequest(
     return handleResponse(response, "Failed to reorder workout exercises");
 }
 export async function updateWorkoutDraftTrainingRequest(draftId: string, input: { exerciseId: string; training: import("@workout-app/shared").TrainingConfig; cardioCompletion?: import("@workout-app/shared").CardioCompletion }) {
-    const response = await fetch(`${API_URL}/api/workout-drafts/${draftId}/training`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
+    const response = await workoutRequest(`${API_URL}/api/workout-drafts/${draftId}/training`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
     return handleResponse(response, "Failed to save training configuration");
 }
