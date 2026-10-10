@@ -1,6 +1,9 @@
 // Include response-body reads in the deadline, not just response headers.
 export async function workoutRequest(url: string, options: RequestInit = {}, timeoutMs = 15000): Promise<Response> {
     const controller = new AbortController();
+    const abort = () => controller.abort(options.signal?.reason);
+    if (options.signal?.aborted) abort();
+    else options.signal?.addEventListener("abort", abort, { once: true });
     let timeout: ReturnType<typeof setTimeout>;
     const deadline = new Promise<never>((_, reject) => {
         timeout = setTimeout(() => {
@@ -21,5 +24,6 @@ export async function workoutRequest(url: string, options: RequestInit = {}, tim
         ]);
     } finally {
         clearTimeout(timeout!);
+        options.signal?.removeEventListener("abort", abort);
     }
 }

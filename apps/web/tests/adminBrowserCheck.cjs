@@ -50,6 +50,8 @@ let browser, ws;
         payload = item.request.method === 'GET' ? { items: url.searchParams.get('search') ? [] : [exercise], total: url.searchParams.get('search') ? 0 : 11, page: Number(url.searchParams.get('page') || 1), limit: 10 } : exercise;
         if (failList && item.request.method === 'GET') { status = 503; payload = { message: 'Unable to load exercises' }; }
       } else if (url.pathname.endsWith('/admin/users')) payload = { items: [{ _id: userId, name: 'Admin', username: 'admin', role: 'admin', deletedAt: null }], total: 1, page: 1, limit: 10 };
+      else if (url.pathname.endsWith('/admin/templates')) payload = { items: [{ _id: exerciseId, name: 'Shared strength template', isPublic: true, category: 'full_body', exercises: [] }], total: 1, page: 1, limit: 10 };
+      else if (url.pathname.endsWith('/admin/sessions')) payload = { items: [{ _id: exerciseId, userId, endedAt: '2026-10-10T10:00:00Z', exercises: [] }], total: 1, page: 1, limit: 10 };
       else if (url.pathname.includes('/admin/')) payload = { items: [], total: 0, page: 1, limit: 10 };
       else if (url.pathname.includes('/workout-drafts')) { status = 404; payload = { message: 'No draft' }; }
       else if (url.pathname.includes('/users/')) payload = { _id: userId, name: 'User', username: 'user', email: 'user@example.test', role };
@@ -88,6 +90,17 @@ let browser, ws;
   await navigate('/admin/users'); assert(await evaluate('[...document.querySelectorAll("button")].filter(e => ["Demote", "Deactivate"].includes(e.textContent.trim())).every(e => e.disabled)'));
   failList = true; await navigate('/admin/exercises'); assert(await evaluate('document.querySelector("[role=alert]").innerText.includes("Unable to load")'));
   failList = false; await click('Retry'); assert(await evaluate('document.body.innerText.includes("Shared bench press")'));
+  for (const mode of ['light','dark']) for (const width of [375,1440]) {
+    await evaluate('localStorage.setItem("color_theme",'+JSON.stringify(mode)+')');
+    await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 1000 });
+    for (const [section, expected] of [['', 'Active users'], ['/users','@admin'], ['/exercises','Shared bench press'], ['/templates','Shared strength template'], ['/sessions','Personal']]) {
+      await navigate('/admin'+section);
+      assert((await evaluate('document.body.innerText')).includes(expected), section+' missing data');
+      assert.equal(await evaluate('document.documentElement.dataset.theme'),mode);
+      assert(await evaluate('document.documentElement.scrollWidth <= innerWidth + 1'),section+' overflows');
+    }
+    console.log('PASS all admin sections',mode,width);
+  }
   assert.equal(errors.length, 0, JSON.stringify(errors));
   console.log('Admin browser checks passed: guest/user redirects, delayed authentication, real-data rendering, mobile layout, details, edit/create, delete cancellation, pagination, self-change controls, error/retry.');
 })().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => { ws?.close(); browser?.kill(); server.close(); });

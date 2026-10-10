@@ -36,9 +36,10 @@ let browser, ws;
  const draft={_id:draftId,userId,status:'active',selectedMuscleGroups:['chest','back'],exercises:exercises.map((e,j)=>({exerciseId:e._id,exerciseName:e.name,sets:Array.from({length:3},(_,i)=>({id:`f8f6de5c-e305-4bba-b62b-a5375d3b79b${j*3+i}`,weight:j?25:40,reps:8+i}))}))};
  draft.exercises[3].sets=[];draft.exercises[3].training={format:'intervals',rounds:8,workSeconds:30,restSeconds:90};draft.exercises[4].sets=[];draft.exercises[4].training={format:'cardio',durationSeconds:60};
  exercises.push({...exercise,_id:'0123456789abcdef01234574',name:'Abdominal Crunch',primaryMuscles:['core'],secondaryMuscles:[]});
+ let exerciseReads=0;
  const mutations=[];
  const templates=['Upper body essentials','Full body strength','Push day'].map((name,i)=>({_id:'0123456789abcdef0123458'+i,name,description:'A balanced strength session. Build consistency with focused, controlled sets.',category:'strength',isPublic:true,exercises:exercises.map((e,order)=>({_id:e._id,exerciseId:e._id,exerciseName:e.name,exercise:e,plannedSets:[{weight:40,reps:8},{weight:40,reps:8}],order}))}));
- let scenario='populated', guest=false, routePath='/', mutationDelay=0;
+ let scenario='populated', guest=false, routePath='/', mutationDelay=0, draftReadDelay=0;
  const browserErrors=[];
  const sessions=[0,1].map(i=>({_id:'0123456789abcdef0123459'+i,userId,startedAt:'2026-10-0'+(5-i)+'T09:00:00Z',endedAt:'2026-10-0'+(5-i)+'T09:45:00Z',duration:2700,exercises:draft.exercises}));
  ws.addEventListener('message',async event=>{
@@ -47,11 +48,12 @@ let browser, ws;
   if(packet.method==='Fetch.requestPaused'){
    const item=packet.params;const url=new URL(item.request.url);let payload={},responseCode=200;
    const isAuth=url.pathname.includes('/auth/');
-   const delay=item.request.method==='OPTIONS' ? 0 : scenario==='loading' && !isAuth ? 2200 : item.request.method!=='GET' ? mutationDelay : 150;
+   if(item.request.method==='GET' && url.pathname.includes('/exercises'))exerciseReads++;
+   const delay=item.request.method==='OPTIONS' ? 0 : item.request.method==='GET' && url.pathname.includes('/workout-drafts/') ? (draftReadDelay || 150) : scenario==='loading' && !isAuth ? 2200 : item.request.method!=='GET' ? mutationDelay : 150;
    if(url.pathname.includes('/auth/me'))payload={user:guest?null:{_id:userId,name:'Alex',email:'alex@example.com',username:'alex',role:'user'}};
    else if(url.pathname.includes('/auth/')) {responseCode=400;payload={message:'Check your details and try again.'};}
    else if(url.pathname.includes('/workout-sessions')){payload=sessions.find(x=>url.pathname.endsWith(x._id)) ?? (scenario==='empty'?[]:sessions); if(scenario==='empty' && !Array.isArray(payload))payload={...payload,exercises:[]};}
-   else if(url.pathname.includes('/workout-drafts')){ if(url.pathname.endsWith('/workout-drafts') && item.request.method==='POST'){const body=JSON.parse(item.request.postData);draft.selectedMuscleGroups=body.selectedMuscleGroups;draft.includeCardio=body.includeCardio;} if(url.pathname.endsWith('/training') && item.request.method==='PATCH'){const body=JSON.parse(item.request.postData);mutations.push(body);const e=draft.exercises.find(e=>e.exerciseId===body.exerciseId);e.training=body.training;e.cardioCompletion=body.cardioCompletion;if(body.training.format!=='strength')e.sets=[];}payload={...draft,purpose:routePath.includes('template')?'template':'workout',status:routePath.startsWith('/workout/')?'active':'building',exercises:scenario==='empty'?[]:draft.exercises};}
+   else if(url.pathname.includes('/workout-drafts')){ if(url.pathname.endsWith('/workout-drafts') && item.request.method==='POST'){const body=JSON.parse(item.request.postData);draft.selectedMuscleGroups=body.selectedMuscleGroups;draft.includeCardio=body.includeCardio;draft.status="building";} if(url.pathname.endsWith('/training') && item.request.method==='PATCH'){const body=JSON.parse(item.request.postData);mutations.push(body);const e=draft.exercises.find(e=>e.exerciseId===body.exerciseId);e.training=body.training;e.cardioCompletion=body.cardioCompletion;if(body.training.format!=='strength')e.sets=[];}if(url.pathname.endsWith('/exercises') && item.request.method==='PATCH'){const ids=JSON.parse(item.request.postData).exerciseIds;draft.exercises=ids.map(id=>{const e=exercises.find(e=>e._id===id);return {exerciseId:id,exerciseName:e.name,sets:[{id:'set-'+id,weight:null,reps:null}],training:{format:'strength'}};});}payload={...draft,purpose:routePath.includes('template')?'template':'workout',status:draft.status,exercises:scenario==='empty'?[]:draft.exercises};}
    else if(url.pathname.includes('/exercises')){const muscles=url.searchParams.get('muscles')?.split(',')??[];const filtered=exercises.filter(e=>(!url.searchParams.get('exerciseType') || e.exerciseType===url.searchParams.get('exerciseType')) && (!muscles.length || [...(e.primaryMuscles??[]),...(e.secondaryMuscles??[])].some(m=>muscles.includes(m)) || (url.searchParams.get('includeCardio')==='true' && e.exerciseType==='cardio')));payload=exercises.find(e=>url.pathname.endsWith(e._id)) ?? {exercises:scenario==='empty'?[]:filtered,total:scenario==='empty'?0:filtered.length,totalPages:1};}
    else if(url.pathname.includes('/workout-templates')){payload=templates.find(t=>url.pathname.endsWith(t._id)) ?? (scenario==='empty'?[]:templates); if(scenario==='empty' && !Array.isArray(payload))payload={...payload,exercises:[]};}
    else if(url.pathname.includes('/users/'))payload={_id:userId,name:'Alex',email:'alex@example.com',username:'alex',role:'user'};
@@ -71,6 +73,7 @@ let browser, ws;
  async function click(label,card=3) {await evalValue(`(()=>{const root=document.querySelectorAll('section[class*=exerciseCard]')[${card}];const b=[...root.querySelectorAll('button')].find(b=>b.textContent.trim()===${JSON.stringify(label)});if(!b)throw Error('Missing '+${JSON.stringify(label)});b.click();})()`);await wait(300);}
  async function text(card=3) {return evalValue(`document.querySelectorAll('section[class*=exerciseCard]')[${card}].textContent`);}
  async function offset(ms) { await evalValue(`window.originalNow??=Date.now;Date.now=()=>window.originalNow()+${ms}`);await wait(350); }
+ if(process.env.CARDIO_CHECK_PHASE!=='selection-summary') {
  await visit('/workout-summary/'+draftId);
  assert((await evalValue('document.body.textContent')).includes('Total: 14:30'));
  const setFormat = f => evalValue(`(()=>{const s=document.querySelectorAll('form select')[3];s.value=${JSON.stringify(f)};s.dispatchEvent(new Event('change',{bubbles:true}));})()`);
@@ -145,6 +148,7 @@ let browser, ws;
  assert(!(await evalValue('document.body.textContent')).includes('Cardio session controls its work and rest phases'));
  await visit('/workout/'+draftId);assert((await text()).includes('Work'));
  await click('Complete manually');assert((await text()).includes('Completed manually'));
+ }
  draft.selectedMuscleGroups=[];draft.exercises=[];
  await visit('/workout-select');
  assert(await evalValue("!!document.querySelector('[aria-label=\"Cardio\"]')"));
@@ -167,6 +171,22 @@ let browser, ws;
  await send('Page.reload');await wait(1200);
  assert((await evalValue('document.body.textContent')).includes('Abdominal Crunch'));assert((await evalValue('document.body.textContent')).includes('Assault Bike / Air Bike'));
  console.log('PASS: Abs plus Cardio includes both categories and retains selection across reload');
+ await evalValue('[...document.querySelectorAll("[role=button]")].find(card=>card.textContent.includes("Abdominal Crunch")).click()');await wait(100);
+ const beforeReads=exerciseReads;
+ await evalValue('window.dispatchEvent(new Event("offline"))');await wait(50);await evalValue('window.dispatchEvent(new Event("online"))');await wait(600);
+ assert(exerciseReads>beforeReads,'exercise library did not refetch on reconnect');
+ assert(await evalValue('[...document.querySelectorAll("[role=button][aria-pressed=true]")].some(card=>card.textContent.includes("Abdominal Crunch"))'),'background refetch erased unsaved exercise selection');
+ console.log('PASS: unsaved workout exercise selection survives reconnect refetch');
+ draftReadDelay=1800;
+ await evalValue('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==="Continue").click()');await wait(450);
+ assert.equal(await evalValue('location.pathname'),'/workout-summary/'+draftId);
+ assert(await evalValue('[...document.querySelectorAll("h3")].some(h=>h.textContent.includes("Abdominal Crunch"))'),'saved selection missing on first summary render');
+ await wait(1900);
+ assert(await evalValue('[...document.querySelectorAll("h3")].some(h=>h.textContent.includes("Abdominal Crunch"))'),'summary lost selection after draft refresh');
+ draftReadDelay=0;
+ console.log('PASS: selected exercise appears on first summary render before delayed GET and stays after refresh');
+
+
 
  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
  console.log('PASS: navigation cleanup and restoration, manual completion, no browser runtime errors');

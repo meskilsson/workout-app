@@ -1,3 +1,4 @@
+import { useAdminMutation } from "../../query/useAdminMutation";
 import TrainingConfigForm from "../../components/training/TrainingConfigForm";
 import { trainingTotalSeconds } from "@workout-app/shared";
 import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
@@ -22,7 +23,8 @@ export default function AdminEditor({ resource, item, onSaved, onCancel }: Props
   const hasUnsavedConfigs = Object.values(dirtyConfigs).some(Boolean);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const save = useAdminMutation((body: unknown) => adminRequest(`/${resource}${item ? `/${item._id}` : ""}`, item ? "PUT" : "POST", body));
+  const busy = save.isPending;
   const formRef = useRef<HTMLFormElement>(null);
   const focusPending = useRef(false);
   useLayoutEffect(() => {
@@ -40,7 +42,7 @@ export default function AdminEditor({ resource, item, onSaved, onCancel }: Props
   }
   async function submit(event: FormEvent) {
     if (busy) { event.preventDefault(); return; }
-    event.preventDefault(); setErrors({}); setError(""); setBusy(true);
+    event.preventDefault(); setErrors({}); setError("");
     try {
       let body: unknown;
       if (resource === "exercises") {
@@ -54,7 +56,7 @@ export default function AdminEditor({ resource, item, onSaved, onCancel }: Props
         body = { userId: values.userId, startedAt: values.startedAt, endedAt: values.endedAt,
           exercises: rows.map(row => ({ exerciseId: row.exerciseId || null, exerciseName: row.exerciseName, sets: row.sets ?? [], training: row.training, cardioCompletion: row.cardioCompletion })) };
       }
-      await adminRequest(`/${resource}${item ? `/${item._id}` : ""}`, item ? "PUT" : "POST", body); onSaved();
+      await save.mutateAsync(body); onSaved();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not save");
       if (cause instanceof ApiRequestError) {
@@ -62,7 +64,7 @@ export default function AdminEditor({ resource, item, onSaved, onCancel }: Props
         focusPending.current = true;
         setErrors(Object.fromEntries((data?.errors ?? []).map(issue => [issue.field ?? "", issue.message])));
       }
-    } finally { setBusy(false); }
+    }
   }
   return <form ref={formRef} onSubmit={submit} className={styles.form}>
     <p>{resource === "sessions" ? "Completed workout records are personal data. Choose the owner explicitly." : item ? `Editing ${resource === "exercises" ? item.isCustom ? "a personal exercise" : "a shared exercise" : item.isPublic ? "a shared template" : "a personal template"}. Ownership and visibility are preserved.` : "New exercises and templates are shared with all users."}</p>

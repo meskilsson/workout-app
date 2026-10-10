@@ -28,3 +28,19 @@ test('responses retain status and JSON for existing API error handling', async (
         assert.deepEqual(await response.json(), { message: 'Not active' });
     } finally { global.fetch = original; }
 });
+
+test('query cancellation reaches a timed workout request immediately', async () => {
+    const original = global.fetch;
+    const controller = new AbortController();
+    let requestSignal;
+    global.fetch = async (_, options) => {
+        requestSignal = options.signal;
+        return new Promise((resolve, reject) => options.signal.addEventListener('abort', () => reject(options.signal.reason), { once: true }));
+    };
+    try {
+        const request = workoutRequest('https://example.test', { signal: controller.signal }, 1000);
+        controller.abort();
+        await assert.rejects(request, error => error.name === 'AbortError');
+        assert.equal(requestSignal.aborted, true);
+    } finally { global.fetch = original; }
+});

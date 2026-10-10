@@ -35,6 +35,8 @@ let browser, ws;
  const draft={_id:draftId,userId,status:'active',selectedMuscleGroups:['chest','back'],exercises:exercises.map((e,j)=>({exerciseId:e._id,exerciseName:e.name,sets:Array.from({length:3},(_,i)=>({id:`f8f6de5c-e305-4bba-b62b-a5375d3b79b${j*3+i}`,weight:j?25:40,reps:8+i}))}))};
  const templates=['Upper body essentials','Full body strength','Push day'].map((name,i)=>({_id:'0123456789abcdef0123458'+i,name,description:'A balanced strength session. Build consistency with focused, controlled sets.',category:'strength',isPublic:true,exercises:exercises.map((e,order)=>({_id:e._id,exerciseId:e._id,exerciseName:e.name,exercise:e,plannedSets:[{weight:40,reps:8},{weight:40,reps:8}],order}))}));
  let scenario='populated', guest=false, routePath='/', mutationDelay=0;
+ const requestCounts = new Map();
+ const workoutRequests=[]; let savedStatus='active', loseCompletion=false;
  const browserErrors=[];
  const sessions=[0,1].map(i=>({_id:'0123456789abcdef0123459'+i,userId,startedAt:'2026-10-0'+(5-i)+'T09:00:00Z',endedAt:'2026-10-0'+(5-i)+'T09:45:00Z',duration:2700,exercises:draft.exercises}));
  ws.addEventListener('message',async event=>{
@@ -42,6 +44,8 @@ let browser, ws;
   if(packet.method==='Runtime.exceptionThrown') browserErrors.push(packet.params.exceptionDetails);
   if(packet.method==='Fetch.requestPaused'){
    const item=packet.params;const url=new URL(item.request.url);let payload={},responseCode=200;
+   const requestKey=item.request.method+':'+url.pathname;
+   requestCounts.set(requestKey,(requestCounts.get(requestKey)||0)+1);
    const isAuth=url.pathname.includes('/auth/');
    const delay=item.request.method==='OPTIONS' ? 0 : scenario==='loading' && !isAuth ? 2200 : item.request.method!=='GET' ? mutationDelay : 150;
    if(url.pathname.includes('/auth/me'))payload={user:guest?null:{_id:userId,name:'Alex',email:'alex@example.com',username:'alex',role:'user'}};
@@ -53,6 +57,27 @@ let browser, ws;
    else if(url.pathname.includes('/users/'))payload={_id:userId,name:'Alex',email:'alex@example.com',username:'alex',role:'user'};
    else {responseCode=404;payload={message:'Mock endpoint not found: '+url.pathname};}
    if(scenario==='error' && !isAuth && item.request.method!=='OPTIONS'){responseCode=503;payload={message:'Unable to load this content. Please try again.'};}
+   if(process.env.UI_CHECK_PHASE==='query-migration' && item.request.method==='PATCH' && url.pathname.startsWith('/api/exercises/')) {
+    const index=exercises.findIndex(e=>url.pathname.endsWith(e._id));
+    assert(index>=0);exercises[index]={...exercises[index],...JSON.parse(item.request.postData)};payload=exercises[index];
+   }
+   if(process.env.UI_CHECK_PHASE==='query-migration' && item.request.method==='DELETE' && url.pathname.startsWith('/api/exercises/')) {
+    const index=exercises.findIndex(e=>url.pathname.endsWith(e._id));
+    assert(index>=0);exercises.splice(index,1);payload={message:'Exercise deleted'};
+   }
+   if(process.env.UI_CHECK_PHASE==='query-migration' && item.request.method==='DELETE' && url.pathname.startsWith('/api/workout-sessions/')) {
+    const index=sessions.findIndex(s=>url.pathname.endsWith(s._id));
+    assert(index>=0);payload=sessions.splice(index,1)[0];
+   }
+   if(process.env.UI_CHECK_PHASE==='workout-migration' && url.pathname.includes('/workout-drafts') && item.request.method!=='OPTIONS') {
+    workoutRequests.push({ method:item.request.method, path:url.pathname });
+    payload={...draft,status:savedStatus,completedSessionId:savedStatus==='completed'?sessions[0]._id:null};
+    if(url.pathname.endsWith('/complete')) {
+     savedStatus='completed';payload=sessions[0];
+     if(loseCompletion) {loseCompletion=false;await send('Fetch.failRequest',{requestId:item.requestId,errorReason:'ConnectionClosed'});return;}
+    }
+    if(url.pathname.endsWith('/abandon'))savedStatus='abandoned';
+   }
    if(item.request.method==='OPTIONS'){responseCode=200;payload={};}
    await wait(delay);
    await send('Fetch.fulfillRequest',{requestId:item.requestId,responseCode,responseHeaders:[{name:'Content-Type',value:'application/json'},{name:'Access-Control-Allow-Origin',value:base},{name:'Access-Control-Allow-Credentials',value:'true'},{name:'Access-Control-Allow-Methods',value:'GET, POST, PATCH, PUT, DELETE, OPTIONS'},{name:'Access-Control-Allow-Headers',value:'Content-Type'}],body:Buffer.from(JSON.stringify(payload)).toString('base64')}).catch(()=>{});
@@ -60,7 +85,7 @@ let browser, ws;
  });
  await send('Page.enable');await send('Runtime.enable');await send('Fetch.enable',{patterns:[{urlPattern:'*/api/*'}]});
  async function evalValue(expression){const data=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(data.exceptionDetails)throw Error(JSON.stringify(data.exceptionDetails));return data.result.value;}
- async function metrics(width,height){await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1000});}
+ async function metrics(width,height){await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1000});await send('Emulation.setTouchEmulationEnabled',{enabled:width<1000,maxTouchPoints:1});}
  await send('Page.navigate',{url:base}); await wait(800);
  const routes=[
  ['home','/',false,'Ready for your next session?'],['home-alias','/homepage',true,'Ready for your next session?'],
@@ -105,6 +130,72 @@ let browser, ws;
   scenario='populated';await evalValue("[...document.querySelectorAll('button')].find(b=>b.textContent==='Retry').click()");await wait(1000);
   assert(await evalValue("!!document.querySelector('[aria-pressed=true]')"));
   console.log('PASS recovery retains progress and retry restores checked set',mode,width);
+ }
+ if(process.env.UI_CHECK_PHASE==='workout-migration') {
+  const click=async text=>{await evalValue('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==='+JSON.stringify(text)+').click()');await wait(100);};
+  for(const mode of ['light','dark']) {
+   savedStatus='active';await evalValue('localStorage.clear();sessionStorage.clear()');
+   await visit(routes.find(r=>r[0]==='workout'),mode,375);
+   await evalValue('document.querySelector("button[aria-label=\\"Complete set and start rest timer\\"]").click()');await wait(400);
+   await evalValue('document.querySelector("button[aria-label=\\"Pause workout timer\\"]").click();document.querySelector("button[aria-label=\\"Pause rest timer\\"]").click()');
+   await evalValue('document.querySelector("a[href=\\"/library\\"]").click()');await wait(500);
+   assert.equal(await evalValue('location.pathname'),'/library');
+   await evalValue('history.back()');await wait(700);
+   assert.equal(await evalValue('location.pathname'),'/workout/'+draftId);
+   assert(await evalValue('!!document.querySelector("button[aria-label=\\"Start workout timer\\"]")'),'route navigation restarted paused duration');
+   assert(await evalValue('!!document.querySelector("[aria-pressed=true]")'),'route navigation lost checked set');
+   await click('End Workout');
+   const before=workoutRequests.length;loseCompletion=mode==='dark';mutationDelay=200;
+   await evalValue('document.querySelector("[role=dialog] .button--success").click()');await wait(100);
+   assert(await evalValue('[...document.querySelectorAll("button")].filter(b=>/^(End Workout|Abandon Workout)$/.test(b.textContent)).every(b=>b.disabled)'));
+   await wait(1700);mutationDelay=0;
+   assert.equal(await evalValue('location.pathname'),'/workout-result/'+sessions[0]._id);
+   const writes=workoutRequests.slice(before),complete=writes.findIndex(r=>r.path.endsWith('/complete'));
+   assert(complete>0 && writes.slice(0,complete).filter(r=>r.method==='PATCH').length===3,'final set saves must precede completion');
+   assert.equal(writes.filter(r=>r.path.endsWith('/complete')).length,1,'completion retried');
+   assert(await evalValue('!localStorage.getItem("workout-current:'+userId+'")'),'completion retained workout reference');
+   assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
+   console.log('PASS client navigation/back preserves checked sets and paused timers; ordered completion, lost-response recovery and cleanup',mode);
+  }
+  savedStatus='active';await evalValue('localStorage.clear();sessionStorage.clear()');
+  await visit(routes.find(r=>r[0]==='workout'), 'light',375);
+  await click('Abandon Workout');await evalValue('document.querySelector("[role=dialog] .button--danger").click()');await wait(700);
+  assert.equal(await evalValue('location.pathname'),'/workout-select');
+  assert(await evalValue('!localStorage.getItem("workout-current:'+userId+'")'));
+  console.log('PASS abandonment navigates to selection and clears reference');
+  await send('Fetch.disable');await send('Browser.close');return;
+ }
+ if(process.env.UI_CHECK_PHASE==='query-migration') {
+  const originalExercises=structuredClone(exercises),originalSessions=structuredClone(sessions);
+  async function go(pathname) {routePath=pathname;await evalValue('history.pushState(null,"",'+JSON.stringify(pathname)+');window.dispatchEvent(new PopStateEvent("popstate"))');await wait(500);}
+  async function enter(selector,value) {await evalValue('(()=>{const input=document.querySelector('+JSON.stringify(selector)+');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value").set.call(input,'+JSON.stringify(value)+');input.dispatchEvent(new Event("input",{bubbles:true}));})()');await wait(50);}
+  for(const mode of ['light','dark']) {
+   exercises.splice(0,exercises.length,...structuredClone(originalExercises));sessions.splice(0,sessions.length,...structuredClone(originalSessions));
+   await visit(routes.find(r=>r[0]==='library'),mode,375);
+   await go('/edit-exercise/'+exerciseId);
+   await enter('#name','Unsaved exercise name');
+   const readKey='GET:/api/exercises/library/'+exerciseId, beforeReads=requestCounts.get(readKey)||0;
+   await evalValue('window.dispatchEvent(new Event("offline"))');await wait(50);await evalValue('window.dispatchEvent(new Event("online"))');await wait(500);
+   assert((requestCounts.get(readKey)||0)>beforeReads,'background refetch did not run');
+   assert.equal(await evalValue('document.querySelector("#name").value'),'Unsaved exercise name','refetch overwrote local form');
+   mutationDelay=300;
+   await evalValue('document.querySelector("form").requestSubmit()');await wait(100);
+   assert(await evalValue('document.querySelector("button[type=submit]").disabled'));
+   await wait(750);mutationDelay=0;
+   await go('/library');assert(await evalValue('document.body.innerText.toLowerCase().includes("unsaved exercise name")'),'edit did not invalidate cached library');
+   await go('/profile/exercises');
+   const deleteKey='DELETE:/api/exercises/'+exerciseId,beforeDeletes=requestCounts.get(deleteKey)||0;
+   await evalValue('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==="Delete").click()');await wait(100);
+   await evalValue('document.querySelector("[role=dialog] .button--danger").click()');await wait(650);
+   assert.equal(requestCounts.get(deleteKey),beforeDeletes+1);
+   assert(await evalValue('!document.body.innerText.toLowerCase().includes("unsaved exercise name")'),'deleted exercise remained visible');
+   await go('/library');assert.equal(await evalValue('document.querySelectorAll("article").length'),2,'delete did not invalidate library');
+   await go('/profile/workouts');await evalValue('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==="Delete").click()');await wait(650);
+   assert.equal(sessions.length,1);assert.equal(await evalValue('document.querySelectorAll("[class*=sessionCard]").length'),1,'deleted session remained cached');
+   assert.equal(browserErrors.length,0);
+   console.log('PASS query migration: unsaved edit survives refetch; edit/delete invalidate caches; session deletion updates history',mode);
+  }
+  await send('Fetch.disable');await send('Browser.close');return;
  }
  if(process.env.UI_CHECK_PHASE==='recovery') {for(const mode of ['light','dark'])for(const width of [375,1440])await checkRecovery(mode,width);await wait(1000);await send('Fetch.disable');await send('Browser.close');return;}
  if(process.env.UI_CHECK_PHASE!=='interactions')for(const mode of ['light','dark'])for(const width of (process.env.UI_CHECK_WIDTHS?.split(',').map(Number) || [375,1440]))for(const route of routes.filter(routeMatches))await visit(route,mode,width);
@@ -158,7 +249,7 @@ let browser, ws;
   await visit(routes.find(r=>r[0]==='workout'),mode,375);scenario='error';mutationDelay=900;
   await evalValue("[...document.querySelectorAll('button')].find(b=>b.textContent==='Abandon Workout').click()");await wait(100);await evalValue("document.querySelector('[role=dialog] .button--danger').click()");await wait(150);
   assert(await evalValue("[...document.querySelectorAll('button')].filter(b=>/^(End Workout|Abandon Workout)$/.test(b.textContent)).every(b=>b.disabled)"));await wait(1100);
-  assert(await evalValue("!!document.querySelector('[role=dialog] [role=alert]') && document.querySelectorAll('input').length===18"));scenario='populated';mutationDelay=0;
+  assert(await evalValue("!!document.querySelector('[role=dialog] [role=alert]') && [...document.querySelectorAll('input')].filter(input=>/^(Weight|Reps) for /.test(input.getAttribute('aria-label')||'')).length===18"));scenario='populated';mutationDelay=0;
   await visit(routes.find(r=>r[0]==='settings'),mode,375);
   await evalValue("(()=>{for(const [id,value] of [['currentPassword','oldpassword'],['newPassword','secret123'],['confirmPassword','different']]){const input=document.getElementById(id);Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,value);input.dispatchEvent(new Event('input',{bubbles:true}));}document.getElementById('currentPassword').closest('form').requestSubmit();})()");await wait(100);
   assert(await evalValue("[...document.querySelectorAll('[role=alert]')].some(e=>e.textContent.includes('do not match'))"));
@@ -175,8 +266,9 @@ let browser, ws;
  assert(await evalValue("!!document.querySelector('button[aria-label=\"Start workout timer\"]')"));
  const pausedRest=await evalValue("document.querySelector('[class*=info] strong').textContent");await wait(1100);assert.equal(await evalValue("document.querySelector('[class*=info] strong').textContent"),pausedRest);
  console.log('PASS: theme switching and reload retain completed sets and paused timers');
+ await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
  await evalValue("document.querySelector('input').focus()");await wait(100);
- assert.equal(await evalValue("getComputedStyle(document.querySelector('nav')).position"),'static');
+ assert.equal(await evalValue("getComputedStyle(document.querySelector('nav')).position"),'relative');
  await evalValue("document.querySelector('input').blur();[...document.querySelectorAll('button')].find(b=>b.textContent==='Abandon Workout').click()");await wait(100);
  const modal=await evalValue("({height:document.querySelector('.modal-shell').getBoundingClientRect().height,visible:visualViewport.height,scroll:document.documentElement.scrollWidth,width:innerWidth})");assert(modal.height<=modal.visible);assert(modal.scroll<=modal.width+1);console.log('focus/dialog',JSON.stringify(modal));
  await send('Page.navigate',{url:base+'/library'});await wait(200);

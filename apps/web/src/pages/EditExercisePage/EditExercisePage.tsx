@@ -1,6 +1,10 @@
 import { Check } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "../../context/AuthContext";
+import { exerciseDetailOptions } from "../../query/resourceQueries";
+import { useUpdateExerciseMutation } from "../../query/useExerciseMutations";
+import { useNavigate, useParams } from "../../routes/navigationHooks";
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
@@ -16,12 +20,8 @@ import {
     type Equipment,
     type ExerciseType,
     type Muscle,
+    type Exercise,
 } from "@workout-app/shared";
-
-import {
-    getLibraryExerciseByIdRequest,
-    updateExerciseRequest,
-} from "../../services/exerciseApi";
 
 import styles from './EditExercisePage.module.css';
 
@@ -48,71 +48,39 @@ function isDifficulty(value: string | undefined): value is Difficulty {
 
 
 export default function EditExercisePage() {
-    const navigate = useNavigate();
     const { id } = useParams();
+    const { user } = useAuth();
+    const navigate = useNavigate();
+    const exerciseQuery = useQuery(exerciseDetailOptions(user?._id, id ?? ""));
+    if (id && exerciseQuery.isPending) {
+        return <LoadingState layout="form" className={styles.page} title="Edit exercise" message="Loading exercise..." />;
+    }
+    if (!exerciseQuery.data) {
+        return <Box className={styles.page}><Card className={styles.card}>
+            <p className={styles.errorText} role="alert">{exerciseQuery.error?.message || "Exercise not found."}</p>
+            <Button variant="secondary" onClick={() => navigate(-1)}>Go back</Button>
+        </Card></Box>;
+    }
+    return <EditExerciseForm key={user?._id + ":" + id} exercise={exerciseQuery.data} />;
+}
 
-    const [name, setName] = useState("");
-    const [description, setDescription] = useState("");
-    const [instructions, setInstructions] = useState("");
-    const [exerciseType, setExerciseType] = useState<ExerciseType | "">("");
-    const [primaryMuscles, setPrimaryMuscles] = useState<Muscle[]>([]);
-    const [secondaryMuscles, setSecondaryMuscles] = useState<Muscle[]>([]);
-    const [equipment, setEquipment] = useState<Equipment | "">("");
-    const [difficulty, setDifficulty] = useState<Difficulty | "">("");
-    const [imageUrl, setImageUrl] = useState("");
-
-    const [isFetching, setIsFetching] = useState(true);
-    const [isSaving, setIsSaving] = useState(false);
+function EditExerciseForm({ exercise }: { exercise: Exercise }) {
+    const navigate = useNavigate();
+    const id = exercise._id;
+    const [name, setName] = useState(exercise.name ?? "");
+    const [description, setDescription] = useState(exercise.description ?? "");
+    const [instructions, setInstructions] = useState(exercise.instructions ?? "");
+    const [exerciseType, setExerciseType] = useState<ExerciseType | "">(
+        isExerciseType(exercise.exerciseType) ? exercise.exerciseType : "",
+    );
+    const [primaryMuscles, setPrimaryMuscles] = useState<Muscle[]>(() => normalizeMuscles(exercise.primaryMuscles));
+    const [secondaryMuscles, setSecondaryMuscles] = useState<Muscle[]>(() => normalizeMuscles(exercise.secondaryMuscles));
+    const [equipment, setEquipment] = useState<Equipment | "">(isEquipment(exercise.equipment) ? exercise.equipment : "");
+    const [difficulty, setDifficulty] = useState<Difficulty | "">(isDifficulty(exercise.difficulty) ? exercise.difficulty : "");
+    const [imageUrl] = useState(exercise.imageUrl ?? "");
     const [error, setError] = useState("");
-
-
-    useEffect(() => {
-        if (!id) {
-            setError("Exercise id is missing");
-            setIsFetching(false);
-            return;
-        }
-
-        const exerciseId = id;
-
-        async function loadExercise() {
-            setError("");
-            setIsFetching(true);
-
-            try {
-                const exercise = await getLibraryExerciseByIdRequest(exerciseId);
-
-                setName(exercise.name ?? "");
-                setDescription(exercise.description ?? "");
-                setInstructions(exercise.instructions ?? "");
-                setExerciseType(
-                    isExerciseType(exercise.exerciseType) ? exercise.exerciseType : "",
-                );
-
-                setPrimaryMuscles(normalizeMuscles(exercise.primaryMuscles));
-                setSecondaryMuscles(normalizeMuscles(exercise.secondaryMuscles));
-
-                setEquipment(
-                    isEquipment(exercise.equipment) ? exercise.equipment : "",
-                );
-
-                setDifficulty(
-                    isDifficulty(exercise.difficulty) ? exercise.difficulty : "",
-                );
-                setImageUrl(exercise.imageUrl ?? "");
-            } catch (err) {
-                if (err instanceof Error) {
-                    setError(err.message);
-                } else {
-                    setError("Failed to load exercise");
-                }
-            } finally {
-                setIsFetching(false);
-            }
-        }
-
-        loadExercise();
-    }, [id]);
+    const updateMutation = useUpdateExerciseMutation();
+    const isSaving = updateMutation.isPending;
 
     function toggleMuscle(
         muscle: Muscle,
@@ -135,10 +103,9 @@ export default function EditExercisePage() {
         }
 
         setError("");
-        setIsSaving(true);
 
         try {
-            await updateExerciseRequest(id, {
+            await updateMutation.mutateAsync({ id, data: {
                 name,
                 description: description || undefined,
                 instructions: instructions || undefined,
@@ -148,7 +115,7 @@ export default function EditExercisePage() {
                 equipment: equipment || undefined,
                 difficulty: difficulty || undefined,
                 imageUrl,
-            });
+            } });
 
             navigate("/profile");
         } catch (err) {
@@ -157,20 +124,7 @@ export default function EditExercisePage() {
             } else {
                 setError("Failed to update exercise");
             }
-        } finally {
-            setIsSaving(false);
         }
-    }
-
-    if (isFetching) {
-        return (
-            <LoadingState
-                layout="form"
-                className={styles.page}
-                title="Edit exercise"
-                message="Loading exercise..."
-            />
-        );
     }
 
     return (

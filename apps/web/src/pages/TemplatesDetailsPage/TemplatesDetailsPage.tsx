@@ -1,16 +1,11 @@
 import { ArrowLeft } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
-import { useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-
-import {
-    getMyWorkoutTemplateByIdRequest,
-    getPublicWorkoutTemplateByIdRequest,
-} from "../../services/workoutTemplateApi";
-import { getExerciseByIdRequest } from "../../services/exerciseApi";
+import { useParams, useNavigate } from "../../routes/navigationHooks";
+import { useQuery, useQueries } from "@tanstack/react-query";
+import { exerciseDetailOptions, templateDetailOptions } from "../../query/resourceQueries";
 import { useAuth } from "../../context/AuthContext";
 
-import type { WorkoutTemplate, Exercise } from "@workout-app/shared";
+import type { Exercise } from "@workout-app/shared";
 
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 import Box from "../../components/ui/box/Box";
@@ -37,83 +32,25 @@ export default function TemplatesDetailsPage({
     templateSource,
 }: TemplatesDetailsPageProps) {
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuth();
+    const { user } = useAuth();
     const { id } = useParams();
 
-    const [template, setTemplate] = useState<WorkoutTemplate | null>(null);
-    const [exerciseDetails, setExerciseDetails] = useState<Exercise[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState("");
-
-    useEffect(() => {
-        if (!id) {
-            setError("Missing template id");
-            return;
-        }
-
-        const templateId = id;
-        let shouldIgnore = false;
-
-        async function loadTemplateDetails() {
-            setError("");
-            setIsLoading(true);
-
-            try {
-                const templateData =
-                    templateSource === "my"
-                        ? await getMyWorkoutTemplateByIdRequest(templateId)
-                        : await getPublicWorkoutTemplateByIdRequest(templateId);
-
-                const uniqueExerciseIds = Array.from(
-                    new Set(
-                        templateData.exercises
-                            .map((templateExercise) => templateExercise.exercise?._id)
-                            .filter(
-                                (exerciseId): exerciseId is string =>
-                                    typeof exerciseId === "string" &&
-                                    exerciseId.length > 0,
-                            ),
-                    ),
-                );
-
-                const exerciseResults = await Promise.allSettled(
-                    uniqueExerciseIds.map((exerciseId) =>
-                        getExerciseByIdRequest(exerciseId, isAuthenticated),
-                    ),
-                );
-
-                const fullExerciseData = exerciseResults
-                    .filter(
-                        (result): result is PromiseFulfilledResult<Exercise> =>
-                            result.status === "fulfilled",
-                    )
-                    .map((result) => result.value);
-
-                if (shouldIgnore) return;
-
-                setTemplate(templateData);
-                setExerciseDetails(fullExerciseData);
-            } catch (error) {
-                if (shouldIgnore) return;
-
-                if (error instanceof Error) {
-                    setError(error.message || "Failed to fetch template details");
-                } else {
-                    setError("Unable to complete this request. Please try again.");
-                }
-            } finally {
-                if (!shouldIgnore) {
-                    setIsLoading(false);
-                }
-            }
-        }
-
-        loadTemplateDetails();
-
-        return () => {
-            shouldIgnore = true;
-        };
-    }, [id, isAuthenticated, templateSource]);
+    const templateQuery = useQuery(templateDetailOptions(templateSource, user?._id, id ?? ""));
+    const template = templateQuery.data;
+    const exerciseIds = [...new Set(
+        template?.exercises.map(item => item.exercise?._id).filter(
+            (exerciseId): exerciseId is string => !!exerciseId,
+        ) ?? [],
+    )];
+    const exerciseQueries = useQueries({
+        queries: exerciseIds.map(exerciseId => exerciseDetailOptions(user?._id, exerciseId)),
+    });
+    const exerciseDetails = exerciseQueries.map(query => query.data).filter(
+        (exercise): exercise is Exercise => !!exercise,
+    );
+    const isLoading = !!id && templateQuery.isPending;
+    const error = !id ? "Missing template id" : !template && templateQuery.error
+        ? templateQuery.error.message : "";
 
     if (isLoading && !template) {
         return (

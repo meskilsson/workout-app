@@ -1,6 +1,6 @@
 import { Dumbbell, Plus } from "lucide-react";
 import Icon from "../ui/icon/Icon";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "../../routes/navigation";
 
 import Box from "../../components/ui/box/Box";
 import { useAuth } from "../../context/AuthContext";

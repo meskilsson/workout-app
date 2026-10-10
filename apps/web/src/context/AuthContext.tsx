@@ -1,5 +1,7 @@
 import { clearUserSnapshots } from "../utils/workoutProgressStorage";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { authKey, clearAccountCache } from "../query/queryClient";
 import {
     getMeRequest,
     logoutRequest,
@@ -20,36 +22,31 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        async function loadUser() {
-            try {
-                const currentUser = await getMeRequest();
-                setUser(currentUser);
-            } catch {
-                setUser(null);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        loadUser();
-    }, []);
+    const queryClient = useQueryClient();
+    const auth = useQuery({
+        queryKey: authKey,
+        queryFn: ({ signal }) => getMeRequest(signal),
+        staleTime: Infinity,
+    });
+    const user = auth.data ?? null;
+    const loading = auth.isPending;
+    const logoutMutation = useMutation({ mutationFn: logoutRequest });
 
     function login(userData: User) {
-        setUser(userData);
+        // Cancel old-account reads before publishing the new identity.
+        clearAccountCache(queryClient);
+        queryClient.setQueryData(authKey, userData);
     }
 
     function updateAuthUser(userData: User) {
-        setUser(userData);
+        queryClient.setQueryData(authKey, userData);
     }
 
     async function logout() {
-        await logoutRequest();
+        await logoutMutation.mutateAsync();
         if (user) clearUserSnapshots(user._id);
-        setUser(null);
+        clearAccountCache(queryClient);
+        queryClient.setQueryData(authKey, null);
     }
 
     return (

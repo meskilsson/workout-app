@@ -12,9 +12,9 @@ export type AdminItem = {
   totals?: Record<string, number>;
 };
 export type AdminList = { items: AdminItem[]; total: number; page: number; limit: number };
-export async function adminRequest<T>(path: string, method = "GET", body?: unknown): Promise<T> {
+export async function adminRequest<T>(path: string, method = "GET", body?: unknown, signal?: AbortSignal): Promise<T> {
   const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/admin${path}`, {
-    method, credentials: "include", headers: body ? { "Content-Type": "application/json" } : undefined,
+    signal, method, credentials: "include", headers: body ? { "Content-Type": "application/json" } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
   return parseJsonResponse<T>(response, "Admin request failed");

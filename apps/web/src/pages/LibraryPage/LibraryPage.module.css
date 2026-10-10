@@ -75,7 +75,7 @@
     gap: 0.75rem;
 }
 
-.searchControls .searchInput { flex: 1 1 280px; width: auto; font: inherit; }
+.searchControls .searchInput { flex: 1 1 280px; width: auto; font: inherit; font-size: max(1rem, 16px); }
 .searchLabel { display: grid; gap: 0.35rem; flex: 1 1 280px; min-width: 0; font-size: var(--text-sm); }
 .searchLabel .searchInput { width: 100%; }
 .searchControls { align-items: flex-end; }

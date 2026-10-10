@@ -1,9 +1,13 @@
+import { draftDetailOptions } from "../../query/resourceQueries";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "../../context/AuthContext";
+import { authKey, templateKeys } from "../../query/queryClient";
 import TrainingConfigForm from "../../components/training/TrainingConfigForm";
 import type { TrainingConfig } from "@workout-app/shared";
 import { ArrowLeft, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
-import { useEffect, useState, type FormEvent } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState, type FormEvent } from "react";
+import { useNavigate, useParams } from "../../routes/navigationHooks";
 
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
@@ -33,7 +37,6 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 import {
-  getWorkoutDraftByIdRequest,
   updateWorkoutDraftTrainingRequest,
   startWorkoutDraftRequest,
   reorderWorkoutDraftExercisesRequest,
@@ -149,17 +152,25 @@ function SortableSummaryExerciseCard({
 
 export default function WorkoutSummaryPage() {
   const { draftId } = useParams();
+  const { user } = useAuth();
+  const query = useQuery(draftDetailOptions(user?._id ?? "", draftId ?? ""));
   const navigate = useNavigate();
-
+  if (query.isPending && draftId) return <LoadingState layout="summary" className={styles.page} title="Workout builder" message="Loading workout summary..." />;
+  if (!query.data) return <Box className={styles.page}><Card className={styles.stateCard}><h1>Workout summary</h1><p role="alert">{query.error?.message ?? "Missing workout draft"}</p><Button onClick={() => navigate("/workout-select")}>Go back</Button></Card></Box>;
+  return <WorkoutSummaryForm key={(user?._id ?? "") + ":" + draftId} draft={query.data} />;
+}
+function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
+  const draftId = draft._id;
+  const navigate = useNavigate();
   const [dirtyConfigs, setDirtyConfigs] = useState<Record<string, boolean>>({});
   const hasUnsavedConfigs = Object.values(dirtyConfigs).some(Boolean);
-  const [draft, setDraft] = useState<WorkoutDraft | null>(null);
-  const [isLoadingDraft, setIsLoadingDraft] = useState(true);
-  const [isStartingWorkout, setIsStartingWorkout] = useState(false);
-  const [orderedExercises, setOrderedExercises] = useState<DraftExercise[]>([]);
-  const [isReordering, setIsReordering] = useState(false);
+  const startWorkout = useMutation({ mutationFn: startWorkoutDraftRequest });
+  const isStartingWorkout = startWorkout.isPending;
+  const [orderedExercises, setOrderedExercises] = useState<DraftExercise[]>(() => draft.exercises);
+  const reorderExercises = useMutation({ mutationFn: (exerciseIds: string[]) =>
+    reorderWorkoutDraftExercisesRequest(draftId!, exerciseIds) });
+  const isReordering = reorderExercises.isPending;
 
-  const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
 
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
@@ -167,8 +178,21 @@ export default function WorkoutSummaryPage() {
   const [templateDescription, setTemplateDescription] = useState("");
   const [templateCategory, setTemplateCategory] =
     useState<WorkoutTemplateCategory>("custom");
-  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const saveTemplate = useMutation({
+    mutationFn: (data: Parameters<typeof createWorkoutTemplateFromDraftRequest>[1]) =>
+      createWorkoutTemplateFromDraftRequest(draftId!, data),
+    onSuccess: () => {
+      if (user?._id && queryClient.getQueryData<{ _id: string }>(authKey)?._id === user._id) {
+        void queryClient.invalidateQueries({ queryKey: templateKeys.mine(user._id) });
+        void queryClient.invalidateQueries({ queryKey: templateKeys.public });
+      }
+    },
+  });
+  const isSavingTemplate = saveTemplate.isPending;
 
+  const trainingMutation = useMutation({ mutationFn: (data: Parameters<typeof updateWorkoutDraftTrainingRequest>[1]) => updateWorkoutDraftTrainingRequest(draftId, data) });
   const selectedExercises = orderedExercises;
   const totalExercises = selectedExercises.length;
   const isTemplateDraft = draft?.purpose === "template";
@@ -184,36 +208,6 @@ export default function WorkoutSummaryPage() {
     }),
   );
 
-  useEffect(() => {
-    async function loadDraft() {
-      if (!draftId) {
-        navigate("/workout-select");
-        return;
-      }
-
-      try {
-        setError("");
-        setActionError("");
-        setIsLoadingDraft(true);
-
-        const data: WorkoutDraft = await getWorkoutDraftByIdRequest(draftId);
-
-        setDraft(data);
-        setOrderedExercises(data.exercises);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to load workout draft",
-        );
-      } finally {
-        setIsLoadingDraft(false);
-      }
-    }
-
-    loadDraft();
-  }, [draftId, navigate]);
-
   async function saveExerciseOrder(
     nextOrder: DraftExercise[],
     previousOrder: DraftExercise[],
@@ -222,12 +216,10 @@ export default function WorkoutSummaryPage() {
       return;
     }
 
-    setIsReordering(true);
     setActionError("");
 
     try {
-      await reorderWorkoutDraftExercisesRequest(
-        draftId,
+      await reorderExercises.mutateAsync(
         nextOrder.map((exercise) => exercise.exerciseId),
       );
     } catch (err) {
@@ -235,8 +227,6 @@ export default function WorkoutSummaryPage() {
       setActionError(
         err instanceof Error ? err.message : "Failed to reorder exercises",
       );
-    } finally {
-      setIsReordering(false);
     }
   }
 
@@ -279,17 +269,14 @@ export default function WorkoutSummaryPage() {
 
     try {
       setActionError("");
-      setIsStartingWorkout(true);
 
-      await startWorkoutDraftRequest(draftId);
+      await startWorkout.mutateAsync(draftId);
 
       navigate(`/workout/${draftId}`);
     } catch (err) {
       setActionError(
         err instanceof Error ? err.message : "Failed to start workout",
       );
-    } finally {
-      setIsStartingWorkout(false);
     }
   }
 
@@ -329,9 +316,8 @@ export default function WorkoutSummaryPage() {
 
     try {
       setActionError("");
-      setIsSavingTemplate(true);
 
-      await createWorkoutTemplateFromDraftRequest(draftId, {
+      await saveTemplate.mutateAsync({
         name: templateName.trim(),
         description: templateDescription.trim() || undefined,
         category: templateCategory,
@@ -343,47 +329,7 @@ export default function WorkoutSummaryPage() {
       setActionError(
         err instanceof Error ? err.message : "Failed to save template",
       );
-    } finally {
-      setIsSavingTemplate(false);
     }
-  }
-
-  function handleBack() {
-    if (draftId) {
-      navigate(`/exercise-select/${draftId}`);
-      return;
-    }
-
-    navigate("/workout-select");
-  }
-
-  if (isLoadingDraft) {
-    return (
-      <LoadingState
-                layout="summary"
-                className={styles.page}
-        title="Workout builder"
-        message="Loading workout summary..."
-      />
-    );
-  }
-
-
-
-  if (error) {
-    return (
-      <Box className={styles.page}>
-        <Card className={styles.stateCard}>
-          <p className={styles.kicker}>Workout builder</p>
-          <h1 className={styles.title}>Workout summary</h1>
-          <p className={styles.stateText}>{error}</p>
-
-          <Button type="button" variant="secondary" onClick={handleBack}>
-            Go back
-          </Button>
-        </Card>
-      </Box>
-    );
   }
 
   return (
@@ -488,7 +434,7 @@ export default function WorkoutSummaryPage() {
                     onMove={moveExercise}
                     onDirty={dirty => setDirtyConfigs(prev => ({ ...prev, [exercise.exerciseId]: dirty }))}
                     onSave={async training => {
-                      await updateWorkoutDraftTrainingRequest(draftId!, { exerciseId: exercise.exerciseId, training });
+                      await trainingMutation.mutateAsync({ exerciseId: exercise.exerciseId, training });
                       setOrderedExercises(prev => prev.map(e => e.exerciseId === exercise.exerciseId ? { ...e, training } : e));
                     }}
                   />

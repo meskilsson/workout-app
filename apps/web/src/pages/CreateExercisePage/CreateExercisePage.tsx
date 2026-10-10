@@ -1,12 +1,12 @@
 import { Plus, ArrowLeft } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "../../routes/navigationHooks";
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import LoadingPredator from "../../components/Loading/LoadingPredator";
-import { createExerciseRequest } from "../../services/exerciseApi";
+import { useCreateExerciseMutation } from "../../query/useExerciseMutations";
 import {
     MUSCLE_OPTIONS,
     EQUIPMENT_OPTIONS,
@@ -32,7 +32,8 @@ export default function CreateExercisePage() {
     const [difficulty, setDifficulty] = useState<Difficulty | "">("");
 
     const [error, setError] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+    const createMutation = useCreateExerciseMutation();
+    const isLoading = createMutation.isPending;
 
     function toggleMuscle(
         muscle: Muscle,
@@ -49,10 +50,9 @@ export default function CreateExercisePage() {
         e.preventDefault();
         if (isLoading) return;
         setError("");
-        setIsLoading(true);
 
         try {
-            await createExerciseRequest({
+            await createMutation.mutateAsync({
                 name,
                 description: description || undefined,
                 instructions: instructions || undefined,
@@ -70,8 +70,6 @@ export default function CreateExercisePage() {
             } else {
                 setError("Failed to create exercise");
             }
-        } finally {
-            setIsLoading(false);
         }
     }
 

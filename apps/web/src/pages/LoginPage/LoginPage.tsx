@@ -1,7 +1,8 @@
 import { LogIn } from "lucide-react";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "../../routes/navigationHooks";
 
 import { useAuth } from "../../context/AuthContext";
 import { loginRequest } from "../../services/authApi";
@@ -19,16 +20,16 @@ export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+    const loginMutation = useMutation({ mutationFn: loginRequest });
+    const isLoading = loginMutation.isPending;
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         if (isLoading) return;
         setError("");
-        setIsLoading(true);
 
         try {
-            const user = await loginRequest({
+            const user = await loginMutation.mutateAsync({
                 email,
                 password,
             });
@@ -41,8 +42,6 @@ export default function LoginPage() {
             } else {
                 setError("Unable to complete this request. Please try again.");
             }
-        } finally {
-            setIsLoading(false);
         }
     }
 

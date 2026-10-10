@@ -1,7 +1,8 @@
 import { Home, Dumbbell, BookOpen, Plus, UserRound, LogOut, Timer, Menu, X, History } from "lucide-react";
 import Icon from "../ui/icon/Icon";
 import { useEffect, useRef, useState } from "react";
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { NavLink } from "../../routes/navigation";
+import { useNavigate, useLocation } from "../../routes/navigationHooks";
 import Button from "../ui/button/Button";
 import { useAuth } from "../../context/AuthContext";
 import ThemeSelect from "../theme/ThemeSelect";

@@ -1,8 +1,8 @@
 import "./App.css";
-import { Routes, Route } from "react-router-dom";
+
 import Layout from "./components/layouts/Layout";
 import AccountLayout from "./components/layouts/AccountLayout";
-import { Navigate } from "react-router-dom";
+import { Navigate } from "./routes/navigation";
 
 
 import LoginPage from "./pages/LoginPage/LoginPage";
@@ -35,169 +35,54 @@ import RoleRoute from "./routes/RoleRoute";
 import AdminPage from "./pages/AdminPage/AdminPage";
 
 
-function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route path="admin/:section?" element={<RoleRoute allowedRoles={["admin"]}><AdminPage /></RoleRoute>} />
-        <Route index element={<Homepage />} />
+import { createRootRoute, createRoute, createRouter, RouterProvider } from "@tanstack/react-router";
+import { ThemeProvider } from "./context/ThemeContext";
+import { BodyModelProvider } from "./context/BodyModelContext";
+import { AuthProvider } from "./context/AuthContext";
+import WebWorkoutProvider from "./context/WebWorkoutProvider";
+import type { ReactNode } from "react";
 
-
-        <Route
-          path="login"
-          element={
-            <PublicRoute>
-              <LoginPage />
-            </PublicRoute>
-          }
-        />
-
-        <Route
-          path="signup"
-          element={
-            <PublicRoute>
-              <SignupPage />
-            </PublicRoute>
-          }
-        />
-
-
-        <Route path="templates" element={<TemplatesLayout />}>
-          <Route index element={<Navigate to="pre-made" replace />} />
-
-          <Route path="pre-made" element={<TemplatesPage />} />
-
-          <Route
-            path="pre-made/templates-details/:id"
-            element={<TemplatesDetailsPage templateSource="public" />}
-          />
-
-          <Route
-            path="my"
-            element={
-              <ProtectedRoute>
-                <MyTemplatesPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="my/templates-details/:id"
-            element={
-              <ProtectedRoute>
-                <TemplatesDetailsPage templateSource="my" />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="create"
-            element={
-              <ProtectedRoute>
-                <CreateTemplatePage />
-              </ProtectedRoute>
-            }
-          />
-        </Route>
-
-
-        <Route path="/library" element={<LibraryPage />} />
-
-        <Route
-          path="homepage"
-          element={
-            <PublicRoute>
-              <Homepage />
-            </PublicRoute>
-          }
-        />
-
-        <Route
-          path="workout-select"
-          element={
-            <ProtectedRoute>
-              <WorkoutSelectPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="exercise-select/:draftId"
-          element={
-            <ProtectedRoute>
-              <ExerciseSelectPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="workout-summary/:draftId"
-          element={
-            <ProtectedRoute>
-              <WorkoutSummaryPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="workout/:draftId"
-          element={
-            <ProtectedRoute>
-              <WorkoutPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="workout-result/:sessionId"
-          element={
-            <ProtectedRoute>
-              <WorkoutResultPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="create-exercise"
-          element={
-            <ProtectedRoute>
-              <CreateExercisePage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route path="/exercises/:id" element={<ExerciseDetailsPage />} />
-
-        <Route
-          path="profile"
-          element={
-            <ProtectedRoute>
-              <AccountLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<ProfilePage />} />
-          <Route path="workouts" element={<ProfileWorkoutsPage />} />
-          <Route
-            path="workouts/:id"
-            element={<WorkoutHistoryDetailPage />}
-          />
-          <Route path="exercises" element={<ProfileExercisesPage />} />
-          <Route path="settings" element={<ProfileSettingsPage />} />
-        </Route>
-
-
-        <Route
-          path="edit-exercise/:id"
-          element={
-            <ProtectedRoute>
-              <EditExercisePage />
-            </ProtectedRoute>
-          }
-        />
-      </Route>
-    </Routes>
-  );
-}
-
-export default App;
+const rootRoute = createRootRoute({ component: () =>
+    <ThemeProvider><BodyModelProvider><AuthProvider><WebWorkoutProvider>
+        <Layout />
+    </WebWorkoutProvider></AuthProvider></BodyModelProvider></ThemeProvider>,
+    notFoundComponent: () => <main><h1>Page not found</h1><a href="/">Return home</a></main>,
+});
+const page = (path: string, element: ReactNode) => createRoute({ getParentRoute: () => rootRoute, path, component: () => element });
+const protectedPage = (path: string, element: ReactNode) => page(path, <ProtectedRoute>{element}</ProtectedRoute>);
+const templates = createRoute({ getParentRoute: () => rootRoute, path: "templates", component: TemplatesLayout });
+const templatePage = (path: string, element: ReactNode) => createRoute({ getParentRoute: () => templates, path, component: () => element });
+const profile = createRoute({ getParentRoute: () => rootRoute, path: "profile", component: () => <ProtectedRoute><AccountLayout /></ProtectedRoute> });
+const profilePage = (path: string, element: ReactNode) => createRoute({ getParentRoute: () => profile, path, component: () => element });
+const routeTree = rootRoute.addChildren([
+    page("/", <Homepage />),
+    page("homepage", <PublicRoute><Homepage /></PublicRoute>),
+    page("login", <PublicRoute><LoginPage /></PublicRoute>),
+    page("signup", <PublicRoute><SignupPage /></PublicRoute>),
+    page("library", <LibraryPage />),
+    page("exercises/$id", <ExerciseDetailsPage />),
+    page("admin", <RoleRoute allowedRoles={["admin"]}><AdminPage /></RoleRoute>),
+    page("admin/$section", <RoleRoute allowedRoles={["admin"]}><AdminPage /></RoleRoute>),
+    protectedPage("workout-select", <WorkoutSelectPage />),
+    protectedPage("exercise-select/$draftId", <ExerciseSelectPage />),
+    protectedPage("workout-summary/$draftId", <WorkoutSummaryPage />),
+    protectedPage("workout/$draftId", <WorkoutPage />),
+    protectedPage("workout-result/$sessionId", <WorkoutResultPage />),
+    protectedPage("create-exercise", <CreateExercisePage />),
+    protectedPage("edit-exercise/$id", <EditExercisePage />),
+    templates.addChildren([
+        templatePage("/", <Navigate to="/templates/pre-made" replace />),
+        templatePage("pre-made", <TemplatesPage />),
+        templatePage("pre-made/templates-details/$id", <TemplatesDetailsPage templateSource="public" />),
+        templatePage("my", <ProtectedRoute><MyTemplatesPage /></ProtectedRoute>),
+        templatePage("my/templates-details/$id", <ProtectedRoute><TemplatesDetailsPage templateSource="my" /></ProtectedRoute>),
+        templatePage("create", <ProtectedRoute><CreateTemplatePage /></ProtectedRoute>),
+    ]),
+    profile.addChildren([
+        profilePage("/", <ProfilePage />), profilePage("workouts", <ProfileWorkoutsPage />),
+        profilePage("workouts/$id", <WorkoutHistoryDetailPage />),
+        profilePage("exercises", <ProfileExercisesPage />), profilePage("settings", <ProfileSettingsPage />),
+    ]),
+]);
+const router = createRouter({ routeTree, defaultPreload: false });
+export default function App() { return <RouterProvider router={router} />; }

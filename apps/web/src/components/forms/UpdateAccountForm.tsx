@@ -1,4 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { authKey } from "../../query/queryClient";
+import type { User } from "../../services/authApi";
 import { updateUserRequest } from "../../services/userApi";
 import { useAuth } from "../../context/AuthContext";
 import type { UpdateUserBody } from "@workout-app/shared";
@@ -7,23 +10,27 @@ import Button from "../ui/button/Button";
 import LoadingPredator from "../Loading/LoadingPredator";
 
 export default function UpdateAccountForm() {
-    const { user: authUser, updateAuthUser } = useAuth();
+    const { user } = useAuth();
+    return user ? <AccountDetailsForm key={user._id} initialUser={user} /> : null;
+}
 
-    const [name, setName] = useState("");
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
+function AccountDetailsForm({ initialUser }: { initialUser: User }) {
+    const { user: authUser, updateAuthUser } = useAuth();
+    const client = useQueryClient();
+
+    const [name, setName] = useState(initialUser.name ?? "");
+    const [username, setUsername] = useState(initialUser.username ?? "");
+    const [email, setEmail] = useState(initialUser.email ?? "");
 
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-
-    useEffect(() => {
-        if (!authUser) return;
-
-        setName(authUser.name ?? "");
-        setUsername(authUser.username ?? "");
-        setEmail(authUser.email ?? "");
-    }, [authUser]);
+    const updateMutation = useMutation({
+        mutationFn: (data: UpdateUserBody) => updateUserRequest(initialUser._id, data),
+        onSuccess: updatedUser => {
+            if (client.getQueryData<User>(authKey)?._id === initialUser._id) updateAuthUser(updatedUser);
+        },
+    });
+    const isLoading = updateMutation.isPending;
 
     async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -33,7 +40,6 @@ export default function UpdateAccountForm() {
 
         setError("");
         setSuccess("");
-        setIsLoading(true);
 
         try {
             const userData: UpdateUserBody = {
@@ -42,15 +48,11 @@ export default function UpdateAccountForm() {
                 email,
             };
 
-            const updatedUser = await updateUserRequest(authUser._id, userData);
-
-            updateAuthUser(updatedUser);
+            await updateMutation.mutateAsync(userData);
 
             setSuccess("Account updated successfully.");
         } catch (error) {
             setError(error instanceof Error ? error.message : "Failed to update account.");
-        } finally {
-            setIsLoading(false);
         }
     }
 

@@ -1,7 +1,11 @@
 import { Plus, ArrowLeft, Trash2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "../../context/AuthContext";
+import { exerciseListOptions } from "../../query/resourceQueries";
+import { useDeleteExerciseMutation } from "../../query/useExerciseMutations";
+import { useNavigate } from "../../routes/navigationHooks";
 
 import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
@@ -9,11 +13,6 @@ import Modal from "../../components/ui/modal/Modal";
 import { LoadingAnnouncement } from "../../components/Loading/Skeleton";
 import LoadingState from "../../components/Loading/LoadingState";
 import LoadingPredator from "../../components/Loading/LoadingPredator";
-
-import {
-    deleteExerciseRequest,
-    getExerciseLibraryRequest,
-} from "../../services/exerciseApi";
 
 import styles from "./ProfileExercisesPage.module.css";
 
@@ -33,57 +32,27 @@ type Exercise = {
 export default function ProfileExercisesPage() {
     const navigate = useNavigate();
 
-    const [exercises, setExercises] = useState<Exercise[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
-    const [error, setError] = useState("");
-
+    const { user } = useAuth();
+    const exercisesQuery = useQuery({
+        ...exerciseListOptions(user?._id, { page: 1, limit: 100 }),
+        enabled: !!user,
+    });
+    const exercises = (exercisesQuery.data?.exercises ?? []).filter(exercise => exercise.isCustom);
+    const isLoading = exercisesQuery.isFetching;
+    const hasLoadedOnce = !exercisesQuery.isPending;
+    const [actionError, setError] = useState("");
+    const error = actionError || exercisesQuery.error?.message || "";
     const [exerciseToDelete, setExerciseToDelete] = useState<Exercise | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    useEffect(() => {
-        async function loadExercises() {
-            setError("");
-            setIsLoading(true);
-
-            try {
-                const data = await getExerciseLibraryRequest({
-                    page: 1,
-                    limit: 100,
-                });
-
-                const customExercises = data.exercises.filter(
-                    (exercise) => exercise.isCustom,
-                );
-
-                setExercises(customExercises);
-            } catch (err) {
-                if (err instanceof Error) {
-                    setError(err.message);
-                } else {
-                    setError("Failed to load exercises");
-                }
-            } finally {
-                setIsLoading(false);
-                setHasLoadedOnce(true);
-            }
-        }
-
-        loadExercises();
-    }, []);
+    const deleteMutation = useDeleteExerciseMutation();
+    const isDeleting = deleteMutation.isPending;
 
     async function handleConfirmDeleteExercise() {
         if (!exerciseToDelete) return;
 
-        setIsDeleting(true);
         setError("");
 
         try {
-            await deleteExerciseRequest(exerciseToDelete._id);
-
-            setExercises((prev) =>
-                prev.filter((exercise) => exercise._id !== exerciseToDelete._id),
-            );
+            await deleteMutation.mutateAsync(exerciseToDelete._id);
 
             setExerciseToDelete(null);
         } catch (err) {
@@ -92,8 +61,6 @@ export default function ProfileExercisesPage() {
             } else {
                 setError("Failed to delete exercise");
             }
-        } finally {
-            setIsDeleting(false);
         }
     }
 

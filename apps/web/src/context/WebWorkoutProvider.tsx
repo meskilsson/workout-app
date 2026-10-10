@@ -1,3 +1,6 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { draftKeys } from "../query/queryClient";
+import { draftDetailOptions } from "../query/resourceQueries";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { CurrentWorkoutStateProvider, useCurrentWorkout } from "@workout-app/shared/currentWorkoutContext";
 import { WorkoutTimerProvider } from "@workout-app/shared/timer";
@@ -6,7 +9,6 @@ import AppLoadingSkeleton from "../components/Loading/AppLoadingSkeleton";
 import { RotateCcw } from "lucide-react";
 import styles from "./WebWorkoutProvider.module.css";
 import Button from "../components/ui/button/Button";
-import { getWorkoutDraftByIdRequest } from "../services/workoutDraftApi";
 import { restoreSavedWorkout } from "../utils/restoreSavedWorkout";
 import { createWebWorkoutTimerStorage, saveCurrentWorkoutReference, workoutScope } from "../utils/workoutProgressStorage";
 
@@ -17,31 +19,28 @@ export default function WebWorkoutProvider({ children }: { children: ReactNode }
 }
 
 function UserWorkoutProvider({ userId, children }: { userId: string | null; children: ReactNode }) {
-    const [currentWorkoutId, setCurrentWorkoutId] = useState<string | null>(null);
-    const [phase, setPhase] = useState<"loading" | "ready" | "unavailable">("loading");
-    const [attempt, setAttempt] = useState(0);
-    useEffect(() => {
-        let cancelled = false;
-        async function restore() {
-            const result = userId ? await restoreSavedWorkout(userId, getWorkoutDraftByIdRequest)
-                : { status: "ready" as const, draftId: null };
-            if (cancelled) return;
-            setCurrentWorkoutId(result.draftId);
-            setPhase(result.status);
-        }
-        void restore();
-        return () => { cancelled = true; };
-    }, [userId, attempt]);
-    useEffect(() => {
-        if (userId && phase === "ready") saveCurrentWorkoutReference(userId, currentWorkoutId);
-    }, [userId, phase, currentWorkoutId]);
-    const value = useMemo(() => ({ currentWorkoutId, setCurrentWorkoutId }), [currentWorkoutId]);
-    if (phase === "loading") return <AppLoadingSkeleton message="Checking your saved workout..." />;
-    if (phase === "unavailable") return <main className={styles.recovery}><section className={styles.recoveryCard} role="alert">
+    const client = useQueryClient();
+    const restoration = useQuery({
+        queryKey: draftKeys.restoration(userId ?? "signed-out"),
+        queryFn: () => userId ? restoreSavedWorkout(userId, id => client.fetchQuery(draftDetailOptions(userId, id)))
+            : Promise.resolve({ status: "ready" as const, draftId: null }),
+        gcTime: 0, staleTime: Infinity, refetchOnMount: "always", refetchOnReconnect: false,
+    });
+    if (restoration.isPending || restoration.isFetching) return <AppLoadingSkeleton message="Checking your saved workout..." />;
+    if (restoration.isError || restoration.data.status === "unavailable") return <main className={styles.recovery}><section className={styles.recoveryCard} role="alert">
         <h1>Unable to restore your workout</h1>
         <p>We couldn't verify your saved workout. Your progress is still saved.</p>
-        <Button icon={RotateCcw} onClick={() => { setPhase("loading"); setAttempt(previous => previous + 1); }}>Retry</Button>
+        <Button icon={RotateCcw} onClick={() => void restoration.refetch()}>Retry</Button>
     </section></main>;
+    return <ReadyWorkoutProvider userId={userId} initialDraftId={restoration.data.draftId}>{children}</ReadyWorkoutProvider>;
+}
+
+function ReadyWorkoutProvider({ userId, initialDraftId, children }: { userId: string | null; initialDraftId: string | null; children: ReactNode }) {
+    const [currentWorkoutId, setCurrentWorkoutId] = useState(initialDraftId);
+    useEffect(() => {
+        if (userId) saveCurrentWorkoutReference(userId, currentWorkoutId);
+    }, [userId, currentWorkoutId]);
+    const value = useMemo(() => ({ currentWorkoutId, setCurrentWorkoutId }), [currentWorkoutId]);
     return <CurrentWorkoutStateProvider value={value}>
         <ScopedWorkoutTimer userId={userId}>{children}</ScopedWorkoutTimer>
     </CurrentWorkoutStateProvider>;

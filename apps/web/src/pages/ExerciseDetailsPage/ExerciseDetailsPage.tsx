@@ -1,7 +1,8 @@
 import { ArrowLeft } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { exerciseDetailOptions } from "../../query/resourceQueries";
+import { useParams, useNavigate } from "../../routes/navigationHooks";
 
 import styles from "./ExerciseDetailsPage.module.css";
 import LoadingState from "../../components/Loading/LoadingState";
@@ -11,51 +12,18 @@ import Card from "../../components/ui/cards/Card";
 import Button from "../../components/ui/button/Button";
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 
-import { getLibraryExerciseByIdRequest, getPublicExerciseByIdRequest } from "../../services/exerciseApi";
-import type { Exercise } from "@workout-app/shared";
 
 import { useAuth } from "../../context/AuthContext";
 
 export default function ExerciseDetailsPage() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuth();
+    const { user } = useAuth();
 
-    const [exercise, setExercise] = useState<Exercise | null>(null);
-    const [error, setError] = useState("");
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        if (!id) {
-            setError("Exercise details id is missing.");
-            setIsLoading(false);
-            return;
-        }
-
-        const exerciseId = id;
-
-        async function getExercise() {
-            setError("");
-            setIsLoading(true);
-
-            try {
-                const data = isAuthenticated
-                    ? await getLibraryExerciseByIdRequest(exerciseId)
-                    : await getPublicExerciseByIdRequest(exerciseId);
-                setExercise(data);
-            } catch (error) {
-                if (error instanceof Error) {
-                    setError(error.message || "Failed to fetch exercise");
-                } else {
-                    setError("Unable to complete this request. Please try again.");
-                }
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
-        getExercise();
-    }, [id, isAuthenticated]);
+    const exerciseQuery = useQuery(exerciseDetailOptions(user?._id, id ?? ""));
+    const exercise = exerciseQuery.data;
+    const error = !id ? "Exercise details id is missing." : exerciseQuery.error?.message ?? "";
+    const isLoading = !!id && exerciseQuery.isPending;
 
     if (isLoading && !exercise) {
         return (
@@ -68,7 +36,7 @@ export default function ExerciseDetailsPage() {
         );
     }
 
-    if (error || !exercise) {
+    if (!exercise) {
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>

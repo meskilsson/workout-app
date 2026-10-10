@@ -1,7 +1,9 @@
 import { ArrowLeft } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { templateKeys } from "../../query/queryClient";
+import { useNavigate } from "../../routes/navigationHooks";
 
 import Box from "../../components/ui/box/Box";
 import Card from "../../components/ui/cards/Card";
@@ -25,40 +27,17 @@ export default function TemplatesPage() {
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
 
-    const [publicTemplates, setPublicTemplates] = useState<WorkoutTemplate[]>([]);
-
-    const [error, setError] = useState("");
+    const templatesQuery = useQuery({
+        queryKey: templateKeys.public,
+        queryFn: ({ signal }) => getPublicWorkoutTemplatesRequest(signal),
+    });
+    const publicTemplates = templatesQuery.data ?? [];
+    const error = templatesQuery.error?.message ?? "";
+    const isLoading = templatesQuery.isFetching;
+    const hasLoadedOnce = !templatesQuery.isPending;
     const [actionError, setActionError] = useState("");
-    const [isLoading, setIsLoading] = useState(true);
-    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
-
-    const [startingTemplateId, setStartingTemplateId] = useState<string | null>(
-        null,
-    );
-
-    useEffect(() => {
-        async function fetchPublicTemplates() {
-            setError("");
-            setIsLoading(true);
-
-            try {
-                const publicData = await getPublicWorkoutTemplatesRequest();
-                setPublicTemplates(publicData);
-            } catch (error) {
-                if (error instanceof Error) {
-                    setError(error.message);
-                } else {
-                    setError("Unable to complete this request. Please try again.");
-                }
-            } finally {
-                setIsLoading(false);
-                setHasLoadedOnce(true);
-            }
-        }
-
-        fetchPublicTemplates();
-    }, []);
-
+    const startMutation = useMutation({ mutationFn: startWorkoutFromTemplateRequest });
+    const startingTemplateId = startMutation.isPending ? startMutation.variables : null;
     async function handleStartTemplate(templateId: string) {
         if (!isAuthenticated) {
             setActionError("You need to log in before starting a workout.");
@@ -66,10 +45,10 @@ export default function TemplatesPage() {
         }
 
         setActionError("");
-        setStartingTemplateId(templateId);
+
 
         try {
-            const draft = await startWorkoutFromTemplateRequest(templateId);
+            const draft = await startMutation.mutateAsync(templateId);
             navigate(`/workout-summary/${draft._id}`);
         } catch (error) {
             if (error instanceof Error) {
@@ -77,8 +56,6 @@ export default function TemplatesPage() {
             } else {
                 setActionError("Failed to start workout from template");
             }
-        } finally {
-            setStartingTemplateId(null);
         }
     }
 

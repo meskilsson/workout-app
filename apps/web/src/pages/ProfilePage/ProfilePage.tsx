@@ -4,7 +4,7 @@ import Card from "../../components/ui/cards/Card";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./ProfilePage.module.css";
 import Button from "../../components/ui/button/Button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "../../routes/navigationHooks";
 
 
 export default function ProfilePage() {

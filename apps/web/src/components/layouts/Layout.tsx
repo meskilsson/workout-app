@@ -1,6 +1,7 @@
 import { Mail, CodeXml, BriefcaseBusiness } from "lucide-react";
 import Icon from "../ui/icon/Icon";
-import { Outlet, useLocation, useParams } from "react-router-dom";
+import { Outlet } from "../../routes/navigation";
+import { useLocation, useParams } from "../../routes/navigationHooks";
 import { useVisibleViewport } from "../../hooks/useVisibleViewport";
 import Footer from "./Footer";
 import Navbar from "./Navbar";

@@ -40,11 +40,13 @@ function buildExerciseQueryParams({
 
 export async function getPublicExercisesRequest(
     params: GetExercisesParams,
+    signal?: AbortSignal,
 ): Promise<PaginatedExercisesResponse> {
     const queryParams = buildExerciseQueryParams(params);
 
     const response = await fetch(
         `${API_URL}/api/exercises?${queryParams.toString()}`,
+        { signal },
     );
 
     return parseJsonResponse<PaginatedExercisesResponse>(
@@ -55,12 +57,14 @@ export async function getPublicExercisesRequest(
 
 export async function getExerciseLibraryRequest(
     params: GetExercisesParams,
+    signal?: AbortSignal,
 ): Promise<PaginatedExercisesResponse> {
     const queryParams = buildExerciseQueryParams(params);
 
     const response = await fetch(
         `${API_URL}/api/exercises/library?${queryParams.toString()}`,
         {
+            signal,
             credentials: "include",
         },
     );
@@ -73,8 +77,9 @@ export async function getExerciseLibraryRequest(
 
 export async function getPublicExerciseByIdRequest(
     exerciseId: string,
+    signal?: AbortSignal,
 ): Promise<Exercise> {
-    const response = await fetch(`${API_URL}/api/exercises/${exerciseId}`);
+    const response = await fetch(`${API_URL}/api/exercises/${exerciseId}`, { signal });
 
     return parseJsonResponse<Exercise>(
         response,
@@ -84,8 +89,10 @@ export async function getPublicExerciseByIdRequest(
 
 export async function getLibraryExerciseByIdRequest(
     exerciseId: string,
+    signal?: AbortSignal,
 ): Promise<Exercise> {
     const response = await fetch(`${API_URL}/api/exercises/library/${exerciseId}`, {
+        signal,
         credentials: "include",
     });
 
@@ -98,12 +105,13 @@ export async function getLibraryExerciseByIdRequest(
 export async function getExerciseByIdRequest(
     exerciseId: string,
     isAuthenticated = false,
+    signal?: AbortSignal,
 ): Promise<Exercise> {
     if (isAuthenticated) {
-        return getLibraryExerciseByIdRequest(exerciseId);
+        return getLibraryExerciseByIdRequest(exerciseId, signal);
     }
 
-    return getPublicExerciseByIdRequest(exerciseId);
+    return getPublicExerciseByIdRequest(exerciseId, signal);
 }
 
 export async function createExerciseRequest(

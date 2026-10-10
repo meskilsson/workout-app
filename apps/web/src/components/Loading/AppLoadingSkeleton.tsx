@@ -1,4 +1,4 @@
-﻿import { useLocation } from "react-router-dom";
+import { useLocation } from "../../routes/navigationHooks";
 import LoadingState from "./LoadingState";
 import type { SkeletonLayout } from "./Skeleton";
 import styles from "./LoadingState.module.css";

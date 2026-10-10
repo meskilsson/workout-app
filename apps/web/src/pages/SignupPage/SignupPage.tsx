@@ -1,7 +1,8 @@
 import { UserPlus } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "../../routes/navigationHooks";
 
 import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
@@ -65,7 +66,8 @@ export default function SignupPage() {
     const [password, setPassword] = useState("");
     const [username, setUsername] = useState("");
     const [error, setError] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+    const signupMutation = useMutation({ mutationFn: signupRequest });
+    const isLoading = signupMutation.isPending;
     const [fieldErrors, setFieldErrors] = useState<SignupFieldErrors>({});
     const formRef = useRef<HTMLFormElement>(null);
     const focusPending = useRef(false);
@@ -81,10 +83,9 @@ export default function SignupPage() {
 
         setError("");
         setFieldErrors({});
-        setIsLoading(true);
 
         try {
-            await signupRequest({
+            await signupMutation.mutateAsync({
                 name,
                 email,
                 username,
@@ -111,8 +112,6 @@ export default function SignupPage() {
             } else {
                 setError("Unable to complete this request. Please try again.");
             }
-        } finally {
-            setIsLoading(false);
         }
     }
 

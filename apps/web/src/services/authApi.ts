@@ -62,8 +62,9 @@ export async function loginRequest(loginData: LoginInput): Promise<User> {
     return data.user;
 }
 
-export async function getMeRequest(): Promise<User | null> {
+export async function getMeRequest(signal?: AbortSignal): Promise<User | null> {
     const response = await fetch(`${API_URL}/api/auth/me`, {
+        signal,
         method: "GET",
         credentials: "include",
     });

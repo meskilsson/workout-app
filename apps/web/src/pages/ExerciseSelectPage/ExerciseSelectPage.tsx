@@ -1,21 +1,13 @@
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "../../routes/navigationHooks";
 
 import { useAuth } from "../../context/AuthContext";
 
-import {
-    getExerciseByIdRequest,
-    getExerciseLibraryRequest,
-    getPublicExercisesRequest,
-} from "../../services/exerciseApi";
-
-import {
-    addWorkoutDraftExercisesRequest,
-    getWorkoutDraftByIdRequest,
-    updateWorkoutDraftExercisesRequest,
-} from "../../services/workoutDraftApi";
+import { useQuery, useQueries, keepPreviousData } from "@tanstack/react-query";
+import { draftDetailOptions, exerciseDetailOptions, exerciseListOptions } from "../../query/resourceQueries";
+import { useDraftMutations } from "../../query/useDraftMutations";
 
 import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
@@ -68,207 +60,57 @@ function formatMuscleTitle(muscle: string) {
 }
 
 export default function ExerciseSelectPage() {
-    const { isAuthenticated } = useAuth();
+    const { user } = useAuth();
     const { draftId } = useParams();
+    const draft = useQuery(draftDetailOptions(user?._id ?? "", draftId ?? ""));
+    if (draft.isPending && draftId) return <LoadingState layout="exercises" className={styles.page} title="Exercise library" message="Loading workout draft and exercises..." />;
+    if (!draft.data) return <Box className={styles.page}><div className={styles.stateCard}><h1>Select exercises</h1><p role="alert">{draft.error?.message ?? "Missing workout draft"}</p></div></Box>;
+    return <ExerciseSelectionForm key={(user?._id ?? "") + ":" + draftId} initialDraft={draft.data} />;
+}
+
+function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft }) {
+    const { user, isAuthenticated } = useAuth();
+    const draftId = initialDraft._id;
     const navigate = useNavigate();
-
-    const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<
-        SelectedMuscleGroup[]
-    >([]);
-
-    const [includeCardio, setIncludeCardio] = useState(true);
-
-    const [draftStatus, setDraftStatus] = useState<
-        WorkoutDraft["status"] | null
-    >(null);
-
-    const [existingExerciseIds, setExistingExerciseIds] = useState<string[]>([]);
-
-    const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
-
-    const [selectedExerciseDetails, setSelectedExerciseDetails] = useState<
-        Exercise[]
-    >([]);
-
-    const [exercises, setExercises] = useState<Exercise[]>([]);
-
-    const [isLoadingExercises, setIsLoadingExercises] = useState(false);
-    const [isLoadingDraft, setIsLoadingDraft] = useState(true);
-    const [isSavingExercises, setIsSavingExercises] = useState(false);
-    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
-
-    const [exerciseError, setExerciseError] = useState("");
-    const [draftError, setDraftError] = useState("");
+    const mutations = useDraftMutations(draftId);
+    const isSavingExercises = mutations.select.isPending;
+    const selectedMuscleGroups: SelectedMuscleGroup[] = initialDraft.selectedMuscleGroups.map(id => ({ id, title: formatMuscleTitle(id) }));
+    const includeCardio = initialDraft.includeCardio ?? true;
+    const existingExerciseIds = initialDraft.exercises.map(exercise => exercise.exerciseId);
+    const isActiveWorkout = initialDraft.status === "active";
+    const [selectedExercises, setSelectedExercises] = useState<string[]>(() => isActiveWorkout ? [] : existingExerciseIds);
+    const [chosenDetails, setSelectedExerciseDetails] = useState<Exercise[]>([]);
+    const detailQueries = useQueries({ queries: [...new Set(existingExerciseIds)].map(id => exerciseDetailOptions(user?._id, id)) });
+    const selectedExerciseDetails = [...detailQueries.flatMap(query => query.data ? [query.data] : []), ...chosenDetails];
     const [actionError, setActionError] = useState("");
-
     const [searchTerm, setSearchTerm] = useState("");
     const [sort, setSort] = useState<ExerciseSort>("popular");
     const effectiveSort = sort === "mostUsed" && !isAuthenticated ? "popular" : sort;
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-
-    const [limit] = useState(12);
-    const [totalPages, setTotalPages] = useState(1);
-
-    const { page, setPage, pageTopRef, handlePageChange } =
-        usePaginationScroll<HTMLDivElement>(totalPages);
-
-    const isLoading = isLoadingExercises || isLoadingDraft;
-    const error = draftError || exerciseError || actionError;
-
-    const isActiveWorkout = draftStatus === "active";
+    const [page, setPage] = useState(1);
     const isCardioOnly = selectedMuscleGroups.length === 0;
-
-    const selectedMuscleQuery = useMemo(() => {
-        return selectedMuscleGroups.map((group) => group.id).join(",");
-    }, [selectedMuscleGroups]);
-
+    const exercisesQuery = useQuery({
+        ...exerciseListOptions(user?._id, {
+            sort: effectiveSort, page, limit: 12, search: debouncedSearchTerm,
+            ...(isCardioOnly ? { exerciseType: "cardio" as const } : { includeCardio }),
+            muscles: isActiveWorkout ? [] : initialDraft.selectedMuscleGroups,
+        }),
+        placeholderData: keepPreviousData,
+    });
+    const exercises = exercisesQuery.data?.exercises ?? [];
+    const totalPages = exercisesQuery.data?.totalPages ?? 1;
+    const { pageTopRef, handlePageChange } = usePaginationScroll<HTMLDivElement>(totalPages, { page, onPageChange: setPage });
+    const isLoadingExercises = exercisesQuery.isFetching;
+    const isLoading = exercisesQuery.isPending;
+    const hasLoadedOnce = !exercisesQuery.isPending;
+    const draftError = "";
+    const exerciseError = exercisesQuery.error?.message ?? "";
+    const error = exerciseError || actionError;
     const isEditingExistingDraft = existingExerciseIds.length > 0;
-
     useEffect(() => {
-        let cancelled = false;
-        async function loadExercises() {
-            if (isLoadingDraft) {
-                return;
-            }
-
-            setExerciseError("");
-            setIsLoadingExercises(true);
-
-            try {
-                const options = {
-                    sort: effectiveSort,
-                    page,
-                    limit,
-                    search: debouncedSearchTerm,
-                    ...(isCardioOnly ? { exerciseType: "cardio" as const } : { includeCardio }),
-                    muscles: isActiveWorkout
-                        ? []
-                        : selectedMuscleQuery ? selectedMuscleQuery.split(",") : [],
-                };
-
-                const data = isAuthenticated
-                    ? await getExerciseLibraryRequest(options)
-                    : await getPublicExercisesRequest(options);
-
-                if (cancelled) return;
-                setExercises(data.exercises);
-                setTotalPages(data.totalPages);
-            } catch (err) {
-                if (cancelled) return;
-                setExerciseError(
-                    err instanceof Error
-                        ? err.message
-                        : "Failed to load exercises",
-                );
-            } finally {
-                if (!cancelled) {
-                    setIsLoadingExercises(false);
-                    setHasLoadedOnce(true);
-                }
-            }
-        }
-
-        loadExercises();
-        return () => { cancelled = true; };
-    }, [
-        isAuthenticated,
-        page,
-        limit,
-        debouncedSearchTerm,
-        selectedMuscleQuery,
-        isActiveWorkout,
-        isCardioOnly,
-        includeCardio,
-        effectiveSort,
-        isLoadingDraft,
-    ]);
-
-    useEffect(() => {
-        async function loadDraft() {
-            if (!draftId) {
-                navigate("/workout-select");
-                return;
-            }
-
-            setDraftError("");
-            setIsLoadingDraft(true);
-
-            try {
-                const data: WorkoutDraft =
-                    await getWorkoutDraftByIdRequest(draftId);
-
-                const draftExerciseIds = data.exercises.map(
-                    (exercise) => exercise.exerciseId,
-                );
-
-                const uniqueExerciseIds = Array.from(
-                    new Set(draftExerciseIds),
-                );
-
-                const exerciseResults = await Promise.allSettled(
-                    uniqueExerciseIds.map((exerciseId) =>
-                        getExerciseByIdRequest(
-                            exerciseId,
-                            isAuthenticated,
-                        ),
-                    ),
-                );
-
-                const fullExerciseDetails = exerciseResults
-                    .filter(
-                        (
-                            result,
-                        ): result is PromiseFulfilledResult<Exercise> =>
-                            result.status === "fulfilled",
-                    )
-                    .map((result) => result.value);
-
-                setDraftStatus(data.status);
-                setIncludeCardio(data.includeCardio ?? true);
-                setExistingExerciseIds(draftExerciseIds);
-
-                setSelectedMuscleGroups(
-                    data.selectedMuscleGroups.map((muscle) => ({
-                        id: muscle,
-                        title: formatMuscleTitle(muscle),
-                    })),
-                );
-
-                setSelectedExercises(
-                    data.status === "active" ? [] : draftExerciseIds,
-                );
-
-                setSelectedExerciseDetails(fullExerciseDetails);
-            } catch (err) {
-                setDraftError(
-                    err instanceof Error
-                        ? err.message
-                        : "Failed to load workout draft",
-                );
-            } finally {
-                setIsLoadingDraft(false);
-            }
-        }
-
-        loadDraft();
-    }, [draftId, navigate, isAuthenticated]);
-
-    useEffect(() => {
-        if (!isLoadingExercises && !isLoadingDraft) {
-            setHasLoadedOnce(true);
-        }
-    }, [isLoadingExercises, isLoadingDraft]);
-
-    useEffect(() => {
-        const timeoutId = window.setTimeout(() => {
-            setDebouncedSearchTerm(searchTerm.trim());
-            setPage(1);
-        }, 300);
-
-        return () => {
-            window.clearTimeout(timeoutId);
-        };
-    }, [searchTerm, setPage]);
+        const timeoutId = window.setTimeout(() => { setDebouncedSearchTerm(searchTerm.trim()); setPage(1); }, 300);
+        return () => window.clearTimeout(timeoutId);
+    }, [searchTerm]);
 
     function handleToggleExercise(exercise: Exercise) {
         if (isSavingExercises) {
@@ -322,7 +164,7 @@ export default function ExerciseSelectPage() {
             ? [...selectedMuscleGroups.map((group) => group.title), ...(includeCardio ? ["Cardio"] : [])].join(" and ")
             : "Exercises";
 
-    const currentWorkoutExerciseCards = useMemo(() => {
+    const currentWorkoutExerciseCards = (() => {
         const exerciseMap = new Map<string, Exercise>();
 
         for (const exercise of selectedExerciseDetails) {
@@ -345,13 +187,7 @@ export default function ExerciseSelectPage() {
                 (exercise): exercise is Exercise =>
                     Boolean(exercise),
             );
-    }, [
-        existingExerciseIds,
-        exercises,
-        isActiveWorkout,
-        selectedExerciseDetails,
-        selectedExercises,
-    ]);
+    })();
 
     const hiddenExerciseIds = new Set([
         ...selectedExercises,
@@ -387,31 +223,16 @@ export default function ExerciseSelectPage() {
         }
 
         setActionError("");
-        setIsSavingExercises(true);
 
         try {
-            if (isActiveWorkout) {
-                await addWorkoutDraftExercisesRequest(draftId, {
-                    exerciseIds: selectedExercises,
-                });
-
-                navigate(`/workout/${draftId}`);
-                return;
-            }
-
-            await updateWorkoutDraftExercisesRequest(draftId, {
-                exerciseIds: selectedExercises,
-            });
-
-            navigate(`/workout-summary/${draftId}`);
+            await mutations.select.mutateAsync({ exerciseIds: selectedExercises, active: isActiveWorkout });
+            navigate(isActiveWorkout ? "/workout/" + draftId : "/workout-summary/" + draftId);
         } catch (err) {
             setActionError(
                 err instanceof Error
                     ? err.message
                     : "Failed to save selected exercises",
             );
-        } finally {
-            setIsSavingExercises(false);
         }
     }
 
