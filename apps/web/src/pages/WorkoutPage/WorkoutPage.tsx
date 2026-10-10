@@ -1,4 +1,4 @@
-import TrainingConfigForm from "../../components/training/TrainingConfigForm";
+import { finishWorkout } from "../../utils/finishWorkout";
 import CardioSession, { CARDIO_START } from "../../components/training/CardioSession";
 import type { TrainingConfig, CardioCompletion } from "@workout-app/shared";
 import { Plus, Trash2, Check, Circle, Flag, GripVertical, MoreHorizontal, ArrowUp, ArrowDown } from "lucide-react";
@@ -53,7 +53,7 @@ import {
 
 import { isInaccessibleDraftError, isWorkoutDraftResponse } from "../../utils/restoreSavedWorkout";
 import { useAuth } from "../../context/AuthContext";
-import { clearWorkoutSnapshot, restoreWorkoutSets, saveWorkoutSets, saveCardioSnapshot, workoutScope } from "../../utils/workoutProgressStorage";
+import { clearWorkoutSnapshot, restoreWorkoutSets, saveWorkoutSets, workoutScope } from "../../utils/workoutProgressStorage";
 
 import styles from "./WorkoutPage.module.css";
 
@@ -62,7 +62,6 @@ type SelectedExercise = {
     name: string;
     training?: TrainingConfig;
     cardioCompletion?: CardioCompletion;
-    revision?: number;
 };
 
 type WorkoutSet = {
@@ -115,7 +114,6 @@ type SortableWorkoutExerciseCardProps = {
     exercise: SelectedExercise;
     scope: string;
     onCardioCompletion: (result: CardioCompletion | undefined) => void;
-    onTrainingSave: (config: TrainingConfig) => Promise<void>;
     exerciseSets: WorkoutSet[];
 
     onAddSet: (exerciseId: string) => void;
@@ -149,7 +147,7 @@ type SortableWorkoutExerciseCardProps = {
 
 function SortableWorkoutExerciseCard({
     exercise,
-    scope, onCardioCompletion, onTrainingSave,
+    scope, onCardioCompletion,
     exerciseSets,
     onAddSet,
     onSetChange,
@@ -263,7 +261,7 @@ function SortableWorkoutExerciseCard({
                 </div>
             </div>
 
-            {exercise.training && exercise.training.format !== "strength" ? <CardioSession key={`${exercise.revision ?? 0}:${JSON.stringify(exercise.training)}`} scope={scope} exerciseId={exercise._id} config={exercise.training} completion={exercise.cardioCompletion} onCompletion={onCardioCompletion} /> : <div className={styles.setsList}>
+            {exercise.training && exercise.training.format !== "strength" ? <CardioSession key={JSON.stringify(exercise.training)} scope={scope} exerciseId={exercise._id} config={exercise.training} completion={exercise.cardioCompletion} onCompletion={onCardioCompletion} /> : <div className={styles.setsList}>
                 {exerciseSets.map((set, setIndex) => (
                     <div
                         key={set.id}
@@ -370,7 +368,6 @@ function SortableWorkoutExerciseCard({
                     </div>
                 ))}
             </div>}
-            <details><summary>Configure training (resets cardio progress)</summary><TrainingConfigForm key={`${exercise.revision ?? 0}:${JSON.stringify(exercise.training)}`} initial={exercise.training} onDirty={() => {}} onSave={onTrainingSave} /></details>
         </section>
     );
 }
@@ -442,6 +439,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
     const [isAbandoning, setIsAbandoning] = useState(false);
     const [isAbandonModalOpen, setIsAbandonModalOpen] = useState(false);
     const actionRequestPending = useRef(false);
+    const autosaveRequest = useRef<Promise<void> | null>(null);
 
     const [isSaving, setIsSaving] =
         useState(false);
@@ -669,41 +667,50 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             !hasUserEditedSets ||
             selectedExercises.length === 0 ||
             isRemovingExercise ||
-            isOpeningExerciseSelect
+            isOpeningExerciseSelect ||
+            isActionPending
         ) {
             return;
         }
 
         const timeoutId = window.setTimeout(
             async () => {
-                try {
-                    setIsSavingDraft(true);
+                if (actionRequestPending.current || hasEnded.current) return;
+                const previousSave = autosaveRequest.current;
+                const save = (async () => {
+                    await previousSave;
+                    try {
+                        setIsSavingDraft(true);
 
-                    for (const exercise of selectedExercises) {
-                        if (exercise.training && exercise.training.format !== "strength") continue;
-                        await updateWorkoutDraftSetsRequest(
-                            draftId,
-                            {
-                                exerciseId:
-                                    exercise._id,
+                        for (const exercise of selectedExercises) {
+                            if (actionRequestPending.current || hasEnded.current) break;
+                            if (exercise.training && exercise.training.format !== "strength") continue;
+                            await updateWorkoutDraftSetsRequest(
+                                draftId,
+                                {
+                                    exerciseId:
+                                        exercise._id,
 
-                                sets: toDraftSets(
-                                    setsByExercise[
-                                    exercise._id
-                                    ] ?? [],
-                                ),
-                            },
+                                    sets: toDraftSets(
+                                        setsByExercise[
+                                        exercise._id
+                                        ] ?? [],
+                                    ),
+                                },
+                            );
+                        }
+                    } catch (err) {
+                        setError(
+                            err instanceof Error
+                                ? err.message
+                                : "Failed to save workout progress.",
                         );
+                    } finally {
+                        setIsSavingDraft(false);
                     }
-                } catch (err) {
-                    setError(
-                        err instanceof Error
-                            ? err.message
-                            : "Failed to save workout progress.",
-                    );
-                } finally {
-                    setIsSavingDraft(false);
-                }
+                })();
+                autosaveRequest.current = save;
+                await save;
             },
             700,
         );
@@ -717,6 +724,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         setsByExercise,
         isRemovingExercise,
         isOpeningExerciseSelect,
+        isActionPending,
     ]);
 
     async function saveExerciseSets(
@@ -1142,13 +1150,14 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                 return;
             }
 
-            await saveAllExerciseSets();
-
-            const savedWorkoutSession =
-                await completeWorkoutDraftRequest(
-                    draftId,
-                );
-
+            // Drain earlier writes before saving the final values. Never retry a
+            // completion blindly: the server may have saved it despite a lost response.
+            await autosaveRequest.current;
+            const sessionId = await finishWorkout({
+                readDraft: () => getWorkoutDraftByIdRequest(draftId),
+                save: saveAllExerciseSets,
+                complete: () => completeWorkoutDraftRequest(draftId),
+            });
             hasEnded.current = true;
             clearWorkoutSnapshot(scope);
             resetWorkoutTimer();
@@ -1158,7 +1167,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             setOpenModal(false);
 
             navigate(
-                `/workout-result/${savedWorkoutSession._id}`,
+                `/workout-result/${sessionId}`,
             );
         } catch (err) {
             setError(
@@ -1242,14 +1251,6 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                             {selectedExercises.map(
                                 (exercise, index) => (
                                     <SortableWorkoutExerciseCard
-                                        onTrainingSave={async training => {
-                                            window.dispatchEvent(new CustomEvent(CARDIO_START, { detail: "configure" }));
-                                            await updateWorkoutDraftTrainingRequest(draftId!, { exerciseId: exercise._id, training });
-                                            saveCardioSnapshot(scope, exercise._id, null);
-                                            setSetsByExercise(prev => ({ ...prev, [exercise._id]: training.format === "strength" ? (prev[exercise._id]?.length ? prev[exercise._id] : [{ id: crypto.randomUUID(), weight: "", reps: "", isCompleted: false }]) : [] }));
-                                            cardioResults.current[exercise._id] = undefined;
-                                            setSelectedExercises(prev => prev.map(e => e._id === exercise._id ? { ...e, training, cardioCompletion: undefined, revision: (e.revision ?? 0) + 1 } : e));
-                                        }}
                                         scope={scope}
                                         onCardioCompletion={result => { cardioResults.current[exercise._id] = result; }}
                                         canMoveUp={index > 0 && !isReorderingExercises && !isRemovingExercise}
