@@ -423,3 +423,24 @@ h2 { font-size: var(--text-heading-md); }
 h3 { font-size: var(--text-heading-sm); }
 h1, h2, h3 { font-weight: var(--weight-semibold); line-height: var(--line-heading); }
 strong, b { font-weight: var(--weight-semibold); }
+
+/* Field feedback stays next to the existing control, without adding a panel. */
+.inline-field-error {
+  display: block;
+  grid-column: 1 / -1;
+  flex-basis: 100%;
+  margin-block: 0.375rem 0.5rem;
+  color: var(--color-danger-text);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  scroll-margin-block: 6rem;
+}
+input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] {
+  border-bottom-color: var(--color-danger-text) !important;
+}
+:root body :is(input, select, textarea)[aria-invalid="true"]:focus {
+  --color-focus: var(--color-danger-text);
+  --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--color-danger-text) 18%, transparent);
+  border-color: var(--color-danger-text) !important;
+  outline-color: var(--color-danger-text) !important;
+}

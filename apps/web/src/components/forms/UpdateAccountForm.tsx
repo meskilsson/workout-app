@@ -1,3 +1,5 @@
+import { reportFormError, friendlyError } from "../../utils/formValidation";
+import ValidatedForm from "./ValidatedForm";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authKey } from "../../query/queryClient";
@@ -34,6 +36,7 @@ function AccountDetailsForm({ initialUser }: { initialUser: User }) {
 
     async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
+        const submittedForm = e.currentTarget;
         if (isLoading) return;
 
         if (!authUser?._id) return;
@@ -52,7 +55,7 @@ function AccountDetailsForm({ initialUser }: { initialUser: User }) {
 
             setSuccess("Account updated successfully.");
         } catch (error) {
-            setError(error instanceof Error ? error.message : "Failed to update account.");
+            if (!reportFormError(submittedForm, error)) setError(friendlyError(error, "Unable to update your account. Please try again."));
         }
     }
 
@@ -61,13 +64,13 @@ function AccountDetailsForm({ initialUser }: { initialUser: User }) {
             <h2>Update account</h2>
             <p>Change your name, username, or email address.</p>
 
-            <form onSubmit={handleSubmit}>
+            <ValidatedForm onSubmit={handleSubmit}>
                 <label>
                     Name
                     <input
                         type="text"
                         autoComplete="name"
-                        value={name}
+                        name="name" required minLength={2} maxLength={50} value={name}
                         onChange={(e) => setName(e.target.value)}
                     />
                 </label>
@@ -76,7 +79,7 @@ function AccountDetailsForm({ initialUser }: { initialUser: User }) {
                     Username
                     <input
                         type="text"
-                        value={username}
+                        name="username" required minLength={3} maxLength={20} pattern="[a-zA-Z0-9_]+" data-validation-hint="Use letters, numbers, and underscores only." value={username}
                         autoComplete="username"
                         autoCapitalize="none"
                         spellCheck={false}
@@ -90,7 +93,7 @@ function AccountDetailsForm({ initialUser }: { initialUser: User }) {
                         type="email"
                         autoComplete="email"
                         autoCapitalize="none"
-                        value={email}
+                        name="email" required value={email}
                         onChange={(e) => setEmail(e.target.value)}
                     />
                 </label>
@@ -110,7 +113,7 @@ function AccountDetailsForm({ initialUser }: { initialUser: User }) {
                         "Save changes"
                     )}
                 </Button>
-            </form>
+            </ValidatedForm>
         </section>
     );
 }

@@ -25,13 +25,14 @@ function normalizeField(field: unknown): string | undefined {
     return undefined;
 }
 
-function formatValidationError(error: ApiValidationError | string): string | null {
+function formatValidationError(error: unknown): string | null {
+    if (!isRecord(error) && typeof error !== "string") return null;
     if (typeof error === "string") {
         return error;
     }
 
     const field = normalizeField(error.field ?? error.path);
-    const message = error.message;
+    const message = typeof error.message === "string" ? error.message : undefined;
 
     if (field && message) {
         return `${field}: ${message}`;
@@ -41,17 +42,11 @@ function formatValidationError(error: ApiValidationError | string): string | nul
         return message;
     }
 
-    if (field) {
-        return field;
-    }
-
     return null;
 }
 
 function getErrorMessage(data: unknown, fallbackMessage: string): string {
-    if (typeof data === "string" && data.trim()) {
-        return data;
-    }
+    if (typeof data === "string") return fallbackMessage;
 
     if (!isRecord(data)) {
         return fallbackMessage;
@@ -59,8 +54,8 @@ function getErrorMessage(data: unknown, fallbackMessage: string): string {
 
     const errorData = data as ApiErrorResponse;
 
-    const validationMessage = errorData.errors
-        ?.map(formatValidationError)
+    const validationMessage = (Array.isArray(errorData.errors) ? errorData.errors : [])
+        .map(formatValidationError)
         .filter((message): message is string => Boolean(message))
         .join("\n");
 
@@ -68,7 +63,7 @@ function getErrorMessage(data: unknown, fallbackMessage: string): string {
         return validationMessage;
     }
 
-    if (errorData.message) {
+    if (typeof errorData.message === "string" && errorData.message.trim()) {
         return errorData.message;
     }
 
@@ -100,12 +95,13 @@ export async function parseJsonResponse<T>(
             data = JSON.parse(rawText);
         } catch {
             data = rawText;
+            if (response.ok) throw new ApiRequestError(fallbackMessage, response.status, data);
         }
     }
 
     if (!response.ok) {
         throw new ApiRequestError(
-            getErrorMessage(data, fallbackMessage),
+            response.status >= 500 ? "The server could not complete your request. Please try again." : getErrorMessage(data, fallbackMessage),
             response.status,
             data,
         );

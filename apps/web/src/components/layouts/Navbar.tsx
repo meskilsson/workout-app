@@ -1,3 +1,4 @@
+import { friendlyError } from "../../utils/formValidation";
 import { Home, Dumbbell, BookOpen, Plus, UserRound, LogOut, Timer, Menu, X, History } from "lucide-react";
 import Icon from "../ui/icon/Icon";
 import { useEffect, useRef, useState } from "react";
@@ -71,7 +72,7 @@ export default function Navbar() {
       closeMenu();
       navigate("/login");
     } catch (error) {
-      setLogoutError(error instanceof Error ? error.message : "Could not log out. Please try again.");
+      setLogoutError(friendlyError(error, "Could not log out. Please try again."));
     } finally { setIsLoggingOut(false); }
   }
 

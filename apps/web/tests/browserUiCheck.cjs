@@ -34,7 +34,7 @@ let browser, ws;
  const exercises=[exercise,{...exercise,_id:'0123456789abcdef01234570',name:'Seated cable row',equipment:'cable',primaryMuscles:['back'],secondaryMuscles:['biceps']},{...exercise,_id:'0123456789abcdef01234571',name:'Dumbbell overhead shoulder press',equipment:'dumbbell',primaryMuscles:['shoulders'],secondaryMuscles:['triceps']}];
  const draft={_id:draftId,userId,status:'active',selectedMuscleGroups:['chest','back'],exercises:exercises.map((e,j)=>({exerciseId:e._id,exerciseName:e.name,sets:Array.from({length:3},(_,i)=>({id:`f8f6de5c-e305-4bba-b62b-a5375d3b79b${j*3+i}`,weight:j?25:40,reps:8+i}))}))};
  const templates=['Upper body essentials','Full body strength','Push day'].map((name,i)=>({_id:'0123456789abcdef0123458'+i,name,description:'A balanced strength session. Build consistency with focused, controlled sets.',category:'strength',isPublic:true,exercises:exercises.map((e,order)=>({_id:e._id,exerciseId:e._id,exerciseName:e.name,exercise:e,plannedSets:[{weight:40,reps:8},{weight:40,reps:8}],order}))}));
- let scenario='populated', guest=false, routePath='/', mutationDelay=0;
+ let scenario='populated', guest=false, routePath='/', mutationDelay=0, formFailure='field';
  const requestCounts = new Map();
  const workoutRequests=[]; let savedStatus='active', loseCompletion=false;
  const browserErrors=[];
@@ -48,7 +48,7 @@ let browser, ws;
    requestCounts.set(requestKey,(requestCounts.get(requestKey)||0)+1);
    const isAuth=url.pathname.includes('/auth/');
    const delay=item.request.method==='OPTIONS' ? 0 : scenario==='loading' && !isAuth ? 2200 : item.request.method!=='GET' ? mutationDelay : 150;
-   if(url.pathname.includes('/auth/me'))payload={user:guest?null:{_id:userId,name:'Alex',email:'alex@example.com',username:'alex',role:process.env.UI_CHECK_PHASE==='animation-additions'?'admin':'user'}};
+   if(url.pathname.includes('/auth/me'))payload={user:guest?null:{_id:userId,name:'Alex',email:'alex@example.com',username:'alex',role:['animation-additions','form-errors'].includes(process.env.UI_CHECK_PHASE)?'admin':'user'}};
    else if(url.pathname.includes('/auth/')) {responseCode=400;payload={message:'Check your details and try again.'};}
    else if(url.pathname.includes('/api/admin/')) { const resource=url.pathname.split('/')[3];const items=resource==='templates'?templates:resource==='sessions'?sessions:exercises;payload=items.find(x=>url.pathname.endsWith(x._id)) ?? {items,total:items.length,page:1,limit:20}; }
    else if(url.pathname.includes('/workout-sessions')){payload=sessions.find(x=>url.pathname.endsWith(x._id)) ?? (scenario==='empty'?[]:sessions); if(scenario==='empty' && !Array.isArray(payload))payload={...payload,exercises:[]};}
@@ -78,6 +78,11 @@ let browser, ws;
      if(loseCompletion) {loseCompletion=false;await send('Fetch.failRequest',{requestId:item.requestId,errorReason:'ConnectionClosed'});return;}
     }
     if(url.pathname.endsWith('/abandon'))savedStatus='abandoned';
+   }
+   if(process.env.UI_CHECK_PHASE==='form-errors' && item.request.method!=='GET' && item.request.method!=='OPTIONS') {
+    responseCode=formFailure==='server'?500:400;
+    payload=formFailure==='server'?{message:'MongoServerError: internal details'}:formFailure==='mixed'?{errors:[{field:'name',message:'Choose another name.'},{field:'unknown',message:'This record is unavailable.'}]}:formFailure==='field'?{errors:[{path:['email'],message:'Use another email address.'},{field:'name',message:'Choose another name.'}]}:{message:'Unable to save. Please try again.'};
+    if(formFailure==='network') {await send('Fetch.failRequest',{requestId:item.requestId,errorReason:'ConnectionClosed'});return;}
    }
    if(item.request.method==='OPTIONS'){responseCode=200;payload={};}
    await wait(delay);
@@ -113,7 +118,7 @@ let browser, ws;
   assert.equal(await evalValue("document.documentElement.dataset.theme"),mode);
   if(state==='populated') {assert(info.text.toLowerCase().includes(route[3].toLowerCase()),route[0]+' missing populated content: '+info.text);assert(info.heading);}
   if(state==='loading')assert(info.busy && info.shapes>0,route[0]+' missing skeleton');
-  if(state==='error')assert(info.text.includes('Unable to load'),route[0]+' missing error');
+  if(state==='error')assert(info.text.includes('The server could not complete your request'),route[0]+' missing friendly error');
   if(state==='populated' && route[0].includes('library'))assert(await evalValue("[...document.querySelectorAll('article')].every(card=>{const figure=card.querySelector('figure'),text=card.querySelector('[class*=exerciseText]');return figure && figure.getBoundingClientRect().top>=text.getBoundingClientRect().bottom && figure.getBoundingClientRect().bottom<=card.getBoundingClientRect().bottom+1})"),'Library figure overlaps or is clipped');
   const shot=await send('Page.captureScreenshot' ,{format:'png'});fs.writeFileSync(path.join(process.env.TEMP,'complete-'+route[0]+'-'+mode+'-'+width+'-'+state+'.png'),Buffer.from(shot.data,'base64'));
   console.log('PASS',route[0],mode,width,state);
@@ -131,6 +136,86 @@ let browser, ws;
   scenario='populated';await evalValue("[...document.querySelectorAll('button')].find(b=>b.textContent==='Retry').click()");await wait(1000);
   assert(await evalValue("!!document.querySelector('[aria-pressed=true]')"));
   console.log('PASS recovery retains progress and retry restores checked set',mode,width);
+ }
+ if(process.env.UI_CHECK_PHASE==='form-errors') {
+  const set = async (selector,value) => { await evalValue(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});const p=e.tagName==='SELECT'?HTMLSelectElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(p,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event(e.tagName==='SELECT'?'change':'input',{bubbles:true}));})()`);await wait(30); };
+  const submit = async (selector='form') => {await evalValue(`document.querySelector(${JSON.stringify(selector)}).requestSubmit()`);await wait(450);};
+  for(const mode of ['light','dark'])for(const width of [375,844,1440]) {
+   await visit(routes.find(r=>r[0]==='signup'),mode,width);
+   assert.equal(await evalValue('document.querySelectorAll("[aria-invalid=true]").length'),0);
+   await submit();
+   assert.equal(await evalValue('document.activeElement.id'),'name');
+   assert.equal(await evalValue('document.querySelectorAll(".inline-field-error").length'),4);
+   assert.equal(requestCounts.get('POST:/api/users')||0,0);
+   await set('#name','Alex');assert.equal(await evalValue('document.querySelector("#name").hasAttribute("aria-invalid")'),false);
+   await set('#email','not-an-email');await set('#username','ab');await set('#password','short');await submit();
+   assert.equal(await evalValue('document.activeElement.id'),'email');
+   assert.match(await evalValue('document.getElementById(document.activeElement.getAttribute("aria-describedby")).textContent'),/valid email/);
+   await set('#email','alex@example.com');await set('#username','alex');await set('#password','secret123');
+   formFailure='field';mutationDelay=700;
+   const before=requestCounts.get('POST:/api/users')||0;
+   await evalValue('document.querySelector("form").requestSubmit();document.querySelector("form").requestSubmit()');await wait(150);
+   assert(await evalValue('document.querySelector("button[type=submit]").disabled'));
+   await wait(1000);assert.equal(requestCounts.get('POST:/api/users'),before+1);
+   assert.equal(await evalValue('document.activeElement.id'),'name','API field focus follows visual order, not response order');
+   assert.equal(await evalValue('document.querySelector("#password").value'),'secret123');
+   assert.equal(await evalValue('document.querySelector("button[type=submit]").disabled'),false);
+   const visible=await evalValue('(()=>{const e=document.activeElement,r=e.getBoundingClientRect(),m=document.getElementById(e.getAttribute("aria-describedby")).getBoundingClientRect();return {top:r.top,bottom:m.bottom,height:innerHeight,overflow:document.documentElement.scrollWidth>innerWidth+1};})()');
+   assert(visible.top>=0 && visible.bottom<=visible.height && !visible.overflow,JSON.stringify(visible));
+   await set('#name','Alex Smith');assert.equal(await evalValue('document.activeElement.id'),'name');
+   await set('#email','other@example.com');
+   formFailure='server';mutationDelay=0;await submit();await wait(200);
+   assert(await evalValue('document.querySelector("form").innerText.includes("Please try again")'));
+   assert(!(await evalValue('document.body.innerText.includes("MongoServerError")')));
+   assert.equal(await evalValue('document.querySelectorAll(".inline-field-error").length'),0);
+   formFailure='network';await submit();await wait(200);
+   assert(await evalValue('document.querySelector("form").innerText.includes("Check your connection")'));
+   // A new document resets request counters used by the initial no-request assertion.
+   requestCounts.delete('POST:/api/users');
+   await visit(routes.find(r=>r[0]==='settings'),mode,width);
+   await set('#newPassword','secret123');await set('#confirmPassword','different');await set('#currentPassword','old123');
+   await submit('form:has(#newPassword)');assert.equal(await evalValue('document.activeElement.id'),'confirmPassword');
+   assert.match(await evalValue('document.getElementById(document.activeElement.getAttribute("aria-describedby")).textContent'),/same password/);
+   await set('#confirmPassword','secret123');assert.equal(await evalValue('document.querySelector("#confirmPassword").hasAttribute("aria-invalid")'),false);
+   console.log('PASS inline validation, API mapping, correction, pending, values, scroll and password confirmation',mode,width);
+  }
+  for(const mode of ['light','dark']) {
+   await visit(routes.find(r=>r[0]==='create-exercise'),mode,375);
+   await submit();assert.equal(await evalValue('document.activeElement.id'),'name');
+   await set('#name','Press');formFailure='mixed';await submit();await wait(200);
+   assert.equal(await evalValue('document.activeElement.id'),'name');
+   assert(await evalValue('document.querySelector("form").innerText.includes("This record is unavailable")'));
+   await visit(['admin-exercises','/admin/exercises',false,'Admin dashboard'],mode,375);
+   await evalValue('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==="Create shared exercise").click()');await wait(250);
+   await submit('[role=dialog] form');assert.equal(await evalValue('document.activeElement.name'),'name');
+   await evalValue('[...document.querySelectorAll("[role=dialog] button")].find(b=>b.textContent.trim()==="Cancel").click()');await wait(250);
+   await visit(['admin-templates','/admin/templates',false,'Admin dashboard'],mode,375);
+   await evalValue('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==="Create shared template").click()');await wait(250);
+   await evalValue('[...document.querySelectorAll("[role=dialog] button")].find(b=>b.textContent.trim()==="Add exercise").click()');await wait(100);
+   await set('[role=dialog] select[name$="training.format"]','intervals');
+   assert.equal(await evalValue('document.querySelectorAll(".inline-field-error").length'),0);
+   await set('[role=dialog] input[name$="training.rounds"]','0');
+   await evalValue('[...document.querySelectorAll("[role=dialog] button")].find(b=>b.textContent.trim()==="Save configuration").click()');await wait(400);
+   assert.equal(await evalValue('document.activeElement.name'),'exercises.0.training.rounds');
+   assert.equal(await evalValue('document.querySelectorAll("form form").length'),0);
+   await set('[role=dialog] input[name$="training.rounds"]','8');assert.equal(await evalValue('document.activeElement.hasAttribute("aria-invalid")'),false);
+   await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+   await visit(routes.find(r=>r[0]==='workout'),mode,375);
+   await evalValue(`document.querySelector('[aria-label="Set rest duration"]').click()`);await wait(250);
+   assert.equal(await evalValue('document.querySelectorAll(".inline-field-error").length'),0);
+   await set('[role=dialog] input[name=minutes]','0');await set('[role=dialog] input[name=seconds]','65');
+   await submit('[role=dialog] form');assert.equal(await evalValue('document.activeElement.name'),'seconds');
+   assert.match(await evalValue('document.getElementById(document.activeElement.getAttribute("aria-describedby")).textContent'),/0 and 59/);
+   await set('[role=dialog] input[name=seconds]','0');await submit('[role=dialog] form');
+   assert.match(await evalValue('document.getElementById(document.activeElement.getAttribute("aria-describedby")).textContent'),/between 1 second and 24 hours/);
+   // Correct with the on-screen keypad, whose updates do not emit native input events.
+   await evalValue('document.querySelector("input[name=minutes]").focus();[...document.querySelectorAll("[role=dialog] button")].find(b=>b.textContent.trim()==="3").click()');await wait(100);
+   assert.equal(await evalValue('document.querySelectorAll(".inline-field-error").length'),0);
+   await submit('[role=dialog] form');assert.equal(await evalValue('!!document.querySelector("[role=dialog]")'),false);
+   await send('Emulation.setEmulatedMedia',{features:[]});
+   console.log('PASS exercise/admin forms, embedded training, reduced motion and keypad corrections',mode);
+  }
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));await send('Fetch.disable');await send('Browser.close');return;
  }
  if(process.env.UI_CHECK_PHASE==='auth-design') {
   for(const mode of ['light','dark'])for(const width of [320,375,1440])for(const name of ['login','signup']) {

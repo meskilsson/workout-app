@@ -1,3 +1,4 @@
+import { friendlyError } from "../../utils/formValidation";
 import { Plus, ArrowLeft, Trash2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useState } from "react";
@@ -37,7 +38,7 @@ export default function MyTemplatesPage() {
     });
     const templates = templatesQuery.data ?? [];
     const [actionError, setError] = useState("");
-    const error = actionError || templatesQuery.error?.message || "";
+    const error = actionError || (templatesQuery.error ? friendlyError(templatesQuery.error, "Unable to load this content. Please try again.") : "");
     const isLoading = templatesQuery.isFetching;
     const hasLoadedOnce = !templatesQuery.isPending;
     const startMutation = useMutation({ mutationFn: startWorkoutFromTemplateRequest });
@@ -65,7 +66,7 @@ export default function MyTemplatesPage() {
             navigate(`/workout-summary/${draft._id}`);
         } catch (error) {
             if (error instanceof Error) {
-                setError(error.message);
+                setError(friendlyError(error));
             } else {
                 setError("Failed to start workout from template");
             }
@@ -80,7 +81,7 @@ export default function MyTemplatesPage() {
             navigate(`/exercise-select/${draft._id}`);
         } catch (error) {
             if (error instanceof Error) {
-                setError(error.message);
+                setError(friendlyError(error));
             } else {
                 setError("Failed to prepare workout for editing");
             }
@@ -97,7 +98,7 @@ export default function MyTemplatesPage() {
             setTemplateToDelete(null);
         } catch (error) {
             if (error instanceof Error) {
-                setError(error.message);
+                setError(friendlyError(error));
             } else {
                 setError("Failed to delete workout template");
             }

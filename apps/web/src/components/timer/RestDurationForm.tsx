@@ -1,3 +1,4 @@
+import ValidatedForm from "../forms/ValidatedForm";
 import { useRef, useState } from "react";
 import { Delete } from "lucide-react";
 import Button from "../ui/button/Button";
@@ -23,7 +24,7 @@ export default function RestDurationForm({ duration, disabled, onSave, onCancel 
         update(active, replaceNext.current ? digit : value + digit);
         replaceNext.current = false;
     }
-    return <form className={styles.durationForm} onSubmit={event => {
+    return <ValidatedForm className={styles.durationForm} onSubmit={event => {
         event.preventDefault();
         if (durationMs !== null && !disabled) onSave(durationMs);
     }}>
@@ -31,6 +32,7 @@ export default function RestDurationForm({ duration, disabled, onSave, onCancel 
             {(["minutes", "seconds"] as const).map(field => <label key={field} className={styles.durationField} data-active={active === field}>
                 <span>{field === "minutes" ? "Minutes" : "Seconds"}</span>
                 <input type="text" inputMode="none" pattern="[0-9]*" maxLength={field === "minutes" ? 4 : 2}
+                    name={field} data-validation-error={field === "minutes" && Number(minutes) > 1440 ? "Use no more than 1,440 minutes (24 hours)." : field === "seconds" && Number(seconds) > 59 ? "Enter seconds between 0 and 59." : field === "seconds" && durationMs === null && Number(seconds) <= 59 && Number(minutes) <= 1440 ? "Choose a duration between 1 second and 24 hours." : undefined}
                     aria-label={field === "minutes" ? "Minutes" : "Seconds"} value={field === "minutes" ? minutes : seconds}
                     onFocus={event => { setActive(field); replaceNext.current = true; event.currentTarget.select(); }}
                     onClick={event => { setActive(field); replaceNext.current = true; event.currentTarget.select(); }}
@@ -48,7 +50,7 @@ export default function RestDurationForm({ duration, disabled, onSave, onCancel 
         <p className={styles.durationHint}>Tap a field, then enter its value. Seconds must be 0-59. Your duration stays saved until you change it.</p>
         <div className={styles.durationActions}>
             <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-            <Button type="submit" disabled={durationMs === null || disabled}>Save</Button>
+            <Button type="submit" disabled={disabled}>Save</Button>
         </div>
-    </form>;
+    </ValidatedForm>;
 }

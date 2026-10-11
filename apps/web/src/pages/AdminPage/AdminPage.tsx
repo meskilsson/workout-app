@@ -1,3 +1,4 @@
+import { friendlyError } from "../../utils/formValidation";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { adminKeys } from "../../query/queryClient";
 import { useAdminMutation } from "../../query/useAdminMutation";
@@ -35,7 +36,7 @@ export default function AdminPage() {
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
   const resource = section as Resource;
   function failure(cause: unknown) {
-    setError(cause instanceof Error ? cause.message : "Request failed");
+    setError(friendlyError(cause, "Request failed"));
     if (cause instanceof ApiRequestError && [401, 403].includes(cause.status)) setAccess(cause.status);
   }
   const client = useQueryClient();
@@ -52,7 +53,7 @@ export default function AdminPage() {
   const list = query.data?.list;
   const totals = query.data?.totals;
   const loading = query.isPending;
-  const error = actionError || query.error?.message || "";
+  const error = actionError || (query.error ? friendlyError(query.error, "Unable to load this content. Please try again.") : "");
   const write = useAdminMutation((action: () => Promise<unknown>) => action());
   const busy = opening || write.isPending;
   const queryAccess = query.error instanceof ApiRequestError && [401, 403].includes(query.error.status) ? query.error.status : null;

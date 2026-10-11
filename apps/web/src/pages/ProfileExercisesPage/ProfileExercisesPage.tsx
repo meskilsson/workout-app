@@ -1,3 +1,4 @@
+import { friendlyError } from "../../utils/formValidation";
 import { cardRest, cardHover } from "../../components/motion/presets";
 import { Plus, ArrowLeft, Trash2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
@@ -42,7 +43,7 @@ export default function ProfileExercisesPage() {
     const isLoading = exercisesQuery.isFetching;
     const hasLoadedOnce = !exercisesQuery.isPending;
     const [actionError, setError] = useState("");
-    const error = actionError || exercisesQuery.error?.message || "";
+    const error = actionError || (exercisesQuery.error ? friendlyError(exercisesQuery.error, "Unable to load this content. Please try again.") : "");
     const [exerciseToDelete, setExerciseToDelete] = useState<Exercise | null>(null);
     const deleteMutation = useDeleteExerciseMutation();
     const isDeleting = deleteMutation.isPending;
@@ -58,7 +59,7 @@ export default function ProfileExercisesPage() {
             setExerciseToDelete(null);
         } catch (err) {
             if (err instanceof Error) {
-                setError(err.message);
+                setError(friendlyError(err));
             } else {
                 setError("Failed to delete exercise");
             }

@@ -1,3 +1,5 @@
+import { reportFormError, friendlyError } from "../../utils/formValidation";
+import ValidatedForm from "../../components/forms/ValidatedForm";
 import { motion } from "motion/react";
 import { useFieldMotion } from "../../components/motion/useFieldMotion";
 import { selectRest, selectFocus } from "../../components/motion/presets";
@@ -52,6 +54,7 @@ export default function CreateExercisePage() {
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        const submittedForm = e.currentTarget;
         if (isLoading) return;
         setError("");
 
@@ -69,11 +72,7 @@ export default function CreateExercisePage() {
 
             navigate("/library");
         } catch (err) {
-            if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError("Failed to create exercise");
-            }
+            if (!reportFormError(submittedForm, err)) setError(friendlyError(err, "Unable to save. Please try again."));
         }
     }
 
@@ -101,11 +100,11 @@ export default function CreateExercisePage() {
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className={styles.form}>
+                <ValidatedForm onSubmit={handleSubmit} className={styles.form}>
                     <div className={styles.field}>
                         <label htmlFor="name">Name *</label>
                         <motion.input {...fieldMotion("name", selectRest, selectFocus)}
-                            id="name"
+                            id="name" required minLength={2} maxLength={50}
                             type="text"
                             placeholder="e.g. Cable Chest Fly"
                             value={name}
@@ -251,7 +250,7 @@ export default function CreateExercisePage() {
                             )}
                         </Button>
                     </div>
-                </form>
+                </ValidatedForm>
             </Card>
         </Box>
     );

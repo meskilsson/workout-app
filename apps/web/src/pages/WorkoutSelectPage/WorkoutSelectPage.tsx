@@ -1,3 +1,4 @@
+import { friendlyError } from "../../utils/formValidation";
 import { cardRest, cardHover, selectedCard } from "../../components/motion/presets";
 import { ArrowLeft, CheckCircle2, Circle } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
@@ -89,7 +90,7 @@ export default function WorkoutSelectPage() {
       navigate(`/exercise-select/${draft._id}`);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to create workout draft",
+        friendlyError(err, "Failed to create workout draft"),
       );
     }
   }

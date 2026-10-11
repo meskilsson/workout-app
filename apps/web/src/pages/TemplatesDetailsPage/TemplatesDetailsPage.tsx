@@ -1,3 +1,4 @@
+import { friendlyError } from "../../utils/formValidation";
 import { ArrowLeft } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useParams, useNavigate } from "../../routes/navigationHooks";
@@ -50,7 +51,7 @@ export default function TemplatesDetailsPage({
     );
     const isLoading = !!id && templateQuery.isPending;
     const error = !id ? "Missing template id" : !template && templateQuery.error
-        ? templateQuery.error.message : "";
+        ? friendlyError(templateQuery.error) : "";
 
     if (isLoading && !template) {
         return (
