@@ -153,6 +153,7 @@
   --color-danger-hover: var(--red-300);
   --color-danger-soft: var(--red-50);
   --color-danger-text: var(--red-800);
+  --color-input-error: var(--color-danger-text);
   --color-on-danger: var(--red-1000);
   --color-border: var(--neutral-200);
   --color-border-soft: var(--neutral-100);
@@ -220,6 +221,7 @@
   --color-danger-hover: var(--red-200);
   --color-danger-soft: var(--red-1000);
   --color-danger-text: var(--red-100);
+  --color-input-error: var(--red-300);
   --color-on-danger: var(--red-1000);
   --color-border: var(--nord-polar-3);
   --color-border-soft: var(--nord-polar-2);
@@ -430,17 +432,17 @@ strong, b { font-weight: var(--weight-semibold); }
   grid-column: 1 / -1;
   flex-basis: 100%;
   margin-block: 0.375rem 0.5rem;
-  color: var(--color-danger-text);
+  color: var(--color-input-error);
   font-size: var(--text-sm);
   line-height: 1.5;
   scroll-margin-block: 6rem;
 }
 input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] {
-  border-bottom-color: var(--color-danger-text) !important;
+  border-bottom-color: var(--color-input-error) !important;
 }
 :root body :is(input, select, textarea)[aria-invalid="true"]:focus {
-  --color-focus: var(--color-danger-text);
-  --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--color-danger-text) 18%, transparent);
-  border-color: var(--color-danger-text) !important;
-  outline-color: var(--color-danger-text) !important;
+  --color-focus: var(--color-input-error);
+  --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--color-input-error) 18%, transparent);
+  border-color: var(--color-input-error) !important;
+  outline-color: var(--color-input-error) !important;
 }

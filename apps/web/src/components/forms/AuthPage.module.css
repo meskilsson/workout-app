@@ -21,7 +21,7 @@
 :global(:root) .field input[aria-invalid="true"] { outline: none; }
 :global(:root) body .field input[aria-invalid="true"]:focus {
   border-color: transparent !important;
-  border-bottom-color: var(--color-danger-text) !important;
+  border-bottom-color: var(--color-input-error) !important;
   box-shadow: none !important;
 }
 .fieldError { grid-column: 1 / -1; margin: 0; color: var(--color-danger-text); font-size: var(--text-xs); overflow-wrap: anywhere; }
