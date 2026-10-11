@@ -210,3 +210,14 @@
 .sessionCard { box-shadow: none; }
 
 .backButton { width: 44px !important; min-width: 44px !important; height: 44px; padding: 0; }
+
+.sessionCard {
+    --history-card-background: var(--color-surface);
+    --history-card-hover-background: var(--color-surface-light);
+    --history-card-hover-border: var(--color-primary-border);
+}
+:global(:root[data-theme="light"]) .sessionCard {
+    --history-card-background: #FFFFFF;
+    --history-card-hover-background: #FFFFFF;
+    --history-card-hover-border: var(--color-border);
+}

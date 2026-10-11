@@ -152,7 +152,7 @@ export default function ProfileWorkoutsPage() {
                         const isDeletingThisSession = deleteSessionId === session._id && isDeleting;
 
                         return (
-                            <Card key={session._id} animate={cardRest} whileHover={cardHover} className={styles.sessionCard}>
+                            <Card key={session._id} animate={{ ...cardRest, backgroundColor: "var(--history-card-background)" }} whileHover={{ ...cardHover, backgroundColor: "var(--history-card-hover-background)", borderColor: "var(--history-card-hover-border)" }} className={styles.sessionCard}>
                                 <div className={styles.sessionTopRow}>
                                     <div>
                                         <h3 className={styles.sessionTitle}>
