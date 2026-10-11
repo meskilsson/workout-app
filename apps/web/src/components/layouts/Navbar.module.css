@@ -36,3 +36,10 @@
 @media (max-height: 480px) { .mobileLinks { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 .headerControls { display: flex; align-items: center; gap: 0.5rem; }
+@media (min-width: 1201px) {
+    .headerControls { display: none; }
+    .actions {
+        position: relative;
+        inset-inline-start: max(0px, calc((100vw - var(--max-width-navigation)) / 4));
+    }
+}
