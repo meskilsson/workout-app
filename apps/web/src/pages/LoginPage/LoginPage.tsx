@@ -2,6 +2,7 @@ import { reportFormError, friendlyError } from "../../utils/formValidation";
 import ValidatedForm from "../../components/forms/ValidatedForm";
 import { motion } from "motion/react";
 import { useFieldMotion } from "../../components/motion/useFieldMotion";
+import { useReducedMotion } from "../../components/motion/useReducedMotion";
 import Icon from "../../components/ui/icon/Icon";
 
 import { ArrowRight } from "lucide-react";
@@ -15,7 +16,6 @@ import { loginRequest } from "../../services/authApi";
 
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
-import LoadingPredator from "../../components/Loading/LoadingPredator";
 import styles from "../../components/forms/AuthPage.module.css";
 
 const authRest = { backgroundColor: "var(--auth-input)", borderColor: "transparent", borderBottomColor: "var(--color-input-border)", boxShadow: "none" };
@@ -23,6 +23,7 @@ const authFocus = { ...authRest, borderBottomColor: "var(--color-focus)" };
 
 export default function LoginPage() {
     const fieldMotion = useFieldMotion(0.18);
+    const reducedMotion = useReducedMotion();
     const navigate = useNavigate();
     const { login } = useAuth();
 
@@ -53,7 +54,7 @@ export default function LoginPage() {
 
     return (
         <Box className={styles.page}>
-            <div className={styles.authWrap}>
+            <div className={styles.authWrap} aria-busy={isLoading}>
                 <div className={styles.topText}>
 
                     <h1>Log in</h1>
@@ -94,18 +95,14 @@ export default function LoginPage() {
                             </p>
                         )}
 
-                        <Button className={styles.submit} type="submit" disabled={isLoading}>
+                        <Button className={`${styles.submit} ${styles.loginButton}`} type="submit" disabled={isLoading} aria-busy={isLoading}>
+                {isLoading && !reducedMotion && <span className={styles.loginWaveClip} aria-hidden="true">
+                    <motion.span className={styles.loginWave}
+                        initial={{ x: "0%" }} animate={{ x: "280%" }}
+                        transition={{ duration: 1.15, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.2 }} />
+                </span>}
                             <span className={styles.submitLabel}>
-                            {isLoading ? (
-                                <LoadingPredator
-                                    size="small"
-                                    color="currentColor"
-                                    label="Logging in..."
-                                    showLabel
-                                />
-                            ) : (
-                                "Log in"
-                            )}
+                            {isLoading ? <span role="status">Logging in...</span> : "Log in"}
                             </span><span className={styles.submitArrow}><Icon icon={ArrowRight} /></span>
                         </Button>
                     </ValidatedForm>
