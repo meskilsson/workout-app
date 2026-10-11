@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDownUp } from "lucide-react";
 import { EXERCISE_TYPE_OPTIONS, EQUIPMENT_OPTIONS, DIFFICULTY_OPTIONS, MUSCLE_OPTIONS, type ExerciseFilters, type ExerciseSort } from "@workout-app/shared";
 import { displayValue } from "../../i18n";
 import Button from "../ui/button/Button";
-import Modal from "../ui/modal/Modal";
 import styles from "./ExerciseSortControl.module.css";
 
 export default function ExerciseSortControl({ value, onChange, authenticated, filters, onFiltersChange }: {
@@ -13,41 +12,75 @@ export default function ExerciseSortControl({ value, onChange, authenticated, fi
 }) {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
+    const id = useId();
+    const root = useRef<HTMLDivElement>(null);
+    const activeCount = Object.values(filters).filter(value => Array.isArray(value) ? value.length : value).length;
+    useEffect(() => {
+        if (!open) return;
+        const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setOpen(false); };
+        const escape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setOpen(false);
+                root.current?.querySelector('button')?.focus();
+            }
+        };
+        document.addEventListener("pointerdown", outside);
+        document.addEventListener("keydown", escape);
+        return () => {
+            document.removeEventListener("pointerdown", outside);
+            document.removeEventListener("keydown", escape);
+        };
+    }, [open]);
     const options: { value: ExerciseSort; label: string; description: string }[] = [
         { value: "name", label: t("ExerciseSelectPage.nameAZ"), description: t("ExerciseSelectPage.alphabeticalOrder") },
         { value: "popular", label: t("common.mostPopular"), description: t("ExerciseSelectPage.mostCompletedAcrossAllUsers") },
         ...(authenticated ? [{ value: "mostUsed" as const, label: t("common.myMostUsed"), description: t("ExerciseSelectPage.mostCompletedInYourWorkouts") }] : []),
     ];
-    return <>
+    return <div className={styles.control} ref={root}>
         <Button type="button" variant="ghost" className={styles.trigger} icon={ArrowDownUp}
-            aria-haspopup="dialog" aria-expanded={open}
-            aria-label={t("ExerciseSelectPage.sortExercisesValue", { value0: options.find(option => option.value === value)?.label })}
-            onClick={() => setOpen(true)}>{t("exercises.sortAndFilter")}{Object.values(filters).filter(value => Array.isArray(value) ? value.length : value).length > 0 ? ` (${Object.values(filters).filter(value => Array.isArray(value) ? value.length : value).length})` : ""}</Button>
-        <Modal title={t("exercises.sortAndFilter")} isOpen={open} onClose={() => setOpen(false)}>
-            <div className={styles.filters}>
-                {([
-                    ["exerciseType", "exercises.type", EXERCISE_TYPE_OPTIONS],
-                    ["equipment", "exercises.equipment", EQUIPMENT_OPTIONS],
-                    ["difficulty", "exercises.difficulty", DIFFICULTY_OPTIONS],
-                    ["muscles", "exercises.muscle", MUSCLE_OPTIONS],
-                ] as const).map(([key, label, values]) => <label key={key}>
-                    {t(label)}
-                    <select value={key === "muscles" ? filters.muscles?.[0] ?? "" : filters[key] ?? ""}
-                        onChange={event => onFiltersChange({ ...filters, [key]: key === "muscles" ? (event.target.value ? [event.target.value] : []) : event.target.value || undefined })}>
-                        <option value="">{t("exercises.all")}</option>
-                        {values.map(option => <option key={option} value={option}>{displayValue(option).charAt(0).toLocaleUpperCase() + displayValue(option).slice(1)}</option>)}
-                    </select>
-                </label>)}
-                <Button type="button" variant="ghost" onClick={() => onFiltersChange({})}>{t("exercises.clearFilters")}</Button>
-            </div>
-            <fieldset className={styles.options}>
+            aria-expanded={open} aria-controls={id}
+            onClick={() => setOpen(previous => !previous)}>
+            {t("exercises.sortAndFilter")}{activeCount ? ` (${activeCount})` : ""}
+        </Button>
+        {open && <section id={id} className={styles.panel} aria-label={t("exercises.sortAndFilter")}>
+            <fieldset className={styles.group}>
                 <legend>{t("ExerciseSelectPage.orderExercisesBy")}</legend>
-                {options.map(option => <label className={styles.option} key={option.value}>
-                    <input type="radio" name="exercise-sort" value={option.value} checked={value === option.value}
-                        onChange={() => { onChange(option.value); setOpen(false); }} />
-                    <span>{option.label}<small>{option.description}</small></span>
-                </label>)}
+                <div className={styles.choices}>
+                    {options.map(option => <label className={styles.choice} key={option.value} title={option.description}>
+                        <input type="radio" name={`${id}-sort`} value={option.value} checked={value === option.value}
+                            onChange={() => onChange(option.value)} />
+                        <span>{option.label}</span>
+                    </label>)}
+                </div>
             </fieldset>
-        </Modal>
-    </>;
+            {([
+                ["exerciseType", "exercises.type", EXERCISE_TYPE_OPTIONS],
+                ["equipment", "exercises.equipment", EQUIPMENT_OPTIONS],
+                ["difficulty", "exercises.difficulty", DIFFICULTY_OPTIONS],
+                ["muscles", "exercises.muscle", MUSCLE_OPTIONS],
+            ] as const).map(([key, label, values]) => <fieldset className={styles.group} key={key}>
+                <legend>{t(label)}</legend>
+                <div className={styles.choices}>
+                    {key !== "muscles" && <label className={styles.choice}>
+                        <input type="radio" name={`${id}-${key}`} checked={!filters[key]}
+                            onChange={() => onFiltersChange({ ...filters, [key]: undefined })} />
+                        <span>{t("exercises.all")}</span>
+                    </label>}
+                    {values.map(option => <label className={styles.choice} key={option}>
+                        <input type={key === "muscles" ? "checkbox" : "radio"} name={`${id}-${key}`} value={option}
+                            checked={key === "muscles" ? filters.muscles?.some(muscle => muscle === option) ?? false : filters[key] === option}
+                            onChange={event => {
+                                if (key === "muscles") {
+                                    const muscles = filters.muscles ?? [];
+                                    onFiltersChange({ ...filters, muscles: event.target.checked
+                                        ? [...muscles, option as typeof muscles[number]] : muscles.filter(muscle => muscle !== option) });
+                                } else onFiltersChange({ ...filters, [key]: option });
+                            }} />
+                        <span>{displayValue(option).charAt(0).toLocaleUpperCase() + displayValue(option).slice(1)}</span>
+                    </label>)}
+                </div>
+            </fieldset>)}
+            <Button type="button" variant="ghost" disabled={!activeCount} onClick={() => onFiltersChange({})}>{t("exercises.clearFilters")}</Button>
+        </section>}
+    </div>;
 }
