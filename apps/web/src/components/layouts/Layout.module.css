@@ -137,3 +137,12 @@
 
 .skipLink { position: fixed; top: 0.5rem; left: 1rem; z-index: 1100; padding: 0.75rem 1rem; background: var(--color-surface); border: 2px solid var(--color-focus); border-radius: var(--radius-sm); transform: translateY(-200%); }
 .skipLink:focus { transform: translateY(0); }
+
+.sessionNotice {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  color: var(--color-danger-text);
+  background: var(--color-surface);
+  text-align: center;
+  font-size: 0.875rem;
+}

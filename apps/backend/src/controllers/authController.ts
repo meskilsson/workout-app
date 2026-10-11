@@ -2,11 +2,23 @@ import { Request, Response, NextFunction } from "express";
 import * as authService from "../services/authService";
 import { signAccessToken } from "../utils/jwt";
 import User from "../models/User";
+import { createRefreshSession, rotateRefreshSession, revokeRefreshSession, refreshLifetime } from "../services/refreshSessionService";
 import { UnauthorizedError } from "../errors/AppError";
 
 
 
 const isProduction = process.env.NODE_ENV === "production";
+const cookieOptions = { httpOnly: true, secure: isProduction, sameSite: isProduction ? "none" as const : "lax" as const };
+function clearAuthCookies(res: Response) {
+    res.clearCookie("token", { ...cookieOptions, path: "/" });
+    res.clearCookie("refreshToken", { ...cookieOptions, path: "/api/auth" });
+}
+function setAccessCookie(res: Response, user: { _id: { toString(): string }; email: string; role: "user" | "admin" }) {
+    const token = signAccessToken({ id: user._id.toString(), email: user.email, role: user.role });
+    res.cookie("token", token, { ...cookieOptions, path: "/", maxAge: 24 * 60 * 60 * 1000 });
+    res.setHeader("Cache-Control", "no-store");
+    return token;
+}
 
 export async function loginUser(
     req: Request,
@@ -22,18 +34,10 @@ export async function loginUser(
             throw new UnauthorizedError("Invalid email or password");
         }
 
-        const token = signAccessToken({
-            id: user._id.toString(),
-            email: user.email,
-            role: user.role,
-        });
-
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: isProduction ? "none" : "lax",
-            maxAge: 1000 * 60 * 60 * 24,
-        });
+        const refreshToken = await createRefreshSession(user._id.toString());
+        await revokeRefreshSession(req.cookies?.refreshToken);
+        const token = setAccessCookie(res, user);
+        res.cookie("refreshToken", refreshToken, { ...cookieOptions, path: "/api/auth", maxAge: refreshLifetime });
 
         res.status(200).json({ user, token });
     } catch (error) {
@@ -63,15 +67,31 @@ export async function getMe(
     }
 }
 
-export async function logoutUser(
-    _req: Request,
-    res: Response,
-): Promise<void> {
-    res.clearCookie("token", {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? "none" : "lax",
-    });
+export async function refreshUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+    // A cross-origin HTML form cannot supply this header; CORS restricts permitted origins.
+    if (req.get("X-Auth-Refresh") !== "1") {
+        res.status(403).json({ message: "Forbidden" });
+        return;
+    }
+    try {
+        const token = req.cookies?.refreshToken;
+        const session = typeof token === "string" && /^[a-f0-9]{64}$/.test(token)
+            ? await rotateRefreshSession(token) : null;
+        if (!session) {
+            clearAuthCookies(res);
+            res.status(401).json({ code: "SESSION_EXPIRED", message: "Unauthorized" });
+            return;
+        }
+        setAccessCookie(res, session.user);
+        res.cookie("refreshToken", session.token, { ...cookieOptions, path: "/api/auth", expires: session.expiresAt });
+        res.status(200).json({ user: session.user });
+    } catch (error) { next(error); }
+}
 
-    res.status(200).json({ message: "Logged out" });
+export async function logoutUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+        await revokeRefreshSession(req.cookies?.refreshToken);
+        clearAuthCookies(res);
+        res.status(200).json({ message: "Logged out" });
+    } catch (error) { next(error); }
 }

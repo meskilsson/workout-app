@@ -60,7 +60,7 @@ export async function createExercise(
 
 
 
-export async function getPublicExercises({ page, limit, search, muscles, sort, exerciseType, includeCardio }: GetExercisesOptions) {
+export async function getPublicExercises({ page, limit, search, muscles, sort, exerciseType, equipment, difficulty, includeCardio }: GetExercisesOptions) {
     if (sort === "mostUsed") {
         throw new ValidationError("My most used requires the authenticated exercise library");
     }
@@ -74,6 +74,8 @@ export async function getPublicExercises({ page, limit, search, muscles, sort, e
     ];
 
     if (exerciseType) filters.push({ exerciseType });
+    if (equipment) filters.push({ equipment });
+    if (difficulty) filters.push({ difficulty });
 
     if (muscles && muscles.length > 0) {
         filters.push(buildMuscleFilter(muscles, includeCardio));
@@ -91,7 +93,7 @@ export async function getPublicExercises({ page, limit, search, muscles, sort, e
     return findPaginatedExercises(filter, page, limit, sort);
 }
 
-export async function getExerciseLibrary(userId: string, { page, limit, search, muscles, sort, exerciseType, includeCardio }: GetExercisesOptions) {
+export async function getExerciseLibrary(userId: string, { page, limit, search, muscles, sort, exerciseType, equipment, difficulty, includeCardio }: GetExercisesOptions) {
     const filters: Record<string, unknown>[] = [
         {
             $or: [
@@ -103,6 +105,8 @@ export async function getExerciseLibrary(userId: string, { page, limit, search, 
 
 
     if (exerciseType) filters.push({ exerciseType });
+    if (equipment) filters.push({ equipment });
+    if (difficulty) filters.push({ difficulty });
 
     if (muscles && muscles.length > 0) {
         filters.push(buildMuscleFilter(muscles, includeCardio));

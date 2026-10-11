@@ -263,7 +263,7 @@ test("a draft owned by another user never restores", async () => {
     assert.equal(localStorage.getItem(`${scope}:sets`), null);
 });
 
-for (const error of [new TypeError("Failed to fetch"), Object.assign(new Error("server"), { status: 503 }), Object.assign(new Error("rate limit"), { status: 429 })]) {
+for (const error of [Object.assign(new Error("expired session"), { status: 401 }), new TypeError("Failed to fetch"), Object.assign(new Error("server"), { status: 503 }), Object.assign(new Error("rate limit"), { status: 429 })]) {
     test(`temporary failure (${error.message}) retains all progress and retry succeeds`, async () => {
         const userId = `retry-${error.message}`;
         savedProgress(userId);

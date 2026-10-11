@@ -19,7 +19,7 @@ import { exerciseListOptions } from "../../query/resourceQueries";
 import Box from "../../components/ui/box/Box";
 
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
-import type { ExerciseSort } from "@workout-app/shared";
+import type { ExerciseFilters, ExerciseSort } from "@workout-app/shared";
 import { usePaginationScroll } from "../../hooks/usePaginationScroll";
 import Button from "../../components/ui/button/Button";
 import { useNavigate } from "../../routes/navigationHooks";
@@ -41,6 +41,7 @@ export default function LibraryPage() {
 
 
     const [searchTerm, setSearchTerm] = useState("");
+    const [filters, setFilters] = useState<ExerciseFilters>({});
     const [sort, setSort] = useState<ExerciseSort>("popular");
     const effectiveSort = sort === "mostUsed" && !isAuthenticated ? "popular" : sort;
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -49,7 +50,7 @@ export default function LibraryPage() {
     const limit = 12;
     const [page, setPage] = useState(1);
     const exercisesQuery = useQuery({
-        ...exerciseListOptions(user?._id, { sort: effectiveSort, page, limit, search: debouncedSearchTerm }),
+        ...exerciseListOptions(user?._id, { ...filters, includeCardio: false, sort: effectiveSort, page, limit, search: debouncedSearchTerm }),
         placeholderData: (previous, previousQuery) =>
             previousQuery?.queryKey[1] === (user?._id ?? "public") ? keepPreviousData(previous) : undefined,
     });
@@ -126,7 +127,7 @@ export default function LibraryPage() {
                     <Icon icon={ArrowLeft} />
                 </Button>
                 <div className={styles.searchControls}>
-                <label className={styles.searchLabel}> {t("common.searchExercises")} <motion.input {...fieldMotion("search", searchRest, searchFocus)}
+                <label className={styles.searchLabel}> {t("common.searchExercises")} <motion.input {...fieldMotion("search", { ...searchRest, backgroundColor: "var(--exercise-search-background)" }, { ...searchFocus, backgroundColor: "var(--exercise-search-background)" })}
                     className={styles.searchInput}
                     aria-label={t("common.searchExercises")}
                     type="search"
@@ -135,7 +136,7 @@ export default function LibraryPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 </label>
-                <ExerciseSortControl value={effectiveSort} authenticated={isAuthenticated}
+                <ExerciseSortControl filters={filters} onFiltersChange={value => { setFilters(value); setPage(1); }} value={effectiveSort} authenticated={isAuthenticated}
                     onChange={value => { setSort(value); setPage(1); }} />
                 </div>
                 {effectiveSort !== "name" && (

@@ -179,17 +179,15 @@
 
 .exerciseCard:hover {
 
-    border-color: var(--color-primary-border);
+    border-color: var(--color-border);
     box-shadow: none;
 }
 
 .selectedCard {
-    border-color: var(--color-accent);
+    border-color: var(--color-border);
     background: var(--color-selection);
 
-    box-shadow:
-        0 0 0 3px var(--color-accent-soft),
-        var(--shadow-md);
+    box-shadow: none;
 }
 
 .existingCard {
@@ -773,3 +771,6 @@
     .muscleInfo > div { grid-template-columns: minmax(0, 1fr); gap: 0.15rem; }
     .exerciseMeta span, .primaryTag, .secondaryTag { max-width: 100%; overflow-wrap: anywhere; }
 }
+
+.searchInput { --exercise-search-background: var(--color-surface); }
+:global(:root[data-theme="light"]) .searchInput { --exercise-search-background: #FFFFFF; }

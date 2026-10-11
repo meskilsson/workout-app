@@ -1,3 +1,4 @@
+import RefreshSession from "../models/RefreshSession";
 import User from "../models/User";
 import bcrypt from "bcrypt";
 import {
@@ -220,6 +221,7 @@ export async function changePasswordService(
   user.passwordHash = await bcrypt.hash(newPassword, 10);
 
   await user.save();
+  await RefreshSession.deleteMany({ userId });
 
   return {
     message: "Password updated successfully",

@@ -1,3 +1,4 @@
+import { apiFetch } from "../utils/apiFetch";
 import { t } from "../i18n";
 import { activateWorkoutDraftRequest } from "./workoutDraftApi";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -25,7 +26,7 @@ type CreateWorkoutSessionInput = {
 export async function createWorkoutSessionRequest(
     sessionData: CreateWorkoutSessionInput,
 ) {
-    const response = await fetch(`${API_URL}/api/workout-sessions`, {
+    const response = await apiFetch(`${API_URL}/api/workout-sessions`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -38,7 +39,7 @@ export async function createWorkoutSessionRequest(
 }
 
 export async function getMyWorkoutSessionsRequest(signal?: AbortSignal): Promise<WorkoutSession[]> {
-    const response = await fetch(`${API_URL}/api/workout-sessions/me`, {
+    const response = await apiFetch(`${API_URL}/api/workout-sessions/me`, {
         signal,
         credentials: "include",
     });
@@ -47,7 +48,7 @@ export async function getMyWorkoutSessionsRequest(signal?: AbortSignal): Promise
 }
 
 export async function getWorkoutSessionByIdRequest(sessionId: string, signal?: AbortSignal): Promise<WorkoutSession> {
-    const response = await fetch(`${API_URL}/api/workout-sessions/${sessionId}`, {
+    const response = await apiFetch(`${API_URL}/api/workout-sessions/${sessionId}`, {
         signal,
         credentials: "include",
     });
@@ -58,7 +59,7 @@ export async function getWorkoutSessionByIdRequest(sessionId: string, signal?: A
 export async function repeatWorkoutSessionRequest(
     sessionId: string,
 ): Promise<RepeatWorkoutDraftResponse> {
-    const response = await fetch(`${API_URL}/api/workout-sessions/${sessionId}/repeat`,
+    const response = await apiFetch(`${API_URL}/api/workout-sessions/${sessionId}/repeat`,
         {
             method: "POST",
             credentials: "include",
@@ -75,7 +76,7 @@ export async function repeatWorkoutSessionRequest(
 export async function deleteWorkoutSessionRequest(
     sessionId: string,
 ): Promise<WorkoutSession> {
-    const response = await fetch(
+    const response = await apiFetch(
         `${API_URL}/api/workout-sessions/${sessionId}`,
         {
             method: "DELETE",

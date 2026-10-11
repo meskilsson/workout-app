@@ -1,3 +1,4 @@
+import { apiFetch } from "../utils/apiFetch";
 import { t } from "../i18n";
 import type { UpdateUserBody } from "@workout-app/shared";
 import { parseJsonResponse } from "../utils/parseJsonResponse";
@@ -18,7 +19,7 @@ type MessageResponse = {
 };
 
 export async function getAllUsersRequest(): Promise<UserResponse[]> {
-    const response = await fetch(`${API_URL}/api/users`, {
+    const response = await apiFetch(`${API_URL}/api/users`, {
         credentials: "include",
     });
 
@@ -29,7 +30,7 @@ export async function getAllUsersRequest(): Promise<UserResponse[]> {
 }
 
 export async function getUserByIdRequest(id: string): Promise<UserResponse> {
-    const response = await fetch(`${API_URL}/api/users/${id}`, {
+    const response = await apiFetch(`${API_URL}/api/users/${id}`, {
         credentials: "include",
     });
 
@@ -43,7 +44,7 @@ export async function updateUserRequest(
     id: string,
     userData: UpdateUserBody,
 ): Promise<UserResponse> {
-    const response = await fetch(`${API_URL}/api/users/${id}`, {
+    const response = await apiFetch(`${API_URL}/api/users/${id}`, {
         method: "PATCH",
         credentials: "include",
         headers: {
@@ -65,7 +66,7 @@ export async function changePasswordRequest(
         newPassword: string;
     },
 ): Promise<MessageResponse> {
-    const response = await fetch(`${API_URL}/api/users/${id}/password`, {
+    const response = await apiFetch(`${API_URL}/api/users/${id}/password`, {
         method: "PATCH",
         credentials: "include",
         headers: {
@@ -81,7 +82,7 @@ export async function changePasswordRequest(
 }
 
 export async function deleteUserRequest(userId: string): Promise<MessageResponse> {
-    const response = await fetch(`${API_URL}/api/users/${userId}`, {
+    const response = await apiFetch(`${API_URL}/api/users/${userId}`, {
         method: "DELETE",
         credentials: "include",
     });

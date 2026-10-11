@@ -1,3 +1,4 @@
+import { apiFetch, rememberSession, waitForSessionRenewal } from "../utils/apiFetch";
 import { t } from "../i18n";
 import { parseJsonResponse } from "../utils/parseJsonResponse";
 
@@ -33,7 +34,7 @@ type MessageResponse = {
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export async function signupRequest(signupData: SignupInput): Promise<User> {
-    const response = await fetch(`${API_URL}/api/users`, {
+    const response = await apiFetch(`${API_URL}/api/users`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -46,7 +47,8 @@ export async function signupRequest(signupData: SignupInput): Promise<User> {
 }
 
 export async function loginRequest(loginData: LoginInput): Promise<User> {
-    const response = await fetch(`${API_URL}/api/auth/login`, {
+    await waitForSessionRenewal();
+    const response = await apiFetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -60,11 +62,12 @@ export async function loginRequest(loginData: LoginInput): Promise<User> {
         t("authApi.loginFailed"),
     );
 
+    if (data.user) rememberSession();
     return data.user;
 }
 
 export async function getMeRequest(signal?: AbortSignal): Promise<User | null> {
-    const response = await fetch(`${API_URL}/api/auth/me`, {
+    const response = await apiFetch(`${API_URL}/api/auth/me`, {
         signal,
         method: "GET",
         credentials: "include",
@@ -79,11 +82,13 @@ export async function getMeRequest(signal?: AbortSignal): Promise<User | null> {
         t("authApi.failedToFetchCurrentUser"),
     );
 
+    if (data.user) rememberSession();
     return data.user;
 }
 
 export async function logoutRequest(): Promise<MessageResponse> {
-    const response = await fetch(`${API_URL}/api/auth/logout`, {
+    await waitForSessionRenewal();
+    const response = await apiFetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
     });

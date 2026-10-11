@@ -6,7 +6,7 @@ export type WorkoutRestoration =
 
 export function isInaccessibleDraftError(error: unknown): boolean {
     return !!error && typeof error === "object" && "status" in error
-        && [400, 401, 403, 404, 410].includes(Number(error.status));
+        && [400, 403, 404, 410].includes(Number(error.status));
 }
 
 export async function restoreSavedWorkout(

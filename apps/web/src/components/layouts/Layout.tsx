@@ -1,3 +1,4 @@
+import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { t } from "../../i18n";
 import workoutPalette from "../../pages/WorkoutPage/WorkoutPalette.module.css";
@@ -19,6 +20,7 @@ import styles from "./Layout.module.css";
 import WebRestTimerProvider from "../timer/WebRestTimerProvider";
 
 export default function Layout() {
+    const { sessionExpired } = useAuth();
     const { i18n } = useTranslation();
     const language = i18n.resolvedLanguage;
     const previousLanguage = useRef(language);
@@ -43,6 +45,7 @@ export default function Layout() {
     <WebRestTimerProvider>
       <motion.div ref={layoutRef} initial={false} animate={languageAnimation} className={`${styles.appLayout} ${isWorkoutPage ? workoutPalette.palette : ""}`}>
         <Navbar />
+        {sessionExpired && <p role="status" className={styles.sessionNotice}>{t("auth.sessionExpired")}</p>}
         <a href="#main-content" className={styles.skipLink}>{t("Layout.skipToContent")}</a>
 
         <LoadingHandoff className={styles.main}>

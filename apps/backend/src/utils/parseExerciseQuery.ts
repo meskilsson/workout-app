@@ -1,6 +1,7 @@
 import { Request } from "express";
 import {
-    MUSCLE_OPTIONS,
+    MUSCLE_OPTIONS, EQUIPMENT_OPTIONS, DIFFICULTY_OPTIONS,
+    type Equipment, type Difficulty,
     EXERCISE_TYPE_OPTIONS,
     type ExerciseType,
     muscleSearchAliases,
@@ -11,6 +12,8 @@ import {
 import { ValidationError } from "../errors/AppError";
 
 export type ExerciseQueryOptions = {
+    equipment?: Equipment;
+    difficulty?: Difficulty;
     includeCardio?: boolean;
     exerciseType?: ExerciseType;
     sort?: ExerciseSort;
@@ -65,6 +68,10 @@ function normalizeMuscles(rawMuscles: string[]): Muscle[] {
 }
 
 export function parseExerciseQuery(req: Request): ExerciseQueryOptions {
+    const equipment = req.query.equipment;
+    const difficulty = req.query.difficulty;
+    if (equipment !== undefined && (typeof equipment !== "string" || !EQUIPMENT_OPTIONS.includes(equipment as Equipment))) throw new ValidationError("Invalid equipment");
+    if (difficulty !== undefined && (typeof difficulty !== "string" || !DIFFICULTY_OPTIONS.includes(difficulty as Difficulty))) throw new ValidationError("Invalid difficulty");
     const includeCardio = req.query.includeCardio;
     if (includeCardio !== undefined && includeCardio !== "true" && includeCardio !== "false") throw new ValidationError("includeCardio must be true or false");
     const exerciseType = req.query.exerciseType;
@@ -110,6 +117,8 @@ export function parseExerciseQuery(req: Request): ExerciseQueryOptions {
     const muscles = normalizeMuscles(rawMuscles);
 
     return {
+        ...(equipment ? { equipment: equipment as Equipment } : {}),
+        ...(difficulty ? { difficulty: difficulty as Difficulty } : {}),
         sort,
         page,
         limit,

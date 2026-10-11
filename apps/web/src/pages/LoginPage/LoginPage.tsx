@@ -57,7 +57,7 @@ export default function LoginPage() {
 
     return (
         <Box className={styles.page}>
-            <div className={styles.authWrap} aria-busy={isLoading}>
+            <div className={`${styles.authWrap} ${styles.loginCard}`} aria-busy={isLoading}>
                 <div className={styles.topText}>
 
                     <h1>{t("common.logIn")}</h1>

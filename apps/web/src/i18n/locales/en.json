@@ -717,5 +717,14 @@
   "fields.weight": "Weight",
   "fields.restSeconds": "Rest (seconds)",
   "drag.role": "sortable exercise",
-  "TemplatesPage.browseWorkouts": "Browse workouts"
+  "TemplatesPage.browseWorkouts": "Browse workouts",
+  "auth.sessionExpired": "Your session has expired. Please log in again. Your saved workout progress is still available.",
+  "auth.sessionUnavailable": "Unable to renew your session right now. Please try again.",
+  "exercises.sortAndFilter": "Sort & filter",
+  "exercises.type": "Exercise type",
+  "exercises.equipment": "Equipment",
+  "exercises.difficulty": "Difficulty",
+  "exercises.muscle": "Muscle",
+  "exercises.all": "All",
+  "exercises.clearFilters": "Clear filters"
 }

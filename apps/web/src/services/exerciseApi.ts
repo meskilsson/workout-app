@@ -1,3 +1,4 @@
+import { apiFetch } from "../utils/apiFetch";
 import { t } from "../i18n";
 import type {
     PaginatedExercisesResponse,
@@ -18,6 +19,8 @@ function buildExerciseQueryParams({
     muscles = [],
     sort = "name",
     exerciseType,
+    equipment,
+    difficulty,
     includeCardio,
 }: GetExercisesParams) {
     const params = new URLSearchParams();
@@ -25,6 +28,8 @@ function buildExerciseQueryParams({
     params.set("page", String(page));
     params.set("limit", String(limit));
     params.set("sort", sort);
+    if (equipment) params.set("equipment", equipment);
+    if (difficulty) params.set("difficulty", difficulty);
     if (exerciseType) params.set("exerciseType", exerciseType);
     if (includeCardio !== undefined) params.set("includeCardio", String(includeCardio));
 
@@ -45,7 +50,7 @@ export async function getPublicExercisesRequest(
 ): Promise<PaginatedExercisesResponse> {
     const queryParams = buildExerciseQueryParams(params);
 
-    const response = await fetch(
+    const response = await apiFetch(
         `${API_URL}/api/exercises?${queryParams.toString()}`,
         { signal },
     );
@@ -62,7 +67,7 @@ export async function getExerciseLibraryRequest(
 ): Promise<PaginatedExercisesResponse> {
     const queryParams = buildExerciseQueryParams(params);
 
-    const response = await fetch(
+    const response = await apiFetch(
         `${API_URL}/api/exercises/library?${queryParams.toString()}`,
         {
             signal,
@@ -80,7 +85,7 @@ export async function getPublicExerciseByIdRequest(
     exerciseId: string,
     signal?: AbortSignal,
 ): Promise<Exercise> {
-    const response = await fetch(`${API_URL}/api/exercises/${exerciseId}`, { signal });
+    const response = await apiFetch(`${API_URL}/api/exercises/${exerciseId}`, { signal });
 
     return parseJsonResponse<Exercise>(
         response,
@@ -92,7 +97,7 @@ export async function getLibraryExerciseByIdRequest(
     exerciseId: string,
     signal?: AbortSignal,
 ): Promise<Exercise> {
-    const response = await fetch(`${API_URL}/api/exercises/library/${exerciseId}`, {
+    const response = await apiFetch(`${API_URL}/api/exercises/library/${exerciseId}`, {
         signal,
         credentials: "include",
     });
@@ -118,7 +123,7 @@ export async function getExerciseByIdRequest(
 export async function createExerciseRequest(
     exerciseData: CreateExerciseInput,
 ) {
-    const response = await fetch(`${API_URL}/api/exercises`, {
+    const response = await apiFetch(`${API_URL}/api/exercises`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -137,7 +142,7 @@ export async function updateExerciseRequest(
     exerciseId: string,
     exerciseData: UpdateExerciseInput,
 ) {
-    const response = await fetch(`${API_URL}/api/exercises/${exerciseId}`, {
+    const response = await apiFetch(`${API_URL}/api/exercises/${exerciseId}`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
@@ -153,7 +158,7 @@ export async function updateExerciseRequest(
 }
 
 export async function deleteExerciseRequest(exerciseId: string) {
-    const response = await fetch(`${API_URL}/api/exercises/${exerciseId}`, {
+    const response = await apiFetch(`${API_URL}/api/exercises/${exerciseId}`, {
         method: "DELETE",
         credentials: "include",
     });

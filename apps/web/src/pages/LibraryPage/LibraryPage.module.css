@@ -128,7 +128,7 @@
 }
 
 .exerciseCard:hover {
-    border-color: var(--color-primary-border);
+    border-color: var(--color-border);
 }
 
 .exerciseLink {
@@ -433,3 +433,6 @@
 .cardDummy { align-items: flex-start; }
 .exerciseText { text-align: left; }
 @media (max-width: 640px) { .sortLabel { width: 100%; flex-direction: column; align-items: stretch; gap: 0.35rem; } .sortSelect { width: 100%; } .exerciseLink { padding: 1rem; } .muscleTags { justify-content: flex-start; } }
+
+.searchInput { --exercise-search-background: var(--color-surface); }
+:global(:root[data-theme="light"]) .searchInput { --exercise-search-background: #FFFFFF; }

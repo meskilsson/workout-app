@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "../utils/jwt";
+import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import User from "../models/User";
 
 function getTokenFromRequest(req: Request): string | null {
@@ -52,7 +53,8 @@ export async function requireAuth(
         };
 
         next();
-    } catch {
-        res.status(401).json({ message: "Unauthorized" });
+    } catch (error) {
+        if (!(error instanceof JsonWebTokenError)) { next(error); return; }
+        res.status(401).json({ code: error instanceof TokenExpiredError ? "ACCESS_TOKEN_EXPIRED" : "UNAUTHORIZED", message: "Unauthorized" });
     }
 }

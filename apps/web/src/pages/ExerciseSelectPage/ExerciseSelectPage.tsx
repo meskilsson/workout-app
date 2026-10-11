@@ -32,7 +32,7 @@ import "../../components/ui/cards/card.css";
 
 import styles from "./ExerciseSelectPage.module.css";
 
-import type { Exercise, ExerciseSort } from "@workout-app/shared";
+import type { Exercise, ExerciseFilters, ExerciseSort } from "@workout-app/shared";
 
 import { usePaginationScroll } from "../../hooks/usePaginationScroll";
 
@@ -100,6 +100,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
     const selectedExerciseDetails = [...detailQueries.flatMap(query => query.data ? [query.data] : []), ...chosenDetails];
     const [actionError, setActionError] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
+    const [filters, setFilters] = useState<ExerciseFilters>({});
     const [sort, setSort] = useState<ExerciseSort>("popular");
     const effectiveSort = sort === "mostUsed" && !isAuthenticated ? "popular" : sort;
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -107,9 +108,10 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
     const isCardioOnly = selectedMuscleGroups.length === 0;
     const exercisesQuery = useQuery({
         ...exerciseListOptions(user?._id, {
+            ...filters,
             sort: effectiveSort, page, limit: 12, search: debouncedSearchTerm,
-            ...(isCardioOnly ? { exerciseType: "cardio" as const } : { includeCardio }),
-            muscles: isActiveWorkout ? [] : initialDraft.selectedMuscleGroups,
+            ...(isCardioOnly && !filters.exerciseType ? { exerciseType: "cardio" as const } : { includeCardio: filters.muscles?.length ? false : includeCardio }),
+            muscles: filters.muscles?.length ? filters.muscles : isActiveWorkout ? [] : initialDraft.selectedMuscleGroups,
         }),
         placeholderData: keepPreviousData,
     });
@@ -256,8 +258,8 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
 
         return (
             <Card
-                animate={{ ...(isSelected ? selectedCard : { ...cardRest, borderColor: "var(--color-border-soft)" }), opacity: isAlreadyInWorkout ? 0.68 : 1 }}
-                whileHover={{ borderColor: isAlreadyInWorkout ? "var(--color-border-soft)" : "var(--color-primary-border)", boxShadow: "none" }}
+                animate={{ ...(isSelected ? { ...selectedCard, borderColor: "var(--color-border)", boxShadow: "none" } : { ...cardRest, borderColor: "var(--color-border-soft)" }), opacity: isAlreadyInWorkout ? 0.68 : 1 }}
+                whileHover={{ borderColor: isAlreadyInWorkout ? "var(--color-border-soft)" : "var(--color-border)", boxShadow: "none" }}
                 key={exercise._id}
                 className={`${styles.exerciseCard} ${isSelected ? styles.selectedCard : ""
                     } ${isAlreadyInWorkout
@@ -447,7 +449,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
 
 
             <div className={styles.searchWrapper}>
-                <label className={styles.searchLabel}> {t("common.searchExercises")} <motion.input {...fieldMotion("search", searchRest, searchFocus)}
+                <label className={styles.searchLabel}> {t("common.searchExercises")} <motion.input {...fieldMotion("search", { ...searchRest, backgroundColor: "var(--exercise-search-background)" }, { ...searchFocus, backgroundColor: "var(--exercise-search-background)" })}
                     className={styles.searchInput}
                     aria-label={t("common.searchExercises")}
                     type="search"
@@ -458,7 +460,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                     }
                 />
                 </label>
-                <ExerciseSortControl value={effectiveSort} authenticated={isAuthenticated}
+                <ExerciseSortControl filters={filters} onFiltersChange={value => { setFilters(value); setPage(1); }} value={effectiveSort} authenticated={isAuthenticated}
                     onChange={value => { setSort(value); setPage(1); }} />
             </div>
 

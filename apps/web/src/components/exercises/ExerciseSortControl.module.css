@@ -6,3 +6,7 @@
 .option input { flex: 0 0 auto; width: 20px; height: 20px; accent-color: var(--color-primary-text); }
 .option span { min-width: 0; overflow-wrap: anywhere; }
 .option small { display: block; margin-top: 0.2rem; color: var(--color-text-muted); line-height: 1.4; }
+
+.filters { display: grid; gap: 0.75rem; margin-bottom: 1.25rem; }
+.filters label { display: grid; gap: 0.375rem; font-size: var(--text-sm); }
+.filters select { width: 100%; min-width: 0; min-height: 44px; font-size: 16px; }

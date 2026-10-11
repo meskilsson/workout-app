@@ -6,6 +6,33 @@ const { parseExerciseQuery } = require('../src/utils/parseExerciseQuery.ts');
 const { getPublicExercises, getExerciseLibrary } = require('../src/services/exerciseService.ts');
 const { findPaginatedExercises } = require('../src/services/exercisePagination.ts');
 
+test('equipment and difficulty accept every supported value and reject malformed queries', () => {
+    const { EQUIPMENT_OPTIONS, DIFFICULTY_OPTIONS } = require('@workout-app/shared');
+    for (const [key, values] of [['equipment', EQUIPMENT_OPTIONS], ['difficulty', DIFFICULTY_OPTIONS]]) {
+        for (const value of values) assert.equal(parseExerciseQuery({ query: { [key]: value } })[key], value);
+        for (const value of ['unknown', ['bodyweight', 'barbell'], { $ne: null }]) {
+            assert.throws(() => parseExerciseQuery({ query: { [key]: value } }), /Invalid/);
+        }
+    }
+});
+
+test('combined filters constrain both results and totals before ranking and pagination', async () => {
+    const matches = [], counts = [];
+    mock.method(Exercise, 'aggregate', async pipeline => { matches.push(pipeline[0].$match); return []; });
+    mock.method(Exercise, 'countDocuments', async filter => { counts.push(filter); return 0; });
+    const options = { page: 2, limit: 12, sort: 'popular', exerciseType: 'strength', equipment: 'bodyweight', difficulty: 'beginner', muscles: ['chest'], includeCardio: false };
+    try {
+        await getPublicExercises(options);
+        await getExerciseLibrary('0123456789abcdef01234567', options);
+        for (let index = 0; index < matches.length; index++) {
+            const filters = matches[index].$and;
+            for (const key of ['exerciseType', 'equipment', 'difficulty']) assert(filters.some(filter => filter[key] === options[key]));
+            assert(filters.some(filter => filter.$or?.some(item => item.primaryMuscles?.$in.includes('chest'))));
+            assert.deepEqual(counts[index], matches[index]);
+        }
+    } finally { mock.restoreAll(); }
+});
+
 test('exercise sort query defaults to name and rejects unsupported or repeated sorts', () => {
     assert.equal(parseExerciseQuery({ query: {} }).sort, 'name');
     for (const sort of ['name', 'popular', 'mostUsed']) {

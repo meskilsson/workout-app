@@ -717,5 +717,14 @@
   "fields.weight": "Vikt",
   "fields.restSeconds": "Vila (sekunder)",
   "drag.role": "sorterbar övning",
-  "TemplatesPage.browseWorkouts": "Bläddra bland träningspass"
+  "TemplatesPage.browseWorkouts": "Bläddra bland träningspass",
+  "auth.sessionExpired": "Din session har gått ut. Logga in igen. Dina sparade träningsframsteg finns kvar.",
+  "auth.sessionUnavailable": "Det gick inte att förnya din session just nu. Försök igen.",
+  "exercises.sortAndFilter": "Sortera och filtrera",
+  "exercises.type": "Träningstyp",
+  "exercises.equipment": "Utrustning",
+  "exercises.difficulty": "Svårighetsgrad",
+  "exercises.muscle": "Muskel",
+  "exercises.all": "Alla",
+  "exercises.clearFilters": "Rensa filter"
 }

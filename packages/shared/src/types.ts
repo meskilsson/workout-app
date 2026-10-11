@@ -114,7 +114,16 @@ export type PaginatedExercisesResponse = {
 
 export type ExerciseSort = "name" | "popular" | "mostUsed";
 
+export type ExerciseFilters = {
+    exerciseType?: ExerciseType;
+    equipment?: Equipment;
+    difficulty?: Difficulty;
+    muscles?: Muscle[];
+};
+
 export type GetExercisesParams = {
+    equipment?: Equipment;
+    difficulty?: Difficulty;
     includeCardio?: boolean;
     exerciseType?: ExerciseType;
     sort?: ExerciseSort;
@@ -125,6 +134,8 @@ export type GetExercisesParams = {
 }
 
 export type GetExercisesOptions = {
+    equipment?: Equipment;
+    difficulty?: Difficulty;
     includeCardio?: boolean;
     exerciseType?: ExerciseType;
     sort?: ExerciseSort;

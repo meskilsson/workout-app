@@ -1,3 +1,4 @@
+import { apiFetch } from "./apiFetch";
 import { t } from "../i18n";
 // Include response-body reads in the deadline, not just response headers.
 export async function workoutRequest(url: string, options: RequestInit = {}, timeoutMs = 15000): Promise<Response> {
@@ -15,7 +16,7 @@ export async function workoutRequest(url: string, options: RequestInit = {}, tim
     try {
         return await Promise.race([
             (async () => {
-                const response = await fetch(url, { ...options, signal: controller.signal });
+                const response = await apiFetch(url, { ...options, signal: controller.signal });
                 const body = await response.arrayBuffer();
                 return new Response(response.status === 204 ? null : body, {
                     status: response.status, statusText: response.statusText, headers: response.headers,

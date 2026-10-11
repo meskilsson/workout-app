@@ -1,3 +1,4 @@
+import { apiFetch } from "../utils/apiFetch";
 import { t } from "../i18n";
 import { activateWorkoutDraftRequest } from "./workoutDraftApi";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -14,7 +15,7 @@ import { parseJsonResponse } from "../utils/parseJsonResponse";
 export async function getPublicWorkoutTemplatesRequest(signal?: AbortSignal): Promise<
     WorkoutTemplate[]
 > {
-    const response = await fetch(`${API_URL}/api/workout-templates/public`, { signal });
+    const response = await apiFetch(`${API_URL}/api/workout-templates/public`, { signal });
 
     return parseJsonResponse<WorkoutTemplate[]>(
         response,
@@ -26,7 +27,7 @@ export async function getPublicWorkoutTemplateByIdRequest(
     templateId: string,
     signal?: AbortSignal,
 ): Promise<WorkoutTemplate> {
-    const response = await fetch(
+    const response = await apiFetch(
         `${API_URL}/api/workout-templates/public/${templateId}`,
         { signal },
     );
@@ -38,7 +39,7 @@ export async function getPublicWorkoutTemplateByIdRequest(
 }
 
 export async function getMyWorkoutTemplatesRequest(signal?: AbortSignal): Promise<WorkoutTemplate[]> {
-    const response = await fetch(`${API_URL}/api/workout-templates/my`, {
+    const response = await apiFetch(`${API_URL}/api/workout-templates/my`, {
         signal,
         credentials: "include",
     });
@@ -53,7 +54,7 @@ export async function getMyWorkoutTemplateByIdRequest(
     templateId: string,
     signal?: AbortSignal,
 ): Promise<WorkoutTemplate> {
-    const response = await fetch(
+    const response = await apiFetch(
         `${API_URL}/api/workout-templates/my/${templateId}`,
         {
             signal,
@@ -70,7 +71,7 @@ export async function getMyWorkoutTemplateByIdRequest(
 export async function createWorkoutTemplateRequest(
     templateData: CreateWorkoutTemplateInput,
 ): Promise<WorkoutTemplate> {
-    const response = await fetch(`${API_URL}/api/workout-templates`, {
+    const response = await apiFetch(`${API_URL}/api/workout-templates`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -89,7 +90,7 @@ export async function updateWorkoutTemplateRequest(
     templateId: string,
     templateData: UpdateWorkoutTemplateInput,
 ): Promise<WorkoutTemplate> {
-    const response = await fetch(
+    const response = await apiFetch(
         `${API_URL}/api/workout-templates/${templateId}`,
         {
             method: "PATCH",
@@ -113,7 +114,7 @@ export async function deleteWorkoutTemplateRequest(
     message: string;
     deletedTemplateId: string;
 }> {
-    const response = await fetch(
+    const response = await apiFetch(
         `${API_URL}/api/workout-templates/${templateId}`,
         {
             method: "DELETE",
@@ -130,7 +131,7 @@ export async function deleteWorkoutTemplateRequest(
 export async function startWorkoutFromTemplateRequest(
     templateId: string,
 ): Promise<StartedWorkoutDraft> {
-    const response = await fetch(
+    const response = await apiFetch(
         `${API_URL}/api/workout-templates/${templateId}/start`,
         {
             method: "POST",
@@ -149,7 +150,7 @@ export async function createWorkoutTemplateFromDraftRequest(
     draftId: string,
     templateData: CreateWorkoutTemplateFromDraftInput,
 ): Promise<WorkoutTemplate> {
-    const response = await fetch(
+    const response = await apiFetch(
         `${API_URL}/api/workout-templates/from-draft/${draftId}`,
         {
             method: "POST",
@@ -170,7 +171,7 @@ export async function createWorkoutTemplateFromDraftRequest(
 export async function createTemplateEditDraftRequest(
     templateId: string,
 ): Promise<StartedWorkoutDraft> {
-    const response = await fetch(
+    const response = await apiFetch(
         `${API_URL}/api/workout-templates/${templateId}/edit-draft`,
         {
             method: "POST",
