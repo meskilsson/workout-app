@@ -187,3 +187,12 @@
 
 .exerciseMetaItem { padding: 0; border: 0; background: transparent; border-radius: 0; font-weight: var(--weight-regular); }
 .exerciseTag { color: var(--color-muscle-primary-text); background: var(--color-dummy-muscle-primary); border-color: var(--color-dummy-muscle-primary); }
+
+.exerciseCard {
+    --exercise-card-background: var(--color-surface);
+    --exercise-card-hover-background: var(--color-surface-light);
+}
+:global(:root[data-theme="light"]) .exerciseCard {
+    --exercise-card-background: #FFFFFF;
+    --exercise-card-hover-background: #FFFFFF;
+}

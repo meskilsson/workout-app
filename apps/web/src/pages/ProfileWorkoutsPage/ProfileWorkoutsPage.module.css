@@ -219,5 +219,5 @@
 :global(:root[data-theme="light"]) .sessionCard {
     --history-card-background: #FFFFFF;
     --history-card-hover-background: #FFFFFF;
-    --history-card-hover-border: var(--color-border);
+    --history-card-hover-border: var(--color-primary-border);
 }

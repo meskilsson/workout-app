@@ -121,7 +121,7 @@ export default function ProfileExercisesPage() {
             ) : (
                 <div className={styles.exerciseList} aria-busy={isLoading}>
                     {exercises.map((exercise) => (
-                        <Card key={exercise._id} animate={cardRest} whileHover={cardHover} className={styles.exerciseCard}>
+                        <Card key={exercise._id} animate={{ ...cardRest, backgroundColor: "var(--exercise-card-background)" }} whileHover={{ ...cardHover, backgroundColor: "var(--exercise-card-hover-background)" }} className={styles.exerciseCard}>
                             <div className={styles.exerciseTopRow}>
                                 <div>
                                     <h3 className={styles.exerciseName}>
