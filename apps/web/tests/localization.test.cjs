@@ -11,8 +11,10 @@ afterEach(() => i18n.default.changeLanguage('en'));
 
 test('muscle labels are capitalized in both languages without changing stored values', async () => {
     assert.equal(i18n.displayValue('chest'), 'Chest');
+    assert.equal(i18n.displayValue('legs'), 'Legs');
     await i18n.default.changeLanguage('sv');
     assert.equal(i18n.displayValue('chest'), 'Bröst');
+    assert.equal(i18n.displayValue('legs'), 'Ben');
     assert.equal(i18n.displayValue('hamstrings'), 'Baksida lår');
 });
 test('exercise localization is presentation-only with English fallback and custom content protection', async () => {

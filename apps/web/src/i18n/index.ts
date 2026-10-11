@@ -40,7 +40,7 @@ export function displayValue(value: string | undefined): string {
     const categoryKey = `values.${normalized.replaceAll(" ", "_")}`;
     const label = i18next.resolvedLanguage !== "sv" ? value
         : i18next.exists(key) ? t(key) : i18next.exists(categoryKey) ? t(categoryKey) : value;
-    return MUSCLE_OPTIONS.some(muscle => muscle === normalized)
+    return (normalized === "legs" || MUSCLE_OPTIONS.some(muscle => muscle === normalized))
         ? label.charAt(0).toLocaleUpperCase(locale()) + label.slice(1) : label;
 }
 
