@@ -124,6 +124,7 @@ export default function Navbar() {
   const authActions = (
     <>
       <ThemeSelect />
+      <LanguageSelect />
 
       {isAuthenticated ? (
         <>
@@ -180,7 +181,7 @@ export default function Navbar() {
 
         <div className={styles.actions}>{authActions}</div>
 
-        <div className={styles.headerControls}><LanguageSelect />
+        <div className={styles.headerControls}>
         <button
           type="button"
           className={styles.menuButton}
