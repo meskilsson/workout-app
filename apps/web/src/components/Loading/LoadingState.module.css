@@ -46,3 +46,11 @@
 @media (max-width: 640px) { .summaryStats { grid-template-columns: 1fr; } }
 
 .workoutActions { display: flex; justify-content: flex-end; margin: 0.75rem 0; }
+
+.selectionCard { min-height: 260px; }
+@media (max-width: 900px) { .selectionCard { min-height: 160px; } .selectionPreview { display: none; } }
+
+@media (max-width: 900px) {
+    .grid:has(> .selectionCard) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+    .selectionCard { padding: 0.65rem; }
+}

@@ -152,7 +152,7 @@ function SortableSummaryExerciseCard({
             aria-label={`Reorder ${exercise.exerciseName}`}><Icon icon={GripVertical} /></button>
           </div>
         </div>
-      <TrainingConfigForm initial={exercise.training} onSave={onSave} onDirty={onDirty} />
+      {exercise.training && exercise.training.format !== "strength" && <details><summary>Duration &amp; intervals</summary><TrainingConfigForm cardioOnly initial={exercise.training} onSave={onSave} onDirty={onDirty} /></details>}
       </Card>
     </motion.div>
   );
@@ -339,11 +339,11 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
       <div className={styles.header}>
         <div>
           <p className={styles.kicker}>
-            {isTemplateDraft ? "Workout builder" : "Workout builder"}
+            {isTemplateDraft ? "Template builder" : "Workout builder"}
           </p>
 
           <h1 className={styles.title}>
-            {isTemplateDraft ? "Workout summary" : "Workout summary"}
+            {isTemplateDraft ? "Template review" : "Workout summary"}
           </h1>
 
           <p className={styles.subtitle}>

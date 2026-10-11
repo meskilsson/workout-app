@@ -78,6 +78,15 @@ export async function updateWorkoutDraftExercisesRequest(
     return handleResponse(response, "Failed to update workout draft exercises");
 }
 
+export async function activateWorkoutDraftRequest(draftId: string) {
+    try { return await startWorkoutDraftRequest(draftId); }
+    catch (error) {
+        const saved = await getWorkoutDraftByIdRequest(draftId).catch(() => null);
+        if (saved?.status === "active") return saved;
+        throw error;
+    }
+}
+
 export async function startWorkoutDraftRequest(draftId: string) {
     const response = await workoutRequest(
         `${API_URL}/api/workout-drafts/${draftId}/start`,

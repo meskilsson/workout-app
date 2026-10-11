@@ -2,11 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { validateCardioCompletion, createCardioTimer, isCardioTimerState, reconcileCardioTimer, cardioTimerAction, cardioTimerView, cardioCompletion, trainingTotalSeconds, formatTrainingSeconds, type TrainingConfig, type CardioCompletion, type CardioTimerState } from "@workout-app/shared";
 import { useRestTimerControls } from "@workout-app/shared/timer/rest";
 import { readCardioSnapshot, saveCardioSnapshot } from "../../utils/workoutProgressStorage";
+import Modal from "../ui/modal/Modal";
+import TrainingConfigForm from "./TrainingConfigForm";
 import Button from "../ui/button/Button";
 import styles from "./Training.module.css";
 export const CARDIO_START = "cardio-session-start";
 export const CARDIO_ACTIVE = "cardio-session-active";
-export default function CardioSession({ scope, exerciseId, config, completion, onCompletion }: { scope: string; exerciseId: string; config: TrainingConfig; completion?: CardioCompletion; onCompletion: (result: CardioCompletion | undefined) => void }) {
+export default function CardioSession({ scope, exerciseId, config, completion, onCompletion, onConfig, disabled = false }: { disabled?: boolean; onConfig?: (config: TrainingConfig) => Promise<void>; scope: string; exerciseId: string; config: TrainingConfig; completion?: CardioCompletion; onCompletion: (result: CardioCompletion | undefined) => void }) {
+    const [options, setOptions] = useState<"cardio" | "intervals" | null>(null);
+    const [savingOptions, setSavingOptions] = useState(false);
     const { reset: resetRest } = useRestTimerControls();
     const [state, setState] = useState<CardioTimerState>(() => {
         const saved = readCardioSnapshot(scope, exerciseId) as { config?: TrainingConfig; state?: unknown } | null;
@@ -62,13 +66,27 @@ export default function CardioSession({ scope, exerciseId, config, completion, o
         <strong className={styles.countdown} aria-label="Phase countdown">{formatTrainingSeconds(view.phaseRemaining)}</strong>
         <p>Session remaining: {formatTrainingSeconds(view.remaining)}</p>
         {config.format === "intervals" && <><progress max={config.rounds} value={view.completedRounds} aria-label="Completed rounds" /><p>{view.completedRounds} of {config.rounds} rounds completed</p></>}
+        {onConfig && <div className={styles.controls}>
+            <Button type="button" variant="ghost" disabled={disabled || state.status !== "ready"} onClick={() => setOptions("cardio")}>Duration &amp; distance</Button>
+            <Button type="button" variant="ghost" disabled={disabled || state.status !== "ready"} onClick={() => setOptions("intervals")}>Intervals</Button>
+        </div>}
         <div className={styles.controls}>
-            {state.status === "ready" && <Button type="button" onClick={() => action("start")}>Start cardio</Button>}
-            {state.status === "running" && <Button type="button" onClick={() => action("pause")}>Pause</Button>}
-            {state.status === "paused" && <Button type="button" onClick={() => action("resume")}>Resume</Button>}
-            <Button type="button" variant="secondary" onClick={() => action("reset")} disabled={state.status === "ready"}>Reset session</Button>
-            <Button type="button" variant="secondary" onClick={() => action("complete")} disabled={state.status === "completed"}>Complete manually</Button>
+            {state.status === "ready" && <Button type="button" disabled={disabled} onClick={() => action("start")}>Start cardio</Button>}
+            {state.status === "running" && <Button type="button" disabled={disabled} onClick={() => action("pause")}>Pause</Button>}
+            {state.status === "paused" && <Button type="button" disabled={disabled} onClick={() => action("resume")}>Resume</Button>}
+            <Button type="button" variant="secondary" onClick={() => action("reset")} disabled={disabled || state.status === "ready"}>Reset session</Button>
+            <Button type="button" variant="secondary" onClick={() => action("complete")} disabled={disabled || state.status === "completed"}>Complete manually</Button>
         </div>
+        {options && onConfig && <Modal title={options === "intervals" ? "Intervals" : "Duration & distance"} isOpen onClose={() => { if (!savingOptions) setOptions(null); }}>
+            <p>Changes apply before starting. Reset the activity first to change these options after starting.</p>
+            <TrainingConfigForm cardioOnly initialMode={options} initial={config} onDirty={() => {}} onSave={async next => {
+                if (disabled) return;
+                setSavingOptions(true);
+                try { await onConfig(next); setOptions(null); }
+                finally { setSavingOptions(false); }
+            }} />
+            <Button type="button" variant="ghost" disabled={savingOptions} onClick={() => setOptions(null)}>Cancel</Button>
+        </Modal>}
         {state.status === "completed" && <p>{state.manual ? "Completed manually" : "Planned session completed"} · Actual time: {formatTrainingSeconds(view.elapsed)}</p>}
     </div>;
 }

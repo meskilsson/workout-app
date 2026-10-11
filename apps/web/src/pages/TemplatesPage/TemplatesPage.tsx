@@ -50,7 +50,7 @@ export default function TemplatesPage() {
 
         try {
             const draft = await startMutation.mutateAsync(templateId);
-            navigate(`/workout-summary/${draft._id}`);
+            navigate(`/workout/${draft._id}`);
         } catch (error) {
             if (error instanceof Error) {
                 setActionError(friendlyError(error));

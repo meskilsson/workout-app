@@ -43,7 +43,7 @@ export default function ProfileWorkoutsPage() {
 
         try {
             const draft = await repeatMutation.mutateAsync(sessionId);
-            navigate(`/workout-summary/${draft._id}`);
+            navigate(`/workout/${draft._id}`);
         } catch (error) {
             if (error instanceof Error) {
                 setActionError(friendlyError(error));

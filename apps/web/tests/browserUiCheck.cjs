@@ -33,10 +33,15 @@ let browser, ws;
  const exercise={_id:exerciseId,name:'Barbell bench press',exerciseType:'strength',equipment:'barbell',difficulty:'beginner',primaryMuscles:['chest'],secondaryMuscles:['triceps','shoulders'],isCustom:true,description:'A controlled compound movement for a balanced strength session.',instructions:'Keep control throughout the movement.'};
  const exercises=[exercise,{...exercise,_id:'0123456789abcdef01234570',name:'Seated cable row',equipment:'cable',primaryMuscles:['back'],secondaryMuscles:['biceps']},{...exercise,_id:'0123456789abcdef01234571',name:'Dumbbell overhead shoulder press',equipment:'dumbbell',primaryMuscles:['shoulders'],secondaryMuscles:['triceps']}];
  const draft={_id:draftId,userId,status:'active',selectedMuscleGroups:['chest','back'],exercises:exercises.map((e,j)=>({exerciseId:e._id,exerciseName:e.name,sets:Array.from({length:3},(_,i)=>({id:`f8f6de5c-e305-4bba-b62b-a5375d3b79b${j*3+i}`,weight:j?25:40,reps:8+i}))}))};
+ if(process.env.UI_CHECK_PHASE==='direct-start') {
+  exercises[1].exerciseType='cardio';exercises[1].name='Cycling';
+  draft.exercises[1]={...draft.exercises[1],exerciseName:'Cycling',training:{format:'cardio',durationSeconds:600},sets:[]};
+ }
  const templates=['Upper body essentials','Full body strength','Push day'].map((name,i)=>({_id:'0123456789abcdef0123458'+i,name,description:'A balanced strength session. Build consistency with focused, controlled sets.',category:'strength',isPublic:true,exercises:exercises.map((e,order)=>({_id:e._id,exerciseId:e._id,exerciseName:e.name,exercise:e,plannedSets:[{weight:40,reps:8},{weight:40,reps:8}],order}))}));
  let scenario='populated', guest=false, routePath='/', mutationDelay=0, formFailure='field';
  const requestCounts = new Map();
  const workoutRequests=[]; let savedStatus='active', loseCompletion=false;
+ let startFailure='', draftPurpose='workout';
  const browserErrors=[];
  const sessions=[0,1].map(i=>({_id:'0123456789abcdef0123459'+i,userId,startedAt:'2026-10-0'+(5-i)+'T09:00:00Z',endedAt:'2026-10-0'+(5-i)+'T09:45:00Z',duration:2700,exercises:draft.exercises}));
  ws.addEventListener('message',async event=>{
@@ -53,7 +58,7 @@ let browser, ws;
    else if(url.pathname.includes('/api/admin/')) { const resource=url.pathname.split('/')[3];const items=resource==='templates'?templates:resource==='sessions'?sessions:exercises;payload=items.find(x=>url.pathname.endsWith(x._id)) ?? {items,total:items.length,page:1,limit:20}; }
    else if(url.pathname.includes('/workout-sessions')){payload=sessions.find(x=>url.pathname.endsWith(x._id)) ?? (scenario==='empty'?[]:sessions); if(scenario==='empty' && !Array.isArray(payload))payload={...payload,exercises:[]};}
    else if(url.pathname.includes('/workout-drafts'))payload={...draft,purpose:routePath.includes('template')?'template':'workout',status:routePath.startsWith('/workout/')?'active':'building',exercises:scenario==='empty'?[]:draft.exercises};
-   else if(url.pathname.includes('/exercises'))payload=exercises.find(e=>url.pathname.endsWith(e._id)) ?? {exercises:scenario==='empty'?[]:exercises,total:scenario==='empty'?0:3,totalPages:process.env.UI_CHECK_PHASE==='motion'?2:1};
+   else if(url.pathname.includes('/exercises'))payload=exercises.find(e=>url.pathname.endsWith(e._id)) ?? {exercises:scenario==='empty'?[]:exercises,total:scenario==='empty'?0:3,totalPages:['motion','exercise-ux'].includes(process.env.UI_CHECK_PHASE)?2:1};
    else if(url.pathname.includes('/workout-templates')){payload=templates.find(t=>url.pathname.endsWith(t._id)) ?? (scenario==='empty'?[]:templates); if(scenario==='empty' && !Array.isArray(payload))payload={...payload,exercises:[]};}
    else if(url.pathname.includes('/users/'))payload={_id:userId,name:'Alex',email:'alex@example.com',username:'alex',role:'user'};
    else {responseCode=404;payload={message:'Mock endpoint not found: '+url.pathname};}
@@ -79,6 +84,18 @@ let browser, ws;
     }
     if(url.pathname.endsWith('/abandon'))savedStatus='abandoned';
    }
+   if(process.env.UI_CHECK_PHASE==='direct-start' && item.request.method==='POST' && (url.pathname.endsWith('/repeat') || url.pathname.includes('/workout-templates/') && url.pathname.endsWith('/start'))) {savedStatus='building';payload={...draft,status:'building',purpose:'workout'};}
+   if(process.env.UI_CHECK_PHASE==='direct-start' && url.pathname.includes('/workout-drafts') && item.request.method!=='OPTIONS') {
+    workoutRequests.push({method:item.request.method,path:url.pathname});
+    if(url.pathname.endsWith('/start')) {
+     if(startFailure==='reject'){responseCode=503;payload={message:'Try again.'};}
+     else {savedStatus='active';if(startFailure==='lost'){startFailure='';await send('Fetch.failRequest',{requestId:item.requestId,errorReason:'ConnectionClosed'});return;}}
+    }
+    if(url.pathname.endsWith('/training')) {
+     const input=JSON.parse(item.request.postData);const entry=draft.exercises.find(e=>e.exerciseId===input.exerciseId);entry.training=input.training;
+    }
+    if(responseCode===200)payload={...draft,purpose:draftPurpose,status:savedStatus};
+   }
    if(process.env.UI_CHECK_PHASE==='form-errors' && item.request.method!=='GET' && item.request.method!=='OPTIONS') {
     responseCode=formFailure==='server'?500:400;
     payload=formFailure==='server'?{message:'MongoServerError: internal details'}:formFailure==='mixed'?{errors:[{field:'name',message:'Choose another name.'},{field:'unknown',message:'This record is unavailable.'}]}:formFailure==='field'?{errors:[{path:['email'],message:'Use another email address.'},{field:'name',message:'Choose another name.'}]}:{message:'Unable to save. Please try again.'};
@@ -99,7 +116,7 @@ let browser, ws;
  ['login','/login',true,'Log in'],['signup','/signup',true,'Register'],
  ['workout-select','/workout-select',false,'Choose muscle groups'],['template-select','/workout-select?purpose=template',false,'Choose workout muscles'],
  ['exercise-select','/exercise-select/'+draftId,false,'Edit exercises'],['workout-summary','/workout-summary/'+draftId,false,'Workout summary'],
- ['template-summary','/workout-summary/'+draftId+'?template',false,'Workout summary'],['workout','/workout/'+draftId,false,'Barbell bench press'],
+ ['template-summary','/workout-summary/'+draftId+'?template',false,'Template review'],['workout','/workout/'+draftId,false,'Barbell bench press'],
  ['result','/workout-result/'+sessions[0]._id,false,'Workout saved'],['library','/library',false,'Exercise library'],
  ['exercise-details','/exercises/'+exerciseId,false,'Barbell bench press'],['create-exercise','/create-exercise',false,'Create exercise'],['edit-exercise','/edit-exercise/'+exerciseId,false,'Edit exercise'],
  ['templates','/templates',false,'Browse templates'],['public-templates','/templates/pre-made',false,'Browse templates'],['my-templates','/templates/my',false,'My templates'],
@@ -136,6 +153,72 @@ let browser, ws;
   scenario='populated';await evalValue("[...document.querySelectorAll('button')].find(b=>b.textContent==='Retry').click()");await wait(1000);
   assert(await evalValue("!!document.querySelector('[aria-pressed=true]')"));
   console.log('PASS recovery retains progress and retry restores checked set',mode,width);
+ }
+ if(process.env.UI_CHECK_PHASE==='exercise-ux') {
+  for(const mode of ['light','dark'])for(const width of [320,390,844,1440]) {
+   await visit(routes.find(r=>r[0]==='exercise-select'),mode,width);
+   assert.equal(await evalValue(`[...document.querySelectorAll('[class*=cardDummy]')].every(e=>getComputedStyle(e).display==='none')`),width<=900);
+   const selected=await evalValue('document.querySelectorAll("[role=button][aria-pressed=true]").length');
+   assert(await evalValue(`!!(document.querySelector('[class*=pagination]').compareDocumentPosition(document.querySelector('[aria-labelledby="chosen-exercises-heading"]')) & Node.DOCUMENT_POSITION_FOLLOWING)`));
+   await evalValue(`(()=>{const b=document.querySelector('button[aria-haspopup="dialog"]');b.focus();b.click();})()`);await wait(200);
+   assert.equal(await evalValue('document.querySelectorAll("[role=dialog] input[type=radio]").length'),3);
+   assert(await evalValue('document.documentElement.scrollWidth<=innerWidth+1'));
+   await evalValue(`document.querySelector('[role=dialog] input[value=name]').click()`);await wait(700);
+   assert.equal(await evalValue('!!document.querySelector("[role=dialog]")'),false);
+   assert.equal(await evalValue('document.activeElement.getAttribute("aria-haspopup")'),'dialog');
+   assert.equal(await evalValue('document.querySelectorAll("[role=button][aria-pressed=true]").length'),selected);
+   assert(await evalValue('document.activeElement.getAttribute("aria-label").includes("Name")'));
+   const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(process.env.TEMP,'exercise-ux-'+mode+'-'+width+'.png'),Buffer.from(shot.data,'base64'));
+   await visit(routes.find(r=>r[0]==='exercise-select'),mode,width,'loading');
+   assert(await evalValue('document.documentElement.scrollWidth<=innerWidth+1'));
+   console.log('PASS compact sorting, focus return, retained selection, responsive diagrams and skeletons',mode,width);
+  }
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
+  await send('Page.navigate',{url:'about:blank'});await wait(200);await send('Browser.close');return;
+ }
+ if(process.env.UI_CHECK_PHASE==='direct-start') {
+  for(const mode of ['light','dark'])for(const width of [375,1440]) {
+   draft.exercises[1].training={format:'cardio',durationSeconds:600};
+   savedStatus='building';draftPurpose='workout';startFailure='';workoutRequests.length=0;mutationDelay=350;
+   await visit(routes.find(r=>r[0]==='exercise-select'),mode,width);
+   await evalValue(`(()=>{const b=[...document.querySelectorAll('button')].find(b=>b.textContent==='Start workout');b.click();b.click();})()`);await wait(1400);
+   assert.equal(await evalValue('location.pathname'),'/workout/'+draftId);
+   assert.equal(workoutRequests.filter(r=>r.method==='PATCH' && r.path.endsWith('/exercises')).length,1);
+   assert.equal(workoutRequests.filter(r=>r.path.endsWith('/start')).length,1);
+   assert(await evalValue(`document.body.innerText.includes('Start cardio') && !!document.querySelector('button[aria-label="Complete set and start rest timer"]')`));
+   await evalValue(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Intervals').click()`);await wait(150);
+   assert.equal(await evalValue(`!!document.querySelector('[role=dialog] select[name="training.format"]')`),false);
+   await evalValue(`document.querySelector('[role=dialog] form').requestSubmit()`);await wait(650);
+   assert.equal(draft.exercises[1].training.format,'intervals');
+   assert(await evalValue(`document.body.innerText.includes('Round 1 of 8')`));
+   assert(await evalValue('document.documentElement.scrollWidth<=innerWidth+1'));
+   console.log('PASS direct start, duplicate prevention, automatic mixed controls and optional intervals',mode);
+   savedStatus='building';startFailure='reject';await visit(routes.find(r=>r[0]==='exercise-select'),mode,width);
+   await evalValue(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Start workout').click()`);await wait(1500);
+   assert.equal(await evalValue('location.pathname'),'/exercise-select/'+draftId);
+   assert(await evalValue(`!![...document.querySelectorAll('button')].find(b=>b.textContent==='Start workout' && !b.disabled)`));
+   startFailure='lost';await evalValue(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Start workout').click()`);await wait(1500);
+   assert.equal(await evalValue('location.pathname'),'/workout/'+draftId);
+   assert.equal(draft.exercises[1].training.format,'intervals');
+   console.log('PASS failed start retry, lost response recovery and preserved training',mode);
+   savedStatus='building';draftPurpose='template';await visit(routes.find(r=>r[0]==='exercise-select'),mode,width);
+   await evalValue(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Review template').click()`);await wait(900);
+   assert.equal(await evalValue('location.pathname'),'/workout-summary/'+draftId);
+   assert(await evalValue(`document.body.innerText.includes('Save template') && !document.body.innerText.includes('Training format')`));
+   console.log('PASS template review without mandatory training setup',mode);
+   draftPurpose='workout';startFailure='';mutationDelay=0;
+   for(const name of ['my-templates','public-templates','history','session-details']) {
+    await visit(routes.find(r=>r[0]===name),mode,width);
+    const starts=workoutRequests.filter(r=>r.path.endsWith('/start')).length;
+    await evalValue(`[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===${JSON.stringify(['history','session-details'].includes(name)?'Train again':'Start workout')}).click()`);await wait(800);
+    assert.equal(await evalValue('location.pathname'),'/workout/'+draftId);
+    assert.equal(workoutRequests.filter(r=>r.path.endsWith('/start')).length,starts+1);
+    assert.equal(draft.exercises[1].training.format,'intervals');
+    console.log('PASS prepared workout starts directly with saved settings',name,mode,width);
+   }
+  }
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
+  await send('Page.navigate',{url:'about:blank'});await wait(200);await send('Browser.close');return;
  }
  if(process.env.UI_CHECK_PHASE==='responsive-controls') {
   for(const mode of ['light','dark'])for(const width of [320,844]) {

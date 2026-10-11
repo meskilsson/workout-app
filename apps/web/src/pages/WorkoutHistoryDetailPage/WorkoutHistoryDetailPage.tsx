@@ -64,7 +64,7 @@ export default function WorkoutHistoryDetailPage() {
 
         try {
             const draft = await repeatMutation.mutateAsync(session._id);
-            navigate(`/workout-summary/${draft._id}`);
+            navigate(`/workout/${draft._id}`);
         } catch (error) {
             if (error instanceof Error) {
                 setActionError(friendlyError(error));

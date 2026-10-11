@@ -1,3 +1,4 @@
+import { activateWorkoutDraftRequest } from "./workoutDraftApi";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 import type { RepeatWorkoutDraftResponse, WorkoutSession } from "@workout-app/shared";
@@ -63,10 +64,11 @@ export async function repeatWorkoutSessionRequest(
         }
     );
 
-    return parseJsonResponse<RepeatWorkoutDraftResponse>(
+    const draft = await parseJsonResponse<RepeatWorkoutDraftResponse>(
         response,
         "Failed to prepare workout",
     );
+    return activateWorkoutDraftRequest(draft._id);
 }
 
 export async function deleteWorkoutSessionRequest(

@@ -61,11 +61,11 @@ export function SkeletonContent({ layout }: { layout: SkeletonLayout }) {
         {grid && <div className={styles.search}><Skeleton height="3rem" /></div>}
         {detail && <div className={`${styles.stats} ${layout === "summary" ? styles.summaryStats : ""}`}>{Array.from({ length: layout === "result" ? 4 : layout === "sessionDetails" ? 5 : 3 }, (_, i) => i).map(i => <div className={styles.card} key={i}><Skeleton width="60%" /><Skeleton height="2rem" /></div>)}</div>}
         <div className={grid ? styles.grid : styles.stack}>
-            {Array.from({ length: form ? 1 : grid ? 6 : 3 }, (_, index) => <div key={index} className={`${styles.card} ${layout === "exercises" || layout === "library" ? styles.exerciseCard : ""}`}>
+            {Array.from({ length: form ? 1 : grid ? 6 : 3 }, (_, index) => <div key={index} className={`${styles.card} ${layout === "exercises" ? styles.selectionCard : layout === "library" ? styles.exerciseCard : ""}`}>
                 <div className={styles.cardHeader}><Skeleton width="60%" height="1.4rem" /><Skeleton width="3rem" height="2rem" /></div>
                 {form ? <div className={styles.stack}>{[0, 1, 2, 3].map(i => <div className={styles.stack} key={i}><Skeleton width="6rem" /><Skeleton height={i === 2 ? "6rem" : "3rem"} /></div>)}</div>
                     : workout ? <div className={styles.workoutRows}>{[0, 1, 2].map(i => <div className={styles.workoutRow} key={i}><div className={styles.workoutCaption}><Skeleton width="4rem" height="0.75rem" /></div><Skeleton height="2.75rem" /><Skeleton height="2.75rem" /><Skeleton height="2.75rem" /><Skeleton height="2.75rem" /></div>)}</div>
-                    : <><Skeleton /><Skeleton width="80%" /><Skeleton width="65%" />{(layout === "exercises" || layout === "library") && <><Skeleton height="10rem" /><Skeleton width="75%" height="3rem" /></>}{(layout === "list" || (grid && layout !== "library")) && <div className={styles.cardActions}><Skeleton height="2.75rem" /><Skeleton height="2.75rem" /></div>}</>}
+                    : <><Skeleton /><Skeleton width="80%" /><Skeleton width="65%" />{(layout === "exercises" || layout === "library") && <><Skeleton className={layout === "exercises" ? styles.selectionPreview : ""} height="10rem" /><Skeleton width="75%" height="3rem" /></>}{(layout === "list" || (grid && layout !== "library" && layout !== "exercises")) && <div className={styles.cardActions}><Skeleton height="2.75rem" /><Skeleton height="2.75rem" /></div>}</>}
             </div>)}
         </div>
         {workout && <div className={styles.cardActions}><Skeleton width="9rem" height="2.75rem" /><Skeleton width="9rem" height="2.75rem" /></div>}
