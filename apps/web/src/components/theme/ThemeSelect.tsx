@@ -1,3 +1,6 @@
+import { motion } from "motion/react";
+import { useFieldMotion } from "../motion/useFieldMotion";
+import { selectRest, selectHover, selectFocus } from "../motion/presets";
 import { Sun, Moon } from "lucide-react";
 import Icon from "../ui/icon/Icon";
 import { useTheme, type ColorTheme } from "../../context/ThemeContext";
@@ -9,13 +12,14 @@ const themeOptions: { value: ColorTheme; label: string }[] = [
 ];
 
 export default function ThemeSelect() {
+    const fieldMotion = useFieldMotion();
     const { theme, setTheme } = useTheme();
 
     return (
         <label className={styles.wrapper}>
             <span className={styles.label}><Icon icon={theme === "light" ? Sun : Moon} /> Theme</span>
 
-            <select
+            <motion.select {...fieldMotion("select", selectRest, selectFocus, selectHover)}
                 className={styles.select}
                 value={theme}
                 onChange={(event) => setTheme(event.target.value as ColorTheme)}
@@ -25,7 +29,7 @@ export default function ThemeSelect() {
                         {option.label}
                     </option>
                 ))}
-            </select>
+            </motion.select>
         </label>
     );
 }

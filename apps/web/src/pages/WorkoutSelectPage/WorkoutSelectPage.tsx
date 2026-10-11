@@ -1,3 +1,4 @@
+import { cardRest, cardHover, selectedCard } from "../../components/motion/presets";
 import { ArrowLeft, CheckCircle2, Circle } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useState } from "react";
@@ -129,6 +130,8 @@ export default function WorkoutSelectPage() {
 
           return (
             <Card
+              animate={isSelected ? selectedCard : cardRest}
+              whileHover={isSelected ? selectedCard : cardHover}
               key={group.id}
               aria-label={group.title}
               aria-pressed={isSelected}

@@ -48,11 +48,12 @@ let browser, ws;
    requestCounts.set(requestKey,(requestCounts.get(requestKey)||0)+1);
    const isAuth=url.pathname.includes('/auth/');
    const delay=item.request.method==='OPTIONS' ? 0 : scenario==='loading' && !isAuth ? 2200 : item.request.method!=='GET' ? mutationDelay : 150;
-   if(url.pathname.includes('/auth/me'))payload={user:guest?null:{_id:userId,name:'Alex',email:'alex@example.com',username:'alex',role:'user'}};
+   if(url.pathname.includes('/auth/me'))payload={user:guest?null:{_id:userId,name:'Alex',email:'alex@example.com',username:'alex',role:process.env.UI_CHECK_PHASE==='animation-additions'?'admin':'user'}};
    else if(url.pathname.includes('/auth/')) {responseCode=400;payload={message:'Check your details and try again.'};}
+   else if(url.pathname.includes('/api/admin/')) { const resource=url.pathname.split('/')[3];const items=resource==='templates'?templates:resource==='sessions'?sessions:exercises;payload=items.find(x=>url.pathname.endsWith(x._id)) ?? {items,total:items.length,page:1,limit:20}; }
    else if(url.pathname.includes('/workout-sessions')){payload=sessions.find(x=>url.pathname.endsWith(x._id)) ?? (scenario==='empty'?[]:sessions); if(scenario==='empty' && !Array.isArray(payload))payload={...payload,exercises:[]};}
    else if(url.pathname.includes('/workout-drafts'))payload={...draft,purpose:routePath.includes('template')?'template':'workout',status:routePath.startsWith('/workout/')?'active':'building',exercises:scenario==='empty'?[]:draft.exercises};
-   else if(url.pathname.includes('/exercises'))payload=exercises.find(e=>url.pathname.endsWith(e._id)) ?? {exercises:scenario==='empty'?[]:exercises,total:scenario==='empty'?0:3,totalPages:1};
+   else if(url.pathname.includes('/exercises'))payload=exercises.find(e=>url.pathname.endsWith(e._id)) ?? {exercises:scenario==='empty'?[]:exercises,total:scenario==='empty'?0:3,totalPages:process.env.UI_CHECK_PHASE==='motion'?2:1};
    else if(url.pathname.includes('/workout-templates')){payload=templates.find(t=>url.pathname.endsWith(t._id)) ?? (scenario==='empty'?[]:templates); if(scenario==='empty' && !Array.isArray(payload))payload={...payload,exercises:[]};}
    else if(url.pathname.includes('/users/'))payload={_id:userId,name:'Alex',email:'alex@example.com',username:'alex',role:'user'};
    else {responseCode=404;payload={message:'Mock endpoint not found: '+url.pathname};}
@@ -131,6 +132,182 @@ let browser, ws;
   assert(await evalValue("!!document.querySelector('[aria-pressed=true]')"));
   console.log('PASS recovery retains progress and retry restores checked set',mode,width);
  }
+ if(process.env.UI_CHECK_PHASE==='animation-additions') {
+  const click = async text => { await evalValue('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==='+JSON.stringify(text)+').click()'); await wait(300); };
+  for(const mode of ['light','dark'])for(const width of [375,1440]) {
+   await evalValue('localStorage.clear();sessionStorage.clear()');
+   await visit(routes.find(r=>r[0]==='workout'),mode,width);
+   const card='document.querySelector("[class*=exerciseCard]")';
+   const rowCount=await evalValue(card+'.querySelectorAll("[data-completed]").length');
+   await click('Add set');
+   assert.equal(await evalValue(card+'.querySelectorAll("[data-completed]").length'),rowCount+1);
+   await evalValue(card+'.querySelectorAll("button[aria-label^=Remove]")[3].click()');await wait(350);
+   assert.equal(await evalValue(card+'.querySelectorAll("[data-completed]").length'),rowCount);
+   await evalValue(card+'.querySelector("[aria-expanded]").click()');await wait(300);
+   assert.equal(await evalValue(card+'.querySelector("[aria-expanded]").getAttribute("aria-expanded")'),'false');
+   assert.equal(await evalValue('Math.round('+card+'.querySelector("[id^=sets-]").getBoundingClientRect().height)'),0);
+   assert(await evalValue(card+'.querySelector("[id^=sets-]").inert'));
+   await evalValue(card+'.querySelector("[aria-expanded]").click()');await wait(300);
+   assert((await evalValue(card+'.querySelector("[id^=sets-]").getBoundingClientRect().height'))>100);
+   await evalValue('window.dispatchEvent(new Event("rest-timer-completed"))');await wait(100);
+   assert((await evalValue('new DOMMatrix(getComputedStyle(document.querySelector("footer strong[class*=time]")).transform).a'))>1);
+   await wait(450);
+   await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await wait(50);
+   await evalValue('window.dispatchEvent(new Event("rest-timer-completed"))');await wait(100);
+   assert.equal(await evalValue('new DOMMatrix(getComputedStyle(document.querySelector("footer strong[class*=time]")).transform).a'),1);
+   await send('Emulation.setEmulatedMedia',{features:[]});
+   await click('End Workout');
+   assert(await evalValue('document.querySelector("[role=dialog]").contains(document.activeElement)'));
+   await click('Close');await wait(200);
+   assert.equal(await evalValue('!!document.querySelector("[role=dialog]")'),false);
+   for(const resource of ['exercises','templates','sessions']) {
+    await visit(['admin-'+resource,'/admin/'+resource,false,'Admin dashboard'],mode,width);
+    await click(resource==='sessions'?'Create workout record':resource==='templates'?'Create shared template':'Create shared exercise');
+    if(resource!=='exercises') await click('Add exercise');
+    const info=await evalValue('(()=>{const d=document.querySelector("[role=dialog]");return {overflow:document.documentElement.scrollWidth>innerWidth+1,fonts:[...d.querySelectorAll("input:not([type=checkbox]),select")].map(e=>parseFloat(getComputedStyle(e).fontSize)),fields:d.querySelectorAll("fieldset").length};})()');
+    assert(!info.overflow);assert(info.fonts.every(x=>x>=16));assert(info.fields>0);
+    const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(process.env.TEMP,'motion-admin-'+resource+'-'+mode+'-'+width+'.png'),Buffer.from(shot.data,'base64'));
+    await click('Cancel');await wait(200);
+    await click('Details');
+    assert(await evalValue('!!document.querySelector("[role=dialog] dl")'));
+   }
+   console.log('PASS new Motion interactions and admin editors',mode,width);
+  }
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
+  await send('Fetch.disable');await send('Browser.close');return;
+ }
+ if(process.env.UI_CHECK_PHASE==='rest-duration') {
+  for(const mode of ['light','dark'])for(const width of [375,1440]) {
+   await evalValue('localStorage.clear();sessionStorage.clear()');
+   await visit(routes.find(r=>r[0]==='workout'),mode,width);
+   assert.equal(await evalValue('document.querySelector("footer [class*=label]").textContent.trim()'),'Rest');
+   assert.equal(await evalValue('document.querySelectorAll("footer button").length'),3);
+   const click = async label => { await evalValue('document.querySelector('+JSON.stringify('button[aria-label="'+label+'"]')+').click()');await wait(250); };
+   const setDuration = async seconds => {
+    await click('Set rest duration');
+    for(const [label,value] of [['Minutes',Math.floor(seconds/60)],['Seconds',seconds%60]]) {
+     await evalValue('document.querySelector('+JSON.stringify('[role=dialog] input[aria-label="'+label+'"]')+').click()');
+     for(const digit of String(value)) { await evalValue('[...document.querySelectorAll("[role=dialog] button")].find(b=>b.textContent.trim()==='+JSON.stringify(digit)+').click()');await wait(30); }
+    }
+    const modal=await evalValue('(()=>{const d=document.querySelector("[role=dialog]");const fields=[...d.querySelectorAll("input")].map(e=>e.getBoundingClientRect().toJSON());return {fields,scroll:document.documentElement.scrollWidth,width:innerWidth};})()');
+    assert.equal(modal.fields.length,2);assert.equal(modal.fields[0].top,modal.fields[1].top);assert(modal.scroll<=modal.width+1);
+    const preview=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(process.env.TEMP,'rest-keypad-'+mode+'-'+width+'.png'),Buffer.from(preview.data,'base64'));
+    await evalValue('document.querySelector("[role=dialog] form").requestSubmit()');await wait(250);
+   };
+   const time = () => evalValue('document.querySelector("footer strong").textContent.trim()');
+   await setDuration(180);assert.equal(await time(),'03:00');
+   await click('Start rest timer');await wait(1100);
+   await click('Pause rest timer');const paused=await time();await wait(1100);assert.equal(await time(),paused);
+   await send('Page.reload');await wait(1000);assert.equal(await time(),paused);
+   assert(await evalValue('!!document.querySelector("button[aria-label=\\"Start rest timer\\"]")'));
+   await click('Reset rest timer');assert.equal(await time(),'03:00');
+   await send('Page.reload');await wait(1000);assert.equal(await time(),'03:00');
+   await evalValue('document.querySelector("button[aria-pressed]").click()');await wait(300);
+   assert(await evalValue('!!document.querySelector("button[aria-label=\\"Pause rest timer\\"]")'));
+   assert.equal(await time(),'03:00');
+   await setDuration(240);assert.equal(await time(),'04:00');
+   assert(await evalValue('!!document.querySelector("button[aria-label=\\"Pause rest timer\\"]")'));
+   await click('Pause rest timer');await click('Reset rest timer');assert.equal(await time(),'04:00');
+   assert(await evalValue('document.documentElement.scrollWidth<=innerWidth+1'));
+   const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(process.env.TEMP,'rest-controls-'+mode+'-'+width+'.png'),Buffer.from(shot.data,'base64'));
+   console.log('PASS three rest controls, configured duration, pause, reload, set restart',mode,width);
+  }
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
+  await send('Fetch.disable');await send('Browser.close');return;
+ }
+ if(process.env.UI_CHECK_PHASE==='motion') {
+  const row='document.querySelector("[data-completed]")';
+  const card=row+'.closest("[data-exercise-completed]")';
+  const fill=card+'.querySelector("[class*=exerciseCompletedFill]")';
+  const ring=row+'.querySelector("[data-completion-ring]")';
+  const complete=row+'.querySelector("button[aria-pressed]")';
+  for(const mode of ['light','dark'])for(const width of [375,1440]) {
+   await evalValue('localStorage.clear();sessionStorage.clear()');
+   await visit(routes.find(r=>r[0]==='workout'),mode,width);
+   const timerColors=await evalValue('(()=>{const button=document.querySelector("footer .button--secondary");const probe=document.createElement("i");probe.style.color="var(--color-blue-text)";button.parentElement.append(probe);const result={actual:getComputedStyle(button).color,expected:getComputedStyle(probe).color};probe.remove();return result;})()');
+   assert.equal(timerColors.actual,timerColors.expected,'footer must preserve the timer button variant text color');
+   assert.equal(await evalValue(row+'.dataset.completed'),'false');
+   const bounds=await evalValue('JSON.stringify('+row+'.getBoundingClientRect().toJSON())');
+   await evalValue(complete+'.click()');
+   for(let i=0;i<100 && await evalValue(row+'.dataset.completed')!=='true';i++)await wait(10);
+   assert.equal(await evalValue(card+'.dataset.exerciseCompleted'),'false','one completed set must not fill the card');
+   assert.equal(await evalValue('getComputedStyle('+fill+').clipPath'),'polygon(0% 100%, 0% 100%, 0% 100%)');
+   assert.equal(await evalValue(row+'.querySelectorAll("[class*=Fill]").length'),0,'individual sets must not fill');
+   await evalValue('(()=>{const buttons='+card+'.querySelectorAll("button[aria-pressed]");buttons[1].click();buttons[2].click();})()');
+   for(let i=0;i<100 && await evalValue(card+'.dataset.exerciseCompleted')!=='true';i++)await wait(10);
+   await wait(80);
+   const middle=await evalValue('({ring:Number(getComputedStyle('+ring+').opacity),green:getComputedStyle('+fill+').backgroundColor,clip:getComputedStyle('+fill+').clipPath})');
+   assert.notEqual(middle.clip,'polygon(0% -100%, 200% 100%, 0% 100%)','fill jumped directly to completed state');
+   assert.notEqual(middle.clip,'polygon(0% 100%, 0% 100%, 0% 100%)','fill did not start');
+   assert(middle.ring>0,'user completion did not celebrate');
+   await wait(500);
+   assert.equal(await evalValue('getComputedStyle('+fill+').clipPath'),'polygon(0% -100%, 200% 100%, 0% 100%)');
+   assert.equal(await evalValue('Number(getComputedStyle('+ring+').opacity)'),0);
+   assert.equal(await evalValue('JSON.stringify('+row+'.getBoundingClientRect().toJSON())'),bounds,'completion shifted layout');
+   const shot=await send('Page.captureScreenshot',{format:'png'});
+   fs.writeFileSync(path.join(process.env.TEMP,'motion-completion-'+mode+'-'+width+'.png'),Buffer.from(shot.data,'base64'));
+   await evalValue(complete+'.click()');await wait(240);
+   assert.equal(await evalValue('Number(getComputedStyle('+ring+').opacity)'),0,'completed click replayed celebration');
+   await send('Page.reload');await wait(1000);
+   assert.equal(await evalValue('getComputedStyle('+fill+').clipPath'),'polygon(0% -100%, 200% 100%, 0% 100%)');
+   assert.equal(await evalValue('Number(getComputedStyle('+ring+').opacity)'),0,'restoration replayed celebration');
+   await evalValue('(()=>{const input='+row+'.querySelector("input");Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value").set.call(input,"45");input.dispatchEvent(new Event("input",{bubbles:true}));})()');await wait(60);
+   assert.equal(await evalValue(row+'.dataset.completed'),'false');
+   await wait(500);
+   assert.equal(await evalValue('getComputedStyle('+fill+').clipPath'),'polygon(0% 100%, 0% 100%, 0% 100%)');
+   await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await wait(30);
+   await evalValue(complete+'.click();'+complete+'.click()');await wait(300);
+   assert.equal(await evalValue(row+'.dataset.completed'),'true');
+   assert.equal(await evalValue('getComputedStyle('+fill+').clipPath'),'polygon(0% -100%, 200% 100%, 0% 100%)');
+   assert.equal(await evalValue('Number(getComputedStyle('+ring+').opacity)'),0);
+   assert(await evalValue('document.documentElement.scrollWidth<=innerWidth+1'));
+   await send('Emulation.setEmulatedMedia',{features:[]});
+   await evalValue('[...'+card+'.querySelectorAll("button")].find(b=>b.textContent.trim()==="Add set").click()');await wait(500);
+   assert.equal(await evalValue(card+'.dataset.exerciseCompleted'),'false','new incomplete set must clear the card fill');
+   await evalValue('(()=>{const buttons='+card+'.querySelectorAll("button[aria-label=\\"Remove set\\"]");buttons[buttons.length-1].click();})()');await wait(600);
+   assert.equal(await evalValue(card+'.dataset.exerciseCompleted'),'true','removing the incomplete set must recompute completion');
+   console.log('PASS Motion completion: whole-card bottom-up fill/pop, undo, repeated clicks, restoration, reduced motion and stable layout',mode,width,middle.green);
+  }
+  for(const mode of ['light','dark'])for(const width of [375,1440]) {
+   await visit(routes.find(r=>r[0]==='workout-select'),mode,width);
+   await evalValue('document.querySelector("[role=button][aria-pressed]").click()');await wait(300);
+   const selected=await evalValue('(()=>{const card=document.querySelector("[aria-pressed=true]");const probe=document.createElement("i");probe.style.color="var(--color-accent)";document.body.append(probe);const result={border:getComputedStyle(card).borderTopColor,expected:getComputedStyle(probe).color,shadow:getComputedStyle(card).boxShadow};probe.remove();return result;})()');
+   assert.equal(selected.border,selected.expected,'Motion selection border lost its semantic color');
+   assert.notEqual(selected.shadow,'none','Motion selection shadow was not restored');
+   await visit(routes.find(r=>r[0]==='login'),mode,width);
+   await evalValue('document.getElementById("email").focus()');await wait(240);
+   assert.notEqual(await evalValue('getComputedStyle(document.getElementById("email")).boxShadow'),'none','pointer/programmatic focus lost its indicator');
+   await evalValue('document.getElementById("email").blur()');await wait(240);
+   const clearedShadow=await evalValue('getComputedStyle(document.getElementById("email")).boxShadow');
+   assert(clearedShadow==='none' || /^rgba\([^)]*, 0\) 0px 0px 0px 0px$/.test(clearedShadow),'focus shadow remained visible after blur');
+   await visit(routes.find(r=>r[0]==='settings'),mode,width);
+   const point=await evalValue('(()=>{const rect=document.querySelector("[class*=sideNav] a[href=\\"/profile/workouts\\"]").getBoundingClientRect();return {x:rect.x+rect.width/2,y:rect.y+rect.height/2};})()');
+   await send('Input.dispatchMouseEvent',{type:'mouseMoved',...point});await wait(250);
+   const offset=await evalValue('new DOMMatrix(getComputedStyle(document.querySelector("[class*=sideNav] a[href=\\"/profile/workouts\\"]")).transform).m41');
+   assert(Math.abs(offset-(width>850?3:0))<0.1,'navigation hover lost its responsive offset');
+   await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:0,y:0});
+   console.log('PASS declarative Motion selection and focus styles',mode,width);
+  }
+  await visit(routes.find(r=>r[0]==='workout'),'light',375);
+  await evalValue('document.querySelector("button[aria-label^=Reorder]").focus()');
+  for(const key of [' ','ArrowDown',' ']) {
+   await send('Input.dispatchKeyEvent',{type:'keyDown',key,code:key===' '?'Space':key});
+   await send('Input.dispatchKeyEvent',{type:'keyUp',key,code:key===' '?'Space':key});await wait(250);
+  }
+  assert(await evalValue('document.querySelector("[class*=exerciseCard] h2").textContent.includes("Seated cable row")'),'keyboard sorting failed');
+  await visit(routes.find(r=>r[0]==='library'),'light',375);
+  await evalValue('document.querySelector("[class*=pagination]").scrollIntoView({behavior:"instant"})');
+  const beforeScroll=await evalValue('document.scrollingElement.scrollTop');
+  assert(beforeScroll>100);
+  await evalValue('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==="Next").click()');await wait(80);
+  const middleScroll=await evalValue('document.scrollingElement.scrollTop');
+  assert(middleScroll<beforeScroll && middleScroll>10,'pagination did not scroll continuously');
+  await wait(500);
+  assert((await evalValue('document.scrollingElement.scrollTop'))<middleScroll);
+  console.log('PASS Motion keyboard sorting and pagination scroll');
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
+  await send('Fetch.disable');await send('Browser.close');return;
+ }
  if(process.env.UI_CHECK_PHASE==='workout-migration') {
   const click=async text=>{await evalValue('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==='+JSON.stringify(text)+').click()');await wait(100);};
   for(const mode of ['light','dark']) {
@@ -199,13 +376,14 @@ let browser, ws;
  }
  if(process.env.UI_CHECK_PHASE==='recovery') {for(const mode of ['light','dark'])for(const width of [375,1440])await checkRecovery(mode,width);await wait(1000);await send('Fetch.disable');await send('Browser.close');return;}
  if(process.env.UI_CHECK_PHASE!=='interactions')for(const mode of ['light','dark'])for(const width of (process.env.UI_CHECK_WIDTHS?.split(',').map(Number) || [375,1440]))for(const route of routes.filter(routeMatches))await visit(route,mode,width);
+ if(process.env.UI_CHECK_PHASE==='populated'){assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));console.log('PASS: populated routes in both themes and viewport sizes');await send('Fetch.disable');await send('Browser.close');return;}
  const asyncNames=['exercise-select','workout-summary','workout','result','library','exercise-details','edit-exercise','public-templates','my-templates','public-template-details','my-template-details','history','session-details','my-exercises'];
  const emptyNames=['exercise-select','public-template-details','my-template-details','result','session-details','workout-summary','library','public-templates','my-templates','history','my-exercises'];
  if(process.env.UI_CHECK_PHASE!=='interactions')for(const mode of ['light','dark']) {
   for(const route of routes.filter(r=>routeMatches(r) && asyncNames.includes(r[0]))) {await visit(route,mode,375,'loading');await wait(2300);await visit(route,mode,375,'error');}
   for(const route of routes.filter(r=>routeMatches(r) && emptyNames.includes(r[0]))) {await visit(route,mode,375,'empty');assert(!await evalValue("document.querySelector('[class*=shape]')!==null"));}
  }
- if(process.env.UI_CHECK_PHASE==='pages'){console.log('PASS: targeted routes and applicable states');await wait(1000);await send('Fetch.disable');await send('Browser.close');return;}
+ if(process.env.UI_CHECK_PHASE==='pages'){assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));console.log('PASS: targeted routes and applicable states');await wait(1000);await send('Fetch.disable');await send('Browser.close');return;}
  if(!process.env.UI_CHECK_PHASE)for(const mode of ['light','dark'])await checkRecovery(mode);
  // Check keyboard selection, menus, every destructive dialog, and pending/error form feedback.
  for(const mode of ['light','dark']) {
@@ -224,7 +402,7 @@ let browser, ws;
    assert(await evalValue("document.querySelector('[role=dialog]').contains(document.activeElement)"));
    await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',modifiers:8});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',modifiers:8});
    assert(await evalValue("document.querySelector('[role=dialog]').contains(document.activeElement)"));
-   await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape'});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape'});await wait(100);
+   await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape'});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape'});await wait(220);
    assert(await evalValue("!document.querySelector('[role=dialog]')"));
    assert.equal(await evalValue("document.activeElement.textContent.trim()"),label);
   }
@@ -274,7 +452,8 @@ let browser, ws;
  await send('Page.navigate',{url:base+'/library'});await wait(200);
  const skeleton=await evalValue("({busy:!!document.querySelector('[aria-busy=true]'),announcement:!!document.querySelector('[role=status]'),scroll:document.documentElement.scrollWidth,width:innerWidth})");assert(skeleton.busy);assert(skeleton.announcement);assert(skeleton.scroll<=skeleton.width+1);
  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
- const motion=await evalValue("getComputedStyle(document.querySelector('[class*=shape]'),'::after').animationName");assert.equal(motion,'none');console.log('skeleton',JSON.stringify(skeleton),'reduced-motion',motion);
+ await wait(60);
+ const reducedPulse=await evalValue("Number(getComputedStyle(document.querySelector('[class*=pulse]')).opacity)");assert.equal(reducedPulse,0);console.log('skeleton',JSON.stringify(skeleton),'reduced-motion opacity',reducedPulse);
  await wait(900);
  await evalValue("(()=>{const input=document.querySelector('input');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'test');input.dispatchEvent(new Event('input',{bubbles:true}));})()");await wait(500);
  const refresh=await evalValue("({cards:document.querySelectorAll('[class*=exerciseCard]').length,shapes:document.querySelectorAll('[class*=shape]').length})");assert(refresh.cards>0);assert.equal(refresh.shapes,0);console.log('refresh retains cards',JSON.stringify(refresh));

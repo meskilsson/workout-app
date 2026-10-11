@@ -213,3 +213,19 @@
     .alertToggle { justify-self: end; }
     .controls { grid-column: 1 / -1; width: 100%; justify-content: space-between; }
 }
+
+.durationForm { display: grid; gap: 1rem; min-width: 0; }
+.durationForm p { margin: 0; color: var(--color-text-muted); }
+.durationForm input { width: 100%; min-width: 0; font-size: 16px; }
+.durationForm .actions { justify-content: flex-end; flex-wrap: wrap; }
+
+.durationForm { max-width: 320px; margin-inline: auto; gap: .85rem; }
+.durationFields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.durationField { display: grid; gap: .35rem; min-width: 0; text-align: center; color: var(--color-text-muted); font-size: var(--text-sm); }
+.durationField input { min-height: 64px; padding: .5rem; border: 1px solid var(--color-input-border); border-radius: var(--radius-sm); background: var(--color-surface-light); color: var(--color-text); text-align: center; font-size: 1.75rem; font-weight: var(--weight-semibold); font-variant-numeric: tabular-nums; }
+.durationField[data-active="true"] input { background: var(--color-selection); color: var(--color-on-selection); border-color: var(--color-focus); box-shadow: var(--shadow-focus); }
+.keypad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+.keypad > button { min-height: 48px; font-size: var(--text-lead); border-radius: var(--radius-sm); }
+.durationHint { font-size: var(--text-xs); line-height: 1.5; }
+.durationActions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+@media (max-height: 600px) { .keypad > button { min-height: 44px; } .durationForm { gap: .65rem; } }

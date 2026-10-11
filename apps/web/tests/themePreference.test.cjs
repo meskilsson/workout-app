@@ -57,7 +57,7 @@ for (const mode of ["light", "dark"]) {
             const reference = match[2].match(/^var\(--([\w-]+)\)$/);
             return [match[1], reference ? palette[reference[1]] : match[2]];
         }));
-        for (const surface of ["background", "surface", "surface-light", "primary-soft", "accent-soft", "danger-soft"]) {
+        for (const surface of ["background", "surface", "surface-light", "surface-strong", "completed-exercise", "primary-soft", "accent-soft", "danger-soft"]) {
             for (const text of ["text", "text-soft", "text-muted"]) {
                 assert(contrast(tokens[text], tokens[surface]) >= 4.5, `${text} on ${surface}`);
             }
@@ -65,7 +65,7 @@ for (const mode of ["light", "dark"]) {
         for (const action of ["primary", "danger", "accent", "success"]) {
             assert(contrast(tokens[`on-${action}`], tokens[action]) >= 4.5, `${action} button`);
             assert(contrast(tokens[`on-${action}`], tokens[`${action}-hover`]) >= 4.5, `${action} hover`);
-            assert(contrast(tokens[`${action}-text`], tokens[`${action}-soft`]) >= 4.5, `${action} text`);
+            assert(contrast(tokens[action === "success" ? "on-success-soft" : `${action}-text`], tokens[`${action}-soft`]) >= 4.5, `${action} text`);
         }
         assert(contrast(tokens["muscle-primary-text"], tokens["dummy-muscle-primary"]) >= 4.5, "primary muscle label");
         assert(contrast(tokens["muscle-secondary-text"], tokens["dummy-muscle-secondary"]) >= 4.5, "secondary muscle label");
@@ -73,5 +73,8 @@ for (const mode of ["light", "dark"]) {
         assert(luminance(tokens["dummy-muscle-primary"]) < luminance(tokens["dummy-muscle-secondary"]), "primary muscle red is darker");
         assert(contrast(tokens["input-border"], tokens["surface-light"]) >= 3, "input border");
         assert(contrast(tokens.focus, tokens.surface) >= 3, "focus indicator");
+        assert(contrast(tokens["on-selection"], tokens.selection) >= 4.5, "selected control text");
+        assert(contrast(tokens["blue-text"], tokens["blue-soft"]) >= 4.5, "secondary button text");
+        assert(contrast(tokens["blue-text"], tokens["blue-hover"]) >= 4.5, "secondary button hover text");
     });
 }

@@ -1,3 +1,7 @@
+import { motion } from "motion/react";
+import { useMotionTransition } from "../../components/motion/useMotionTransition";
+import { useFieldMotion } from "../../components/motion/useFieldMotion";
+import { searchRest, searchFocus, pageButtonRest, pageButtonHover, cardRest, selectedCard } from "../../components/motion/presets";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useEffect, useState } from "react";
@@ -69,6 +73,8 @@ export default function ExerciseSelectPage() {
 }
 
 function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft }) {
+    const transition = useMotionTransition();
+    const fieldMotion = useFieldMotion();
     const { user, isAuthenticated } = useAuth();
     const draftId = initialDraft._id;
     const navigate = useNavigate();
@@ -245,6 +251,8 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
 
         return (
             <Card
+                animate={{ ...(isSelected ? selectedCard : { ...cardRest, borderColor: "var(--color-border-soft)" }), opacity: isAlreadyInWorkout ? 0.68 : 1 }}
+                whileHover={{ borderColor: isAlreadyInWorkout ? "var(--color-border-soft)" : "var(--color-primary-border)", boxShadow: "none" }}
                 key={exercise._id}
                 className={`${styles.exerciseCard} ${isSelected ? styles.selectedCard : ""
                     } ${isAlreadyInWorkout
@@ -457,7 +465,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
             <div className={styles.searchWrapper}>
                 <label className={styles.searchLabel}>
                     Search exercises
-                <input
+                <motion.input {...fieldMotion("search", searchRest, searchFocus)}
                     className={styles.searchInput}
                     aria-label="Search exercises"
                     type="search"
@@ -585,7 +593,9 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
 
             {totalPages > 1 && (
                 <div className={styles.pagination}>
-                    <button
+                    <motion.button initial={false} transition={transition}
+                        animate={{ ...pageButtonRest, opacity: (page === 1) ? 0.45 : 1 }}
+                        whileHover={(page === 1) ? undefined : pageButtonHover}
                         type="button"
                         className={styles.pageButton}
                         disabled={page === 1}
@@ -594,13 +604,15 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                         }
                     >
                         Previous
-                    </button>
+                    </motion.button>
 
                     <span className={styles.pageInfo}>
                         Page {page} of {totalPages}
                     </span>
 
-                    <button
+                    <motion.button initial={false} transition={transition}
+                        animate={{ ...pageButtonRest, opacity: (page === totalPages) ? 0.45 : 1 }}
+                        whileHover={(page === totalPages) ? undefined : pageButtonHover}
                         type="button"
                         className={styles.pageButton}
                         disabled={page === totalPages}
@@ -609,7 +621,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                         }
                     >
                         Next
-                    </button>
+                    </motion.button>
                 </div>
             )}
         </Box>

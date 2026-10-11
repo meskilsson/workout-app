@@ -1,3 +1,4 @@
+import { cardRest, cardHover } from "../../components/motion/presets";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../context/AuthContext";
@@ -289,7 +290,7 @@ export default function WorkoutHistoryDetailPage() {
                     {session.exercises.map((exercise, exerciseIndex) => (
                         <Card
                             key={`${exercise.exerciseId ?? exercise.exerciseName}-${exerciseIndex}`}
-                            className={styles.exerciseCard}
+                            animate={cardRest} whileHover={cardHover} className={styles.exerciseCard}
                         >
                             <div className={styles.exerciseHeader}>
                                 <div>

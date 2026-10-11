@@ -1,3 +1,7 @@
+import { cardRest, cardHover } from "../../components/motion/presets";
+import { useReducedMotion } from "../../components/motion/useReducedMotion";
+import { motion } from "motion/react";
+import { sortableTransition } from "../../components/motion/sortableTransition";
 import { draftDetailOptions } from "../../query/resourceQueries";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../context/AuthContext";
@@ -113,19 +117,21 @@ function SortableSummaryExerciseCard({
     id: exercise.exerciseId,
   });
 
+  const reduced = useReducedMotion();
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
     opacity: isDragging ? 0.6 : 1,
     zIndex: isDragging ? 10 : "auto",
   };
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
       style={style}
+      initial={false}
+      animate={{ transform: CSS.Transform.toString(transform) ?? "none" }}
+      transition={sortableTransition(transition, reduced)}
     >
-      <Card className={styles.exerciseCard}>
+      <Card animate={cardRest} whileHover={cardHover} className={styles.exerciseCard}>
         <div className={styles.exerciseHeader}>
           <div>
             <p className={styles.exerciseNumber}>
@@ -146,7 +152,7 @@ function SortableSummaryExerciseCard({
         </div>
       <TrainingConfigForm initial={exercise.training} onSave={onSave} onDirty={onDirty} />
       </Card>
-    </div>
+    </motion.div>
   );
 }
 

@@ -1,3 +1,4 @@
+import { cardRest, cardHover } from "../../components/motion/presets";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useState } from "react";
@@ -151,7 +152,7 @@ export default function ProfileWorkoutsPage() {
                         const isDeletingThisSession = deleteSessionId === session._id && isDeleting;
 
                         return (
-                            <Card key={session._id} className={styles.sessionCard}>
+                            <Card key={session._id} animate={cardRest} whileHover={cardHover} className={styles.sessionCard}>
                                 <div className={styles.sessionTopRow}>
                                     <div>
                                         <h3 className={styles.sessionTitle}>

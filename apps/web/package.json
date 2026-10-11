@@ -19,6 +19,7 @@
         "@tanstack/react-router": "^1.170.42",
         "@workout-app/shared": "1.0.0",
         "lucide-react": "^1.52.0",
+        "motion": "^14.1.0",
         "react": "19.1.0",
         "react-dom": "19.1.0"
     },

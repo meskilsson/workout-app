@@ -1,7 +1,5 @@
 .wrapper { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; color: inherit; }
-.spinner { width: 1.25rem; height: 1.25rem; flex: 0 0 auto; border: 2px solid var(--predator-color); border-right-color: transparent; border-radius: 50%; animation: pending-spin .8s linear infinite; }
+.spinner { width: 1.25rem; height: 1.25rem; flex: 0 0 auto; border: 2px solid var(--predator-color); border-right-color: transparent; border-radius: 50%; }
 .small .spinner { width: 1rem; height: 1rem; }
 .large .spinner { width: 1.75rem; height: 1.75rem; }
 .label { font: inherit; }
-@keyframes pending-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }

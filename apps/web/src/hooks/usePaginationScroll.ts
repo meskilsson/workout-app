@@ -1,4 +1,5 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { scrollIntoView } from "../components/motion/scrollIntoView";
 
 type UsePaginationScrollOptions = {
     page?: number;
@@ -22,6 +23,8 @@ export function usePaginationScroll<TElement extends HTMLElement>(
     const page = controlledPage ?? localPage;
     const setPage = onPageChange ?? setLocalPage;
     const pageTopRef = useRef<TElement | null>(null);
+    const cancelScroll = useRef<(() => void) | undefined>(undefined);
+    useEffect(() => () => cancelScroll.current?.(), []);
 
     const handlePageChange = useCallback(
         (nextPage: number) => {
@@ -31,10 +34,8 @@ export function usePaginationScroll<TElement extends HTMLElement>(
             setPage(safePage);
 
             requestAnimationFrame(() => {
-                pageTopRef.current?.scrollIntoView({
-                    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : behavior,
-                    block,
-                });
+                cancelScroll.current?.();
+                if (pageTopRef.current) cancelScroll.current = scrollIntoView(pageTopRef.current, behavior, block);
             });
         },
         [totalPages, behavior, block, setPage],

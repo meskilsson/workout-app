@@ -48,22 +48,17 @@
     gap: .75rem;
     text-align: center;
     cursor: pointer;
-    border: 1px solid var(--color-border) !important;
-    background: var(--color-surface) !important;
-    color: var(--color-text) !important;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
     border-radius: var(--radius-lg);
     box-shadow: none;
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        border-color 0.2s ease,
-        background 0.2s ease;
 }
 
 .muscleGroupCard:hover {
 
-    border-color: var(--color-primary-border) !important;
-    background: var(--color-surface-light) !important;
+    border-color: var(--color-primary-border);
+    background: var(--color-surface-light);
     box-shadow: none;
 }
 
@@ -72,8 +67,8 @@
 }
 
 .selectedCard {
-    border-color: var(--color-accent) !important;
-    background: var(--color-accent-soft) !important;
+    border-color: var(--color-accent);
+    background: var(--color-selection);
     box-shadow:
         0 0 0 3px var(--color-accent-soft),
         var(--shadow-md);

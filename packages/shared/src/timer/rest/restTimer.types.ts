@@ -10,4 +10,5 @@ export type RestTimerAction =
     | { type: "PAUSE" }
     | { type: "RESET" }
     | { type: "TICK" }
+    | { type: "SET_DURATION"; durationMs: number }
     | { type: "ADJUST_TIME"; amountMs: number };

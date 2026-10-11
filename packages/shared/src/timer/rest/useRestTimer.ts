@@ -41,5 +41,7 @@ export function useRestTimer(durationMs: number, storage?: RestTimerStorage, onC
     const reset = useCallback(() => dispatch({ type: "RESET" }), []);
     const adjustTime = useCallback((amountMs: number) =>
         dispatch({ type: "ADJUST_TIME", amountMs }), []);
-    return { state, start, pause, reset, adjustTime };
+    const setDuration = useCallback((durationMs: number) =>
+        dispatch({ type: "SET_DURATION", durationMs }), []);
+    return { state, start, pause, reset, adjustTime, setDuration };
 }

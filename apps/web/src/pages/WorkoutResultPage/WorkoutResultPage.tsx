@@ -1,3 +1,5 @@
+import { motion } from "motion/react";
+import { useMotionTransition } from "../../components/motion/useMotionTransition";
 import { formatTrainingSeconds, trainingTotalSeconds } from "@workout-app/shared";
 import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -17,6 +19,7 @@ import LoadingState from "../../components/Loading/LoadingState";
 import styles from "./WorkoutResultPage.module.css";
 
 export default function WorkoutResultPage() {
+    const completionTiming = useMotionTransition(0.45);
     const navigate = useNavigate();
     const { sessionId } = useParams();
 
@@ -129,7 +132,7 @@ export default function WorkoutResultPage() {
             <div className={styles.header}>
                 <div>
                     <p className={styles.kicker}>Workout complete</p>
-                    <h1 className={styles.title}>Workout saved</h1>
+                    <h1 className={styles.title}><motion.svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-success-text)" strokeWidth="2" style={{ verticalAlign: "middle", marginRight: 8 }}><motion.path d="m5 12 4 4 10-10" initial={{ pathLength: completionTiming.duration === 0 ? 1 : 0 }} animate={{ pathLength: 1 }} transition={completionTiming} /></motion.svg>Workout saved</h1>
                     <p className={styles.subtitle}>
                         Your session is in workout history.
                     </p>

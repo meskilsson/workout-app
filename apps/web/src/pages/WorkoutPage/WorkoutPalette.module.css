@@ -1,0 +1,15 @@
+/* Active-workout palette: white and mint by day, Nord-inspired slate by night. */
+:global(:root[data-theme="light"]) .palette {
+    --color-surface: #FFFFFF;
+    --gradient-surface: var(--color-surface);
+    --color-set-completion-border: var(--mint-500);
+    --color-set-completion-fill: var(--color-surface-soft);
+    --color-set-completion-hover: var(--color-surface-light);
+    --set-completion-shadow: none;
+}
+
+:global(:root[data-theme="dark"]) .palette {
+    /* Keep the workout card flat until its completion fill is revealed. */
+    --color-surface: var(--nord-polar-0);
+    --gradient-surface: var(--color-surface);
+}

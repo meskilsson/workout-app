@@ -1,3 +1,5 @@
+import { motion } from "motion/react";
+import { useMotionTransition } from "../../components/motion/useMotionTransition";
 import { useNavigate } from "../../routes/navigationHooks";
 import { ArrowRight, BookOpen, Dumbbell, History, Plus } from "lucide-react";
 import { useCurrentWorkout } from "@workout-app/shared/currentWorkoutContext";
@@ -8,6 +10,7 @@ import { useAuth } from "../../context/AuthContext";
 import styles from "./Homepage.module.css";
 
 export default function Homepage() {
+    const transition = useMotionTransition(0.15);
     const navigate = useNavigate();
     const { user, isAuthenticated } = useAuth();
     const { currentWorkoutId } = useCurrentWorkout();
@@ -29,7 +32,7 @@ export default function Homepage() {
                     <div><p className={styles.kicker}>Active session</p><h2>Your workout is ready to continue.</h2>
                         <p className={styles.sessionTime}>{formatElapsedMilliseconds(state.elapsedTime)} <span>{state.isRunning ? "elapsed" : "paused"}</span></p>
                     </div>
-                    <Button variant="secondary" onClick={() => navigate(`/workout/${currentWorkoutId}`)} icon={ArrowRight}>Resume workout</Button>
+                    <Button variant="secondary" className={styles.resumeButton} onClick={() => navigate(`/workout/${currentWorkoutId}`)} icon={ArrowRight}>Resume workout</Button>
                 </div>}
                 <div className={styles.newSession}>
                     <div><h2>Start a workout</h2><p>Choose your exercises and build a session.</p></div>
@@ -39,9 +42,9 @@ export default function Homepage() {
             <section className={styles.section} aria-labelledby="training-heading">
                 <h2 id="training-heading">Your training</h2>
                 <div className={styles.destinations}>
-                    {destinations.map(item => <button key={item.path} type="button" className={styles.destination} onClick={() => navigate(item.path)}>
+                    {destinations.map(item => <motion.button initial={false} animate={{ backgroundColor: "transparent" }} whileHover={{ backgroundColor: "var(--color-primary-soft)" }} transition={transition} key={item.path} type="button" className={styles.destination} onClick={() => navigate(item.path)}>
                         <Icon icon={item.icon} /><span><strong>{item.title}</strong><span>{item.description}</span></span><Icon icon={ArrowRight} />
-                    </button>)}
+                    </motion.button>)}
                 </div>
             </section>
         </div>

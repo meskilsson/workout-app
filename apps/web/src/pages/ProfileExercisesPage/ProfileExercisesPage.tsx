@@ -1,3 +1,4 @@
+import { cardRest, cardHover } from "../../components/motion/presets";
 import { Plus, ArrowLeft, Trash2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useState } from "react";
@@ -120,7 +121,7 @@ export default function ProfileExercisesPage() {
             ) : (
                 <div className={styles.exerciseList} aria-busy={isLoading}>
                     {exercises.map((exercise) => (
-                        <Card key={exercise._id} className={styles.exerciseCard}>
+                        <Card key={exercise._id} animate={cardRest} whileHover={cardHover} className={styles.exerciseCard}>
                             <div className={styles.exerciseTopRow}>
                                 <div>
                                     <h3 className={styles.exerciseName}>
