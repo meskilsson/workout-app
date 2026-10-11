@@ -302,7 +302,7 @@
 }
 
 .underlineInput::placeholder {
-    color: var(--color-text-muted);
+    color: var(--color-placeholder);
 }
 
 .underlineInput::-webkit-outer-spin-button,

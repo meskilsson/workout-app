@@ -104,7 +104,7 @@
 }
 
 .searchInput::placeholder {
-    color: var(--color-text-muted);
+    color: var(--color-placeholder);
 }
 
 .searchInput:focus {

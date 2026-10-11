@@ -136,6 +136,7 @@
   --color-text: var(--neutral-1000);
   --color-text-soft: var(--neutral-800);
   --color-text-muted: var(--neutral-700);
+  --color-placeholder: #767676;
   --color-primary: var(--mint-300);
   --color-primary-hover: var(--mint-400);
   --color-primary-soft: var(--mint-100);
@@ -204,6 +205,7 @@
   --color-text: var(--nord-snow-2);
   --color-text-soft: var(--nord-snow-1);
   --color-text-muted: var(--nord-snow-0);
+  --color-placeholder: #B0B0B0;
   --color-primary: var(--nord-button);
   --color-primary-hover: var(--nord-button-hover);
   --color-primary-soft: var(--nord-polar-1);
@@ -405,7 +407,7 @@ button {
   outline: 2px solid var(--color-focus);
   outline-offset: 3px;
 }
-input::placeholder, textarea::placeholder { color: var(--color-text-muted); opacity: 1; }
+input::placeholder, textarea::placeholder { color: var(--color-placeholder); opacity: 1; }
 input, textarea, select { accent-color: var(--color-accent-text); }
 /* Keep dropdown and native input arrows slightly inset from the right edge. */
 :root {

@@ -16,7 +16,7 @@
 .field::after { content: ""; position: absolute; top: 0; left: 0; right: 18px; border-top: 1px solid var(--color-border); pointer-events: none; }
 .field label { font-size: var(--text-xs); font-weight: var(--weight-medium); }
 .field input { width: 100%; min-width: 0; min-height: 44px; border: 1px solid transparent; border-bottom: 2px solid var(--color-input-border); border-radius: 0; padding: 10px 9px; font: inherit; font-size: 16px; color: var(--color-text); background: var(--auth-input); }
-.field input::placeholder { color: var(--color-text-muted); opacity: 1; }
+.field input::placeholder { color: var(--color-placeholder); opacity: 1; }
 .field input:focus { outline: none; border-bottom: 2px solid var(--color-focus); border-radius: 5px 5px 0 0; }
 :global(:root) .field input:focus-visible,
 :global(:root) .field input[aria-invalid="true"] { outline: none; }

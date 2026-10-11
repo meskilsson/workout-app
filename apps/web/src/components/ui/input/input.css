@@ -24,7 +24,7 @@
 }
 
 .input-field::placeholder {
-    color: var(--color-text-muted);
+    color: var(--color-placeholder);
 }
 
 .input-error {
@@ -61,7 +61,7 @@
 }
 
 .set-number-input::placeholder {
-    color: var(--color-text-muted);
+    color: var(--color-placeholder);
 }
 
 .set-number-input::-webkit-outer-spin-button,
