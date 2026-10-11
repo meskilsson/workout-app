@@ -99,6 +99,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
     const [chosenDetails, setSelectedExerciseDetails] = useState<Exercise[]>([]);
     const detailQueries = useQueries({ queries: [...new Set(existingExerciseIds)].map(id => exerciseDetailOptions(user?._id, id)) });
     const selectedExerciseDetails = [...detailQueries.flatMap(query => query.data ? [query.data] : []), ...chosenDetails];
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [actionError, setActionError] = useState("");
     const browse = useExerciseBrowseState(user?._id, draftId);
     const { search: searchTerm, filters, sort, page, update } = browse;
@@ -463,7 +464,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                     }
                 />
                 </label>
-                <ExerciseSortControl filters={filters} onFiltersChange={value => { setFilters(value); setPage(1); }} value={effectiveSort} authenticated={isAuthenticated}
+                <ExerciseSortControl onMobileOpenChange={setMobileFiltersOpen} filters={filters} onFiltersChange={value => { setFilters(value); setPage(1); }} value={effectiveSort} authenticated={isAuthenticated}
                     onChange={value => { setSort(value); setPage(1); }} />
             </div>
 
@@ -557,7 +558,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                 </section>
             )}
 
-            <div className={styles.footer}>
+            <div className={styles.footer} hidden={mobileFiltersOpen}>
                 <p className={styles.footerText}>
                     {selectedExercises.length === 0
                         ? isActiveWorkout

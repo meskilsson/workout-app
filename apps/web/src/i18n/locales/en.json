@@ -726,5 +726,6 @@
   "exercises.difficulty": "Difficulty",
   "exercises.muscle": "Muscle",
   "exercises.all": "All",
-  "exercises.clearFilters": "Clear filters"
+  "exercises.clearFilters": "Clear filters",
+  "exercises.done": "Done"
 }

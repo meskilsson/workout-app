@@ -716,7 +716,7 @@
 }
 
 /* Leave room for the existing mobile navigation beneath the selection action. */
-@media (max-width: 900px) { .footer { bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 0.75rem); flex-wrap: wrap; } .footer button { flex: 1 1 12rem; } }
+@media (max-width: 900px) { .footer { bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px)); flex-wrap: wrap; } .footer button { flex: 1 1 12rem; } }
 :global(html[data-viewport-obstructed="true"]) .footer { position: static; }
 @media (max-width: 640px) { .sortLabel { width: 100%; flex-direction: column; align-items: stretch; gap: 0.35rem; } .sortSelect { width: 100%; } .exerciseCardContent { grid-template-columns: minmax(0, 1fr) minmax(88px, 35%); } }
 
@@ -760,3 +760,5 @@
 
 .searchInput { --exercise-search-background: var(--color-surface); }
 :global(:root[data-theme="light"]) .searchInput { --exercise-search-background: #FFFFFF; }
+
+.footer[hidden] { display: none; }

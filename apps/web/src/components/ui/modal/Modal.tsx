@@ -9,6 +9,7 @@ import Box from "../box/Box";
 import "./modal.css";
 
 type ModalProps = {
+    variant?: "dialog" | "sheet";
     title?: string;
     isOpen: boolean;
     onClose: () => void;
@@ -24,6 +25,7 @@ function DialogOverlay(props: HTMLMotionProps<"div">) {
 
 export default function Modal({
     title,
+    variant = "dialog",
     isOpen,
     onClose,
     children,
@@ -79,7 +81,7 @@ export default function Modal({
 
     return createPortal(
         <AnimatePresence>
-        {isOpen && <DialogOverlay key="dialog" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={transition} className="modal-overlay" onClick={onClose}>
+        {isOpen && <DialogOverlay key="dialog" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={transition} className={`modal-overlay ${variant === "sheet" ? "modal-overlay--sheet" : ""}`} onClick={onClose}>
             <motion.div initial={{ scale: transition.duration === 0 ? 1 : 0.98 }} animate={{ scale: 1 }} exit={{ scale: transition.duration === 0 ? 1 : 0.98 }} transition={transition}
                 className="modal-shell"
                 ref={panelRef}

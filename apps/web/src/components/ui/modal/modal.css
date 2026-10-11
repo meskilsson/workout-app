@@ -92,3 +92,7 @@
 .modal-close:active { background: var(--color-primary-soft); }
 .modal-actions { position: sticky; bottom: 0; padding-bottom: 1rem; background: var(--color-surface); }
 @media (max-width: 600px) { .modal-overlay { padding-inline: max(0.75rem, env(safe-area-inset-left, 0px)) max(0.75rem, env(safe-area-inset-right, 0px)); } .modal-panel { padding-inline: 1rem; } }
+
+.modal-overlay--sheet { align-items: flex-end; padding: max(0.75rem, env(safe-area-inset-top, 0px)) 0 0; }
+.modal-overlay--sheet .modal-shell { width: 100%; margin: 0; max-height: 100%; }
+.modal-overlay--sheet .modal-panel { border-radius: var(--radius-xl) var(--radius-xl) 0 0; background: var(--color-surface); padding-inline: max(1rem, env(safe-area-inset-left, 0px)) max(1rem, env(safe-area-inset-right, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); }

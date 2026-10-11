@@ -726,5 +726,6 @@
   "exercises.difficulty": "Svårighetsgrad",
   "exercises.muscle": "Muskel",
   "exercises.all": "Alla",
-  "exercises.clearFilters": "Rensa filter"
+  "exercises.clearFilters": "Rensa filter",
+  "exercises.done": "Klart"
 }
