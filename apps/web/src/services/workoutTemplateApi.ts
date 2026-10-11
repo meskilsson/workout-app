@@ -1,3 +1,4 @@
+import { activateWorkoutDraftRequest } from "./workoutDraftApi";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 import type {
     WorkoutTemplate,
@@ -136,10 +137,11 @@ export async function startWorkoutFromTemplateRequest(
         },
     );
 
-    return parseJsonResponse<StartedWorkoutDraft>(
+    const draft = await parseJsonResponse<StartedWorkoutDraft>(
         response,
         "Failed to start workout from template",
     );
+    return activateWorkoutDraftRequest(draft._id);
 }
 
 export async function createWorkoutTemplateFromDraftRequest(

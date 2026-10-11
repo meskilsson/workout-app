@@ -63,7 +63,7 @@ export default function MyTemplatesPage() {
 
         try {
             const draft = await startMutation.mutateAsync(templateId);
-            navigate(`/workout-summary/${draft._id}`);
+            navigate(`/workout/${draft._id}`);
         } catch (error) {
             if (error instanceof Error) {
                 setError(friendlyError(error));

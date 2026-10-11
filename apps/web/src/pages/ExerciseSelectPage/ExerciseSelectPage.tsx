@@ -3,9 +3,9 @@ import { motion } from "motion/react";
 import { useMotionTransition } from "../../components/motion/useMotionTransition";
 import { useFieldMotion } from "../../components/motion/useFieldMotion";
 import { searchRest, searchFocus, pageButtonRest, pageButtonHover, cardRest, selectedCard } from "../../components/motion/presets";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowDownUp, CheckCircle2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "../../routes/navigationHooks";
 
 import { useAuth } from "../../context/AuthContext";
@@ -17,6 +17,7 @@ import { useDraftMutations } from "../../query/useDraftMutations";
 import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
+import Modal from "../../components/ui/modal/Modal";
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 import { LoadingAnnouncement } from "../../components/Loading/Skeleton";
 import LoadingState from "../../components/Loading/LoadingState";
@@ -40,6 +41,7 @@ type SelectedMuscleGroup = {
 type WorkoutDraft = {
     _id: string;
     status: "building" | "active" | "completed" | "abandoned";
+    purpose: "workout" | "template";
     selectedMuscleGroups: string[];
     includeCardio?: boolean;
     exercises: {
@@ -80,7 +82,9 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
     const draftId = initialDraft._id;
     const navigate = useNavigate();
     const mutations = useDraftMutations(draftId);
-    const isSavingExercises = mutations.select.isPending;
+    const submitting = useRef(false);
+    const isSavingExercises = mutations.select.isPending || mutations.selectAndStart.isPending;
+    const isTemplateDraft = initialDraft.purpose === "template";
     const selectedMuscleGroups: SelectedMuscleGroup[] = initialDraft.selectedMuscleGroups.map(id => ({ id, title: formatMuscleTitle(id) }));
     const includeCardio = initialDraft.includeCardio ?? true;
     const existingExerciseIds = initialDraft.exercises.map(exercise => exercise.exerciseId);
@@ -91,7 +95,13 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
     const selectedExerciseDetails = [...detailQueries.flatMap(query => query.data ? [query.data] : []), ...chosenDetails];
     const [actionError, setActionError] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
+    const [sortOpen, setSortOpen] = useState(false);
     const [sort, setSort] = useState<ExerciseSort>("popular");
+    const sortOptions: { value: ExerciseSort; label: string; description: string }[] = [
+        { value: "name", label: "Name (A?Z)", description: "Alphabetical order." },
+        { value: "popular", label: "Most popular", description: "Most completed across all users." },
+        ...(isAuthenticated ? [{ value: "mostUsed" as const, label: "My most used", description: "Most completed in your workouts." }] : []),
+    ];
     const effectiveSort = sort === "mostUsed" && !isAuthenticated ? "popular" : sort;
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
     const [page, setPage] = useState(1);
@@ -167,9 +177,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
 
     const exerciseGroupTitle = isCardioOnly ? "Cardio" : isActiveWorkout
         ? "All exercises"
-        : selectedMuscleGroups.length > 0
-            ? [...selectedMuscleGroups.map((group) => group.title), ...(includeCardio ? ["Cardio"] : [])].join(" and ")
-            : "Exercises";
+        : "Matching exercises";
 
     const currentWorkoutExerciseCards = (() => {
         const exerciseMap = new Map<string, Exercise>();
@@ -205,14 +213,6 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
     );
 
     const groupedExercises: ExerciseGroup[] = [
-        ...(currentWorkoutExerciseCards.length > 0
-            ? [{
-                id: "current-workout-exercises",
-                title: "Current workout exercises",
-                count: currentWorkoutExerciseCards.length,
-                exercises: currentWorkoutExerciseCards,
-            }]
-            : []),
         {
             id: "matching-exercises",
             title: debouncedSearchTerm
@@ -229,16 +229,23 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
             return;
         }
 
+        if (submitting.current) return;
+        submitting.current = true;
         setActionError("");
 
         try {
+            if (!isActiveWorkout && !isTemplateDraft) {
+                await mutations.selectAndStart.mutateAsync(selectedExercises);
+                navigate("/workout/" + draftId);
+                return;
+            }
             await mutations.select.mutateAsync({ exerciseIds: selectedExercises, active: isActiveWorkout });
             navigate(isActiveWorkout ? "/workout/" + draftId : "/workout-summary/" + draftId);
         } catch (err) {
             setActionError(
-                friendlyError(err, "Failed to save selected exercises"),
+                friendlyError(err, "Unable to continue. Please try again."),
             );
-        }
+        } finally { submitting.current = false; }
     }
 
     function renderExerciseCard(exercise: Exercise) {
@@ -395,10 +402,6 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
         return (
             <Box className={styles.page}>
                 <div className={styles.stateCard}>
-                    <p className={styles.kicker}>
-                        Exercise library
-                    </p>
-
                     <h1 className={styles.title}>
                         Select exercises
                     </h1>
@@ -412,7 +415,23 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
     return (
         <Box className={styles.page}>
             <div ref={pageTopRef} className={styles.header}>
-                <div>
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        iconOnly
+                        className={styles.backButton}
+                    aria-label="Go back"
+                        onClick={() =>
+                            isActiveWorkout
+                                ? navigate(
+                                    `/workout/${draftId}`,
+                                )
+                                : navigate(-1)
+                        }
+                    >
+                        <Icon icon={ArrowLeft} />
+                    </Button>
+                <div className={styles.headerIntro}>
                     <p className={styles.kicker}>
                         Exercise library
                     </p>
@@ -427,40 +446,26 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
 
                     <p className={styles.subtitle}>
                         {isActiveWorkout
-                            ? "Choose new exercises to add to your active workout."
-                            : isCardioOnly ? "Choose cardio activities for continuous or interval training." : includeCardio ? "Choose exercises for your selected muscles and cardio activities." : "Choose exercises for the muscle groups you selected."}
+                            ? "Select exercises to add to your workout."
+                            : isCardioOnly ? "Choose your cardio activities." : includeCardio ? "Choose exercises for your workout." : "Choose exercises for your selected muscles."}
                     </p>
 
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        style={{
-                            minWidth: "3.25rem",
-                            marginTop: "1.5rem",
-                        }}
-                        iconOnly
-                        className={styles.backButton}
-                    aria-label="Go back"
-                        onClick={() =>
-                            isActiveWorkout
-                                ? navigate(
-                                    `/workout/${draftId}`,
-                                )
-                                : navigate(-1)
-                        }
-                    >
-                        <Icon icon={ArrowLeft} />
-                    </Button>
+
                 </div>
 
-                <div className={styles.selectedBadge}>
-                    {selectedExercises.length}{" "}
-                    {isActiveWorkout
-                        ? "new selected"
-                        : "selected"}
-                </div>
+
             </div>
 
+            <Modal title="Sort exercises" isOpen={sortOpen} onClose={() => setSortOpen(false)}>
+                <fieldset className={styles.sortOptions}>
+                    <legend>Order exercises by</legend>
+                    {sortOptions.map(option => <label className={styles.sortOption} key={option.value}>
+                        <input type="radio" name="exercise-sort" value={option.value} checked={effectiveSort === option.value}
+                            onChange={() => { setSort(option.value); setPage(1); setSortOpen(false); }} />
+                        <span>{option.label}<small>{option.description}</small></span>
+                    </label>)}
+                </fieldset>
+            </Modal>
             <div className={styles.searchWrapper}>
                 <label className={styles.searchLabel}>
                     Search exercises
@@ -475,28 +480,10 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                     }
                 />
                 </label>
-                <label className={styles.sortLabel}>
-                    Sort by
-                    <select
-                        className={styles.sortSelect}
-                        value={effectiveSort}
-                        onChange={(event) => {
-                            setSort(event.target.value as ExerciseSort);
-                            setPage(1);
-                        }}
-                    >
-                        <option value="name">Name (A–Z)</option>
-                        <option value="popular">Most popular</option>
-                        {isAuthenticated && <option value="mostUsed">My most used</option>}
-                    </select>
-                </label>
-                {effectiveSort !== "name" && (
-                    <p className={styles.sortHint}>
-                        {effectiveSort === "mostUsed"
-                            ? "Ranked by your completed workouts, highest to lowest."
-                            : "Ranked by completed workouts across all users, highest to lowest."}
-                    </p>
-                )}
+                <Button type="button" variant="ghost" className={styles.sortButton} icon={ArrowDownUp}
+                    aria-haspopup="dialog" aria-expanded={sortOpen}
+                    aria-label={`Sort exercises: ${sortOptions.find(option => option.value === effectiveSort)?.label}`}
+                    onClick={() => setSortOpen(true)}>Sort</Button>
             </div>
 
             {isLoadingExercises && hasLoadedOnce && (
@@ -541,7 +528,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                             ) : (
                                 <p className={styles.emptyText}>
                                     {exercises.length > 0
-                                        ? "All exercises on this page are already in your workout. Remove one above to select it again, or browse another page."
+                                        ? "Your chosen exercises are listed below. Browse another page for more."
                                         : "No matching exercises found."}
                                 </p>
                             )}
@@ -549,46 +536,6 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                     </section>
                 ))}
             </Box>
-
-            <div className={styles.footer}>
-                <p className={styles.footerText}>
-                    {selectedExercises.length === 0
-                        ? isActiveWorkout
-                            ? "Select at least one new exercise."
-                            : "Select at least one exercise to continue."
-                        : `${selectedExercises.length} exercise${selectedExercises.length === 1
-                            ? ""
-                            : "s"
-                        } ready.`}
-                </p>
-
-                <Button
-                    type="button"
-                    variant="primary"
-                    onClick={handleContinue}
-                    disabled={
-                        selectedExercises.length === 0 ||
-                        isSavingExercises
-                    }
-                >
-                    {isSavingExercises ? (
-                        <LoadingPredator
-                            size="small"
-                            color="currentColor"
-                            label={
-                                isActiveWorkout
-                                    ? "Adding exercises..."
-                                    : "Saving..."
-                            }
-                            showLabel
-                        />
-                    ) : isActiveWorkout ? (
-                        "Add to workout"
-                    ) : (
-                        "Continue"
-                    )}
-                </Button>
-            </div>
 
             {totalPages > 1 && (
                 <div className={styles.pagination}>
@@ -623,6 +570,60 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                     </motion.button>
                 </div>
             )}
+            {currentWorkoutExerciseCards.length > 0 && (
+                <section className={`${styles.groupList} ${styles.exerciseGroup}`} aria-labelledby="chosen-exercises-heading">
+                    <div className={styles.groupHeader}>
+                        <h2 id="chosen-exercises-heading" className={styles.groupTitle}>
+                            {isActiveWorkout ? "Workout exercises" : "Chosen exercises"}
+                        </h2>
+                        <p className={styles.groupCount}>{currentWorkoutExerciseCards.length} {currentWorkoutExerciseCards.length === 1 ? "exercise" : "exercises"}</p>
+                    </div>
+                    <div className={styles.exerciseGrid}>
+                        {currentWorkoutExerciseCards.map(renderExerciseCard)}
+                    </div>
+                </section>
+            )}
+
+            <div className={styles.footer}>
+                <p className={styles.footerText}>
+                    {selectedExercises.length === 0
+                        ? isActiveWorkout
+                            ? "Select at least one new exercise."
+                            : "Select at least one exercise to continue."
+                        : `${selectedExercises.length} exercise${selectedExercises.length === 1
+                            ? ""
+                            : "s"
+                        } ready.`}
+                </p>
+
+                <Button
+                    type="button"
+                    variant="primary"
+                    onClick={handleContinue}
+                    disabled={
+                        selectedExercises.length === 0 ||
+                        isSavingExercises
+                    }
+                >
+                    {isSavingExercises ? (
+                        <LoadingPredator
+                            size="small"
+                            color="currentColor"
+                            label={
+                                isActiveWorkout
+                                    ? "Adding exercises..."
+                                    : isTemplateDraft ? "Saving..." : "Starting..."
+                            }
+                            showLabel
+                        />
+                    ) : isActiveWorkout ? (
+                        "Add to workout"
+                    ) : (
+                        isTemplateDraft ? "Review template" : "Start workout"
+                    )}
+                </Button>
+            </div>
+
         </Box>
     );
 }

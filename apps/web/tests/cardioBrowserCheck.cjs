@@ -53,7 +53,7 @@ let browser, ws;
    if(url.pathname.includes('/auth/me'))payload={user:guest?null:{_id:userId,name:'Alex',email:'alex@example.com',username:'alex',role:'user'}};
    else if(url.pathname.includes('/auth/')) {responseCode=400;payload={message:'Check your details and try again.'};}
    else if(url.pathname.includes('/workout-sessions')){payload=sessions.find(x=>url.pathname.endsWith(x._id)) ?? (scenario==='empty'?[]:sessions); if(scenario==='empty' && !Array.isArray(payload))payload={...payload,exercises:[]};}
-   else if(url.pathname.includes('/workout-drafts')){ if(url.pathname.endsWith('/workout-drafts') && item.request.method==='POST'){const body=JSON.parse(item.request.postData);draft.selectedMuscleGroups=body.selectedMuscleGroups;draft.includeCardio=body.includeCardio;draft.status="building";} if(url.pathname.endsWith('/training') && item.request.method==='PATCH'){const body=JSON.parse(item.request.postData);mutations.push(body);const e=draft.exercises.find(e=>e.exerciseId===body.exerciseId);e.training=body.training;e.cardioCompletion=body.cardioCompletion;if(body.training.format!=='strength')e.sets=[];}if(url.pathname.endsWith('/exercises') && item.request.method==='PATCH'){const ids=JSON.parse(item.request.postData).exerciseIds;draft.exercises=ids.map(id=>{const e=exercises.find(e=>e._id===id);return {exerciseId:id,exerciseName:e.name,sets:[{id:'set-'+id,weight:null,reps:null}],training:{format:'strength'}};});}payload={...draft,purpose:routePath.includes('template')?'template':'workout',status:draft.status,exercises:scenario==='empty'?[]:draft.exercises};}
+   else if(url.pathname.includes('/workout-drafts')){ if(url.pathname.endsWith('/workout-drafts') && item.request.method==='POST'){const body=JSON.parse(item.request.postData);draft.selectedMuscleGroups=body.selectedMuscleGroups;draft.includeCardio=body.includeCardio;draft.status="building";} if(url.pathname.endsWith('/training') && item.request.method==='PATCH'){const body=JSON.parse(item.request.postData);mutations.push(body);const e=draft.exercises.find(e=>e.exerciseId===body.exerciseId);e.training=body.training;e.cardioCompletion=body.cardioCompletion;if(body.training.format!=='strength')e.sets=[];}if(url.pathname.endsWith('/exercises') && item.request.method==='PATCH'){const ids=JSON.parse(item.request.postData).exerciseIds;draft.exercises=ids.map(id=>{const e=exercises.find(e=>e._id===id);const existing=draft.exercises.find(entry=>entry.exerciseId===id);return existing ?? {exerciseId:id,exerciseName:e.name,sets:e.exerciseType==='cardio'?[]:[{id:'set-'+id,weight:null,reps:null}],training:e.exerciseType==='cardio'?{format:'cardio',durationSeconds:600}:undefined};});}if(url.pathname.endsWith('/start') && item.request.method==='PATCH')draft.status='active';payload={...draft,purpose:routePath.includes('template')?'template':'workout',status:draft.status,exercises:scenario==='empty'?[]:draft.exercises};}
    else if(url.pathname.includes('/exercises')){const muscles=url.searchParams.get('muscles')?.split(',')??[];const filtered=exercises.filter(e=>(!url.searchParams.get('exerciseType') || e.exerciseType===url.searchParams.get('exerciseType')) && (!muscles.length || [...(e.primaryMuscles??[]),...(e.secondaryMuscles??[])].some(m=>muscles.includes(m)) || (url.searchParams.get('includeCardio')==='true' && e.exerciseType==='cardio')));payload=exercises.find(e=>url.pathname.endsWith(e._id)) ?? {exercises:scenario==='empty'?[]:filtered,total:scenario==='empty'?0:filtered.length,totalPages:1};}
    else if(url.pathname.includes('/workout-templates')){payload=templates.find(t=>url.pathname.endsWith(t._id)) ?? (scenario==='empty'?[]:templates); if(scenario==='empty' && !Array.isArray(payload))payload={...payload,exercises:[]};}
    else if(url.pathname.includes('/users/'))payload={_id:userId,name:'Alex',email:'alex@example.com',username:'alex',role:'user'};
@@ -76,11 +76,12 @@ let browser, ws;
  if(process.env.CARDIO_CHECK_PHASE!=='selection-summary') {
  await visit('/workout-summary/'+draftId);
  assert((await evalValue('document.body.textContent')).includes('Total: 14:30'));
- const setFormat = f => evalValue(`(()=>{const s=document.querySelectorAll('form select')[3];s.value=${JSON.stringify(f)};s.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+ await evalValue(`document.querySelectorAll('details')[0].open=true`);
+ const setFormat = f => evalValue(`[...document.querySelector('form').querySelectorAll('button')].find(b=>b.textContent===${JSON.stringify(f==='cardio'?'Continuous':'Intervals')}).click()`);
  await setFormat('cardio');await wait(100);
  assert(await evalValue("[...document.querySelectorAll('button')].find(b=>b.textContent==='Start workout').disabled"));
  await setFormat('intervals');await wait(100);
- await evalValue("document.querySelectorAll('form')[3].requestSubmit()");await wait(500);
+ await evalValue("document.querySelectorAll('form')[0].requestSubmit()");await wait(500);
  assert.equal(mutations.length,1);assert.deepEqual(mutations[0].training,{format:'intervals',rounds:8,workSeconds:30,restSeconds:90});
  assert(!await evalValue("[...document.querySelectorAll('button')].find(b=>b.textContent==='Start workout').disabled"));
  assert(await evalValue('document.documentElement.scrollWidth <= innerWidth + 1'));
@@ -88,7 +89,7 @@ let browser, ws;
  for (const width of [320, 375, 480, 768, 1024, 1440]) {
   await metrics(width, 900); await wait(150);
   const layout = await evalValue(`(() => {
-    const form = document.querySelectorAll('form')[3];
+    const form = document.querySelectorAll('form')[0];
     const bounds = [...form.querySelectorAll('input,select,fieldset')].map(el => el.getBoundingClientRect());
     const card = form.closest('section') || form.parentElement;
     const cardBounds = card.getBoundingClientRect();
@@ -107,7 +108,7 @@ let browser, ws;
   if (width <= 480) assert(layout.durations[1].top >= layout.durations[0].bottom, `${width}px durations should stack`);
   if (width >= 768) assert(Math.abs(layout.durations[0].top - layout.durations[1].top) < 1, `${width}px durations should sit side by side`);
   if (process.env.CARDIO_SCREENSHOT_DIR) {
-    await evalValue("document.querySelectorAll('form')[3].scrollIntoView({block:'center'})"); await wait(100);
+    await evalValue("document.querySelectorAll('form')[0].scrollIntoView({block:'center'})"); await wait(100);
     const shot = await send('Page.captureScreenshot', {format:'png'});
     fs.mkdirSync(process.env.CARDIO_SCREENSHOT_DIR, {recursive:true});
     fs.writeFileSync(path.join(process.env.CARDIO_SCREENSHOT_DIR, 'summary-'+width+'.png'), Buffer.from(shot.data,'base64'));
@@ -178,17 +179,16 @@ let browser, ws;
  assert(await evalValue('[...document.querySelectorAll("[role=button][aria-pressed=true]")].some(card=>card.textContent.includes("Abdominal Crunch"))'),'background refetch erased unsaved exercise selection');
  console.log('PASS: unsaved workout exercise selection survives reconnect refetch');
  draftReadDelay=1800;
- await evalValue('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==="Continue").click()');await wait(450);
- assert.equal(await evalValue('location.pathname'),'/workout-summary/'+draftId);
- assert(await evalValue('[...document.querySelectorAll("h3")].some(h=>h.textContent.includes("Abdominal Crunch"))'),'saved selection missing on first summary render');
- await wait(1900);
- assert(await evalValue('[...document.querySelectorAll("h3")].some(h=>h.textContent.includes("Abdominal Crunch"))'),'summary lost selection after draft refresh');
+ await evalValue('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==="Start workout").click()');await wait(450);
+ assert.equal(await evalValue('location.pathname'),'/workout/'+draftId);
+ for(let attempt=0;attempt<20 && !await evalValue('document.body.textContent.includes("Abdominal Crunch")');attempt++)await wait(400);
+ assert(await evalValue('document.body.textContent.includes("Abdominal Crunch")'),'workout lost selection after draft refresh');
  draftReadDelay=0;
- console.log('PASS: selected exercise appears on first summary render before delayed GET and stays after refresh');
+ console.log('PASS: selection starts the workout directly and retains exercises after delayed draft loading');
 
 
 
  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
  console.log('PASS: navigation cleanup and restoration, manual completion, no browser runtime errors');
- await send('Fetch.disable');await send('Browser.close');
+ await send('Page.navigate',{url:'about:blank'});await wait(200);await send('Browser.close');
 })().catch(error=>{console.error(error);process.exitCode=1;}).finally(()=>{ws?.close();browser?.kill();server.close();});

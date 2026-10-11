@@ -117,6 +117,8 @@ function hasCompletedSet(sets: WorkoutSet[]) {
 type SortableWorkoutExerciseCardProps = {
     exercise: SelectedExercise;
     scope: string;
+    onTrainingChange: (config: TrainingConfig) => Promise<void>;
+    actionsDisabled: boolean;
     onCardioCompletion: (result: CardioCompletion | undefined) => void;
     exerciseSets: WorkoutSet[];
 
@@ -151,7 +153,7 @@ type SortableWorkoutExerciseCardProps = {
 
 function SortableWorkoutExerciseCard({
     exercise,
-    scope, onCardioCompletion,
+    scope, onCardioCompletion, onTrainingChange, actionsDisabled,
     exerciseSets,
     onAddSet,
     onSetChange,
@@ -283,7 +285,7 @@ function SortableWorkoutExerciseCard({
             </div>
 
             <motion.div id={`sets-${exercise._id}`} initial={false} animate={{ height: expanded ? "auto" : 0, opacity: expanded ? 1 : 0 }} transition={{ duration: reduced ? 0 : 0.2 }} style={{ overflow: "hidden" }} inert={!expanded}>
-            {exercise.training && exercise.training.format !== "strength" ?  <CardioSession key={JSON.stringify(exercise.training)} scope={scope} exerciseId={exercise._id} config={exercise.training} completion={exercise.cardioCompletion} onCompletion={onCardioCompletion} /> : <div className={styles.setsList}>
+            {exercise.training && exercise.training.format !== "strength" ?  <CardioSession key={JSON.stringify(exercise.training)} scope={scope} exerciseId={exercise._id} config={exercise.training} completion={exercise.cardioCompletion} onCompletion={onCardioCompletion} onConfig={onTrainingChange} disabled={actionsDisabled} /> : <div className={styles.setsList}>
                 <AnimatePresence initial={false}>
                 {exerciseSets.map((set, setIndex) => (
                     <CompletedSetRow key={set.id} completed={set.isCompleted}>
@@ -453,7 +455,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
 
     const [isSaving, setIsSaving] =
         useState(false);
-    const isActionPending = isSaving || isAbandoning;
+    const isActionPending = isSaving || isAbandoning || trainingMutation.isPending;
 
     const [
         isRemovingExercise,
@@ -1243,6 +1245,14 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                                 (exercise, index) => (
                                     <SortableWorkoutExerciseCard
                                         scope={scope}
+                                        actionsDisabled={isActionPending}
+                                        onTrainingChange={async training => {
+                                            if (actionRequestPending.current || hasEnded.current) throw new Error("The workout is ending. Please wait.");
+                                            await saveTraining({ exerciseId: exercise._id, training });
+                                            if (hasEnded.current) return;
+                                            cardioResults.current[exercise._id] = undefined;
+                                            setSelectedExercises(current => current.map(item => item._id === exercise._id ? { ...item, training, cardioCompletion: undefined } : item));
+                                        }}
                                         onCardioCompletion={result => { cardioResults.current[exercise._id] = result; }}
                                         canMoveUp={index > 0 && !isReorderingExercises && !isRemovingExercise}
                                         canMoveDown={index < selectedExercises.length - 1 && !isReorderingExercises && !isRemovingExercise}

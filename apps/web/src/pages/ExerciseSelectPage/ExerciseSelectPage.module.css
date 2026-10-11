@@ -735,3 +735,49 @@
 @media (max-width: 900px) { .footer { bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 0.75rem); flex-wrap: wrap; } .footer button { flex: 1 1 12rem; } }
 :global(html[data-viewport-obstructed="true"]) .footer { position: static; }
 @media (max-width: 640px) { .sortLabel { width: 100%; flex-direction: column; align-items: stretch; gap: 0.35rem; } .sortSelect { width: 100%; } .exerciseCardContent { grid-template-columns: minmax(0, 1fr) minmax(88px, 35%); } }
+
+/* Keep exercise selection compact alongside the mobile navigation. */
+@media (max-width: 900px) {
+    .cardDummy { display: none; }
+    .exerciseCardContent { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* A compact heading and search toolbar keep the exercise list in reach. */
+.page { gap: 1.25rem; }
+.header { flex-direction: row; align-items: flex-start; justify-content: flex-start; }
+.headerIntro { min-width: 0; flex: 1; }
+.header .backButton { flex: 0 0 44px; margin: 0; }
+.subtitle { margin-top: 0.4rem; }
+.searchWrapper { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 0.65rem; }
+.sortButton { min-height: 50px; padding-inline: 0.75rem; }
+.sortOptions { border: 0; padding: 0; margin: 0; display: grid; gap: 0.5rem; min-width: 0; }
+.sortOptions legend { margin-bottom: 0.75rem; color: var(--color-text-muted); font-size: var(--text-sm); }
+.sortOption { display: flex; align-items: center; gap: 0.75rem; min-height: 60px; padding: 0.75rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; }
+.sortOption:has(input:checked) { border-color: var(--color-primary-border); background: var(--color-primary-soft); }
+.sortOption input { flex: 0 0 auto; width: 20px; height: 20px; accent-color: var(--color-primary-text); }
+.sortOption span { min-width: 0; overflow-wrap: anywhere; }
+.sortOption small { display: block; margin-top: 0.2rem; color: var(--color-text-muted); line-height: 1.4; }
+
+/* Compact cards keep the muscle labels readable without separate tall blocks. */
+.exerciseGrid { grid-auto-rows: auto; gap: 0.75rem; }
+.exerciseCard.exerciseCard { padding: 0.75rem; }
+.exerciseCardContent { grid-template-columns: minmax(0, 1fr) 112px; grid-template-rows: auto auto; align-content: start; gap: 0.6rem; }
+.exerciseMainInfo { gap: 0.35rem; }
+.exerciseMeta { gap: 0.3rem; }
+.exerciseMeta span { padding: 0.15rem 0.4rem; font-weight: var(--weight-medium); }
+.muscleInfo { gap: 0.35rem; }
+.muscleInfo > div { display: grid; grid-template-columns: 68px minmax(0, 1fr); align-items: baseline; gap: 0.4rem; }
+.muscleLabel { margin: 0; line-height: 1.5; }
+.muscleTags { gap: 0.25rem; }
+.primaryTag, .secondaryTag { padding: 0.1rem 0.35rem; font-weight: var(--weight-medium); }
+.cardDummy { height: 160px; align-self: start; }
+@media (max-width: 900px) {
+    .exerciseCardContent { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 900px) {
+    .exerciseGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+    .exerciseCard.exerciseCard { padding: 0.65rem; }
+    .muscleInfo > div { grid-template-columns: minmax(0, 1fr); gap: 0.15rem; }
+    .exerciseMeta span, .primaryTag, .secondaryTag { max-width: 100%; overflow-wrap: anywhere; }
+}

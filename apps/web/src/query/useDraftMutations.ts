@@ -22,9 +22,24 @@ export function useDraftMutations(draftId: string) {
     const reorder = useMutation({ mutationFn: (ids: string[]) => api.reorderWorkoutDraftExercisesRequest(draftId, ids), onSuccess: invalidate });
     const remove = useMutation({ mutationFn: (id: string) => api.removeWorkoutDraftExerciseRequest(draftId, id), onSuccess: invalidate });
     const select = useMutation({ mutationFn: (data: { exerciseIds: string[]; active: boolean }) => data.active ? api.addWorkoutDraftExercisesRequest(draftId, { exerciseIds: data.exerciseIds }) : api.updateWorkoutDraftExercisesRequest(draftId, { exerciseIds: data.exerciseIds }), onSuccess: draft => cacheSavedDraft(client, userId, draftId, draft) });
+    const selectAndStart = useMutation({
+        mutationFn: async (exerciseIds: string[]) => {
+            try {
+                await api.updateWorkoutDraftExercisesRequest(draftId, { exerciseIds });
+                return await api.activateWorkoutDraftRequest(draftId);
+            }
+            catch (error) {
+                // A lost start response must not strand an already active workout.
+                const saved = await api.getWorkoutDraftByIdRequest(draftId).catch(() => null);
+                if (saved?.status === "active") return saved;
+                throw error;
+            }
+        },
+        onSuccess: draft => cacheSavedDraft(client, userId, draftId, draft),
+    });
     const start = useMutation({ mutationFn: () => api.startWorkoutDraftRequest(draftId), onSuccess: invalidate });
     const abandon = useMutation({ mutationFn: () => api.abandonWorkoutDraftRequest(draftId), onSuccess: ended });
     // The caller supplies the existing final-save/status-recovery transaction as one mutation.
     const complete = useMutation({ mutationFn: (finish: () => Promise<string>) => finish(), onSuccess: ended });
-    return { sets, training, reorder, remove, select, start, abandon, complete };
+    return { sets, training, reorder, remove, select, selectAndStart, start, abandon, complete };
 }
