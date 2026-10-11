@@ -1,3 +1,5 @@
+import { reportFormError, friendlyError } from "../../utils/formValidation";
+import ValidatedForm from "../../components/forms/ValidatedForm";
 import { cardRest, cardHover } from "../../components/motion/presets";
 import { useReducedMotion } from "../../components/motion/useReducedMotion";
 import { motion } from "motion/react";
@@ -162,7 +164,7 @@ export default function WorkoutSummaryPage() {
   const query = useQuery(draftDetailOptions(user?._id ?? "", draftId ?? ""));
   const navigate = useNavigate();
   if (query.isPending && draftId) return <LoadingState layout="summary" className={styles.page} title="Workout builder" message="Loading workout summary..." />;
-  if (!query.data) return <Box className={styles.page}><Card className={styles.stateCard}><h1>Workout summary</h1><p role="alert">{query.error?.message ?? "Missing workout draft"}</p><Button onClick={() => navigate("/workout-select")}>Go back</Button></Card></Box>;
+  if (!query.data) return <Box className={styles.page}><Card className={styles.stateCard}><h1>Workout summary</h1><p role="alert">{(query.error ? friendlyError(query.error, "Unable to load your workout. Please try again.") : "Missing workout draft")}</p><Button onClick={() => navigate("/workout-select")}>Go back</Button></Card></Box>;
   return <WorkoutSummaryForm key={(user?._id ?? "") + ":" + draftId} draft={query.data} />;
 }
 function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
@@ -231,7 +233,7 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
     } catch (err) {
       setOrderedExercises(previousOrder);
       setActionError(
-        err instanceof Error ? err.message : "Failed to reorder exercises",
+        friendlyError(err, "Failed to reorder exercises"),
       );
     }
   }
@@ -281,7 +283,7 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
       navigate(`/workout/${draftId}`);
     } catch (err) {
       setActionError(
-        err instanceof Error ? err.message : "Failed to start workout",
+        friendlyError(err, "Failed to start workout"),
       );
     }
   }
@@ -309,14 +311,10 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
 
   async function handleSaveTemplate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const submittedForm = event.currentTarget;
     if (isSavingTemplate) return;
 
     if (!draftId) {
-      return;
-    }
-
-    if (!templateName.trim()) {
-      setActionError("Template name is required.");
       return;
     }
 
@@ -332,9 +330,7 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
       setIsTemplateModalOpen(false);
       navigate("/templates/my");
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Failed to save template",
-      );
+      if (!reportFormError(submittedForm, err)) setActionError(friendlyError(err, "Unable to save template. Please try again."));
     }
   }
 
@@ -549,7 +545,7 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
         }
       >
         {actionError && <p className={styles.errorCard} role="alert">{actionError}</p>}
-        <form
+        <ValidatedForm
           id="save-template-form"
           className={styles.templateForm}
           onSubmit={handleSaveTemplate}
@@ -558,7 +554,7 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
             <span>Name *</span>
             <input
               type="text"
-              value={templateName}
+              name="name" required minLength={2} maxLength={80} value={templateName}
               placeholder="Example: My Push Day"
               onChange={(event) =>
                 setTemplateName(event.target.value)
@@ -569,7 +565,7 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
           <label className={styles.templateField}>
             <span>Category</span>
             <select
-              value={templateCategory}
+              name="category" value={templateCategory}
               onChange={(event) =>
                 setTemplateCategory(
                   event.target.value as WorkoutTemplateCategory,
@@ -587,14 +583,14 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
           <label className={styles.templateField}>
             <span>Description</span>
             <textarea
-              value={templateDescription}
+              name="description" maxLength={500} value={templateDescription}
               placeholder="Short description for this template"
               onChange={(event) =>
                 setTemplateDescription(event.target.value)
               }
             />
           </label>
-        </form>
+        </ValidatedForm>
       </Modal>
     </Box>
   );

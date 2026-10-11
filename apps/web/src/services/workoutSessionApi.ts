@@ -32,13 +32,7 @@ export async function createWorkoutSessionRequest(
         body: JSON.stringify(sessionData),
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to save workout session");
-    }
-
-    return data;
+    return parseJsonResponse<WorkoutSession>(response, "Failed to save workout session");
 }
 
 export async function getMyWorkoutSessionsRequest(signal?: AbortSignal): Promise<WorkoutSession[]> {
@@ -47,13 +41,7 @@ export async function getMyWorkoutSessionsRequest(signal?: AbortSignal): Promise
         credentials: "include",
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch workout history");
-    }
-
-    return data;
+    return parseJsonResponse<WorkoutSession[]>(response, "Failed to fetch workout history");
 }
 
 export async function getWorkoutSessionByIdRequest(sessionId: string, signal?: AbortSignal): Promise<WorkoutSession> {
@@ -62,13 +50,7 @@ export async function getWorkoutSessionByIdRequest(sessionId: string, signal?: A
         credentials: "include",
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch workout session");
-    }
-
-    return data;
+    return parseJsonResponse<WorkoutSession>(response, "Failed to fetch workout session");
 }
 
 export async function repeatWorkoutSessionRequest(

@@ -1,3 +1,4 @@
+import { friendlyError } from "../../utils/formValidation";
 import { cardRest, cardHover } from "../../components/motion/presets";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -47,8 +48,8 @@ export default function WorkoutHistoryDetailPage() {
     const exerciseLibrary = useMemo(() => musclesQuery.data?.exercises ?? [], [musclesQuery.data]);
     const isLoading = !!id && sessionQuery.isPending;
     const isLoadingMuscles = musclesQuery.isFetching;
-    const error = !id ? "Workout session id is missing." : sessionQuery.error?.message ?? "";
-    const muscleError = musclesQuery.error?.message ?? "";
+    const error = !id ? "Workout session id is missing." : (sessionQuery.error ? friendlyError(sessionQuery.error, "Unable to load this content. Please try again.") : "");
+    const muscleError = (musclesQuery.error ? friendlyError(musclesQuery.error, "Unable to load this content. Please try again.") : "");
     const [actionError, setActionError] = useState("");
     const repeatMutation = useRepeatSessionMutation();
     const isRepeatingWorkout = repeatMutation.isPending;
@@ -66,7 +67,7 @@ export default function WorkoutHistoryDetailPage() {
             navigate(`/workout-summary/${draft._id}`);
         } catch (error) {
             if (error instanceof Error) {
-                setActionError(error.message);
+                setActionError(friendlyError(error));
             } else {
                 setActionError("Failed to prepare workout.");
             }

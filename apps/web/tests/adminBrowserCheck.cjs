@@ -88,7 +88,7 @@ let browser, ws;
   assert(!requests.some(req => req.method === 'DELETE'), 'Cancelled deletion sent a request');
   await click('Next'); assert(requests.some(req => req.path.endsWith('/admin/exercises') && req.method === 'GET')); assert(await evaluate('document.body.innerText.includes("Page 2")'));
   await navigate('/admin/users'); assert(await evaluate('[...document.querySelectorAll("button")].filter(e => ["Demote", "Deactivate"].includes(e.textContent.trim())).every(e => e.disabled)'));
-  failList = true; await navigate('/admin/exercises'); assert(await evaluate('document.querySelector("[role=alert]").innerText.includes("Unable to load")'));
+  failList = true; await navigate('/admin/exercises'); assert(await evaluate('document.querySelector("[role=alert]").innerText.includes("The server could not complete your request")'));
   failList = false; await click('Retry'); assert(await evaluate('document.body.innerText.includes("Shared bench press")'));
   for (const mode of ['light','dark']) for (const width of [375,1440]) {
     await evaluate('localStorage.setItem("color_theme",'+JSON.stringify(mode)+')');

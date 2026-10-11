@@ -1,3 +1,4 @@
+import { friendlyError } from "../../utils/formValidation";
 import { ArrowLeft } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useState } from "react";
@@ -32,7 +33,7 @@ export default function TemplatesPage() {
         queryFn: ({ signal }) => getPublicWorkoutTemplatesRequest(signal),
     });
     const publicTemplates = templatesQuery.data ?? [];
-    const error = templatesQuery.error?.message ?? "";
+    const error = (templatesQuery.error ? friendlyError(templatesQuery.error, "Unable to load this content. Please try again.") : "");
     const isLoading = templatesQuery.isFetching;
     const hasLoadedOnce = !templatesQuery.isPending;
     const [actionError, setActionError] = useState("");
@@ -52,7 +53,7 @@ export default function TemplatesPage() {
             navigate(`/workout-summary/${draft._id}`);
         } catch (error) {
             if (error instanceof Error) {
-                setActionError(error.message);
+                setActionError(friendlyError(error));
             } else {
                 setActionError("Failed to start workout from template");
             }

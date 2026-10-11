@@ -1,3 +1,4 @@
+import { friendlyError } from "../../utils/formValidation";
 import { motion } from "motion/react";
 import { useMotionTransition } from "../../components/motion/useMotionTransition";
 import { formatTrainingSeconds, trainingTotalSeconds } from "@workout-app/shared";
@@ -33,8 +34,8 @@ export default function WorkoutResultPage() {
     const exerciseLibrary = useMemo(() => musclesQuery.data?.exercises ?? [], [musclesQuery.data]);
     const isLoadingSession = !!sessionId && sessionQuery.isPending;
     const isLoadingMuscles = musclesQuery.isFetching;
-    const sessionError = sessionQuery.error?.message ?? "";
-    const muscleError = musclesQuery.error?.message ?? "";
+    const sessionError = (sessionQuery.error ? friendlyError(sessionQuery.error, "Unable to load this content. Please try again.") : "");
+    const muscleError = (musclesQuery.error ? friendlyError(musclesQuery.error, "Unable to load this content. Please try again.") : "");
     useEffect(() => {
         if (!sessionId) navigate("/");
     }, [sessionId, navigate]);

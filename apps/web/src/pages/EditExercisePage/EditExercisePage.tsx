@@ -1,3 +1,5 @@
+import { reportFormError, friendlyError } from "../../utils/formValidation";
+import ValidatedForm from "../../components/forms/ValidatedForm";
 import { motion } from "motion/react";
 import { useFieldMotion } from "../../components/motion/useFieldMotion";
 import { authRest, authFocus } from "../../components/motion/presets";
@@ -60,7 +62,7 @@ export default function EditExercisePage() {
     }
     if (!exerciseQuery.data) {
         return <Box className={styles.page}><Card className={styles.card}>
-            <p className={styles.errorText} role="alert">{exerciseQuery.error?.message || "Exercise not found."}</p>
+            <p className={styles.errorText} role="alert">{(exerciseQuery.error ? friendlyError(exerciseQuery.error, "Exercise not found.") : "Exercise not found.")}</p>
             <Button variant="secondary" onClick={() => navigate(-1)}>Go back</Button>
         </Card></Box>;
     }
@@ -99,6 +101,7 @@ function EditExerciseForm({ exercise }: { exercise: Exercise }) {
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        const submittedForm = e.currentTarget;
         if (isSaving) return;
 
         if (!id) {
@@ -123,11 +126,7 @@ function EditExerciseForm({ exercise }: { exercise: Exercise }) {
 
             navigate("/profile");
         } catch (err) {
-            if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError("Failed to update exercise");
-            }
+            if (!reportFormError(submittedForm, err)) setError(friendlyError(err, "Unable to save. Please try again."));
         }
     }
 
@@ -141,11 +140,11 @@ function EditExerciseForm({ exercise }: { exercise: Exercise }) {
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className={styles.form}>
+                <ValidatedForm onSubmit={handleSubmit} className={styles.form}>
                     <div className={styles.field}>
                         <label htmlFor="name">Name *</label>
                         <motion.input {...fieldMotion("name", authRest, authFocus)}
-                            id="name"
+                            id="name" required minLength={2} maxLength={50}
                             type="text"
                             placeholder="e.g. Cable Chest Fly"
                             value={name}
@@ -292,7 +291,7 @@ function EditExerciseForm({ exercise }: { exercise: Exercise }) {
                             )}
                         </Button>
                     </div>
-                </form>
+                </ValidatedForm>
             </Card>
         </Box>
     );

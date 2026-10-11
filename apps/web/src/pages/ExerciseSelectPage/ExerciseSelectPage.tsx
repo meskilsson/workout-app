@@ -1,3 +1,4 @@
+import { friendlyError } from "../../utils/formValidation";
 import { motion } from "motion/react";
 import { useMotionTransition } from "../../components/motion/useMotionTransition";
 import { useFieldMotion } from "../../components/motion/useFieldMotion";
@@ -68,7 +69,7 @@ export default function ExerciseSelectPage() {
     const { draftId } = useParams();
     const draft = useQuery(draftDetailOptions(user?._id ?? "", draftId ?? ""));
     if (draft.isPending && draftId) return <LoadingState layout="exercises" className={styles.page} title="Exercise library" message="Loading workout draft and exercises..." />;
-    if (!draft.data) return <Box className={styles.page}><div className={styles.stateCard}><h1>Select exercises</h1><p role="alert">{draft.error?.message ?? "Missing workout draft"}</p></div></Box>;
+    if (!draft.data) return <Box className={styles.page}><div className={styles.stateCard}><h1>Select exercises</h1><p role="alert">{(draft.error ? friendlyError(draft.error, "Unable to load your workout. Please try again.") : "Missing workout draft")}</p></div></Box>;
     return <ExerciseSelectionForm key={(user?._id ?? "") + ":" + draftId} initialDraft={draft.data} />;
 }
 
@@ -110,7 +111,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
     const isLoading = exercisesQuery.isPending;
     const hasLoadedOnce = !exercisesQuery.isPending;
     const draftError = "";
-    const exerciseError = exercisesQuery.error?.message ?? "";
+    const exerciseError = (exercisesQuery.error ? friendlyError(exercisesQuery.error, "Unable to load this content. Please try again.") : "");
     const error = exerciseError || actionError;
     const isEditingExistingDraft = existingExerciseIds.length > 0;
     useEffect(() => {
@@ -235,9 +236,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
             navigate(isActiveWorkout ? "/workout/" + draftId : "/workout-summary/" + draftId);
         } catch (err) {
             setActionError(
-                err instanceof Error
-                    ? err.message
-                    : "Failed to save selected exercises",
+                friendlyError(err, "Failed to save selected exercises"),
             );
         }
     }

@@ -1,3 +1,4 @@
+import { parseJsonResponse } from "../utils/parseJsonResponse";
 import { workoutRequest } from "../utils/workoutRequest";
 import { clearDraftSnapshots } from "../utils/workoutProgressStorage";
 
@@ -21,16 +22,9 @@ type UpdateWorkoutDraftSetsInput = {
 };
 
 async function handleResponse(response: Response, fallbackMessage: string) {
-    const data = await response.json().catch(error => {
-        if (response.ok) throw error;
-        return null;
-    });
-
-    if (!response.ok) {
-        throw Object.assign(new Error(data?.message || fallbackMessage), { status: response.status });
-    }
-
-    return data;
+    // Preserve successful draft decoding and the status used by persistence recovery.
+    if (response.ok) return response.json();
+    return parseJsonResponse(response, fallbackMessage);
 }
 
 export async function createWorkoutDraftRequest(

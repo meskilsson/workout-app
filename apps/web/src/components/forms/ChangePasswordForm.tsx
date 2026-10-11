@@ -1,3 +1,5 @@
+import { reportFormError, friendlyError } from "../../utils/formValidation";
+import ValidatedForm from "./ValidatedForm";
 import { useMutation } from "@tanstack/react-query";
 import { changePasswordRequest } from "../../services/userApi";
 import { useAuth } from "../../context/AuthContext";
@@ -5,7 +7,7 @@ import { useState } from "react";
 import styles from "./AccountForm.module.css";
 import Button from "../ui/button/Button";
 import LoadingPredator from "../Loading/LoadingPredator";
-import { focusInvalidField } from "../../utils/focusInvalidField";
+
 
 export default function ChangePasswordForm() {
     const { user: authUser } = useAuth();
@@ -21,33 +23,17 @@ export default function ChangePasswordForm() {
     });
     const isLoading = passwordMutation.isPending;
     const [error, setError] = useState("");
-    const [invalidField, setInvalidField] = useState("");
+
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        const submittedForm = event.currentTarget;
         if (isLoading) return;
 
         if (!authUser?._id) return;
 
         setError("");
         setSuccess("");
-        setInvalidField("");
-
-        if (newPassword !== confirmPassword) {
-            setError("New passwords do not match.");
-            setInvalidField("confirmPassword");
-            focusInvalidField(event.currentTarget);
-            return;
-        }
-
-        if (newPassword.length < 6) {
-            setError("Password must be at least 6 characters.");
-            setInvalidField("newPassword");
-            focusInvalidField(event.currentTarget);
-            return;
-        }
-
-
         try {
             await passwordMutation.mutateAsync({
                 currentPassword,
@@ -60,9 +46,7 @@ export default function ChangePasswordForm() {
 
             setSuccess("Password updated successfully.");
         } catch (error) {
-            setError(
-                error instanceof Error ? error.message : "Failed to update password"
-            );
+            if (!reportFormError(submittedForm, error)) setError(friendlyError(error, "Unable to update your account. Please try again."));
         } finally {
             passwordMutation.reset();
         }
@@ -72,10 +56,10 @@ export default function ChangePasswordForm() {
         <section className={styles.section}>
             <h2>Change password</h2>
 
-            <form onSubmit={handleSubmit}>
+            <ValidatedForm onSubmit={handleSubmit}>
                 <label htmlFor="currentPassword">Current password</label>
                 <input
-                    id="currentPassword"
+                    id="currentPassword" name="currentPassword"
                     autoComplete="current-password"
                     type="password"
                     value={currentPassword}
@@ -85,9 +69,7 @@ export default function ChangePasswordForm() {
 
                 <label htmlFor="newPassword">New password</label>
                 <input
-                    id="newPassword"
-                    aria-invalid={invalidField === "newPassword" || undefined}
-                    aria-describedby={invalidField === "newPassword" ? "password-change-error" : undefined}
+                    id="newPassword" name="newPassword" minLength={8} maxLength={100}
                     autoComplete="new-password"
                     type="password"
                     value={newPassword}
@@ -97,9 +79,7 @@ export default function ChangePasswordForm() {
 
                 <label htmlFor="confirmPassword">Confirm new password</label>
                 <input
-                    id="confirmPassword"
-                    aria-invalid={invalidField === "confirmPassword" || undefined}
-                    aria-describedby={invalidField === "confirmPassword" ? "password-change-error" : undefined}
+                    id="confirmPassword" name="confirmPassword" minLength={8} maxLength={100}
                     autoComplete="new-password"
                     type="password"
                     value={confirmPassword}
@@ -122,7 +102,7 @@ export default function ChangePasswordForm() {
                         "Update password"
                     )}
                 </Button>
-            </form>
+            </ValidatedForm>
         </section>
     );
 }

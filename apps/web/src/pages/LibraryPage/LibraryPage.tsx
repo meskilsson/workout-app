@@ -1,3 +1,4 @@
+import { friendlyError } from "../../utils/formValidation";
 import { motion } from "motion/react";
 import { useMotionTransition } from "../../components/motion/useMotionTransition";
 import { useFieldMotion } from "../../components/motion/useFieldMotion";
@@ -50,7 +51,7 @@ export default function LibraryPage() {
     const exercises = exercisesQuery.data?.exercises ?? [];
     const total = exercisesQuery.data?.total ?? 0;
     const totalPages = exercisesQuery.data?.totalPages ?? 1;
-    const error = exercisesQuery.error?.message ?? "";
+    const error = (exercisesQuery.error ? friendlyError(exercisesQuery.error, "Unable to load this content. Please try again.") : "");
     const isLoading = exercisesQuery.isFetching;
     const hasLoadedOnce = !exercisesQuery.isPending;
     const { pageTopRef, handlePageChange } = usePaginationScroll<HTMLDivElement>(totalPages, { page, onPageChange: setPage });

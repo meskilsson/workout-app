@@ -1,3 +1,5 @@
+import { reportFormError, friendlyError } from "../../utils/formValidation";
+import ValidatedForm from "../../components/forms/ValidatedForm";
 import { motion } from "motion/react";
 import { useFieldMotion } from "../../components/motion/useFieldMotion";
 import Icon from "../../components/ui/icon/Icon";
@@ -32,6 +34,7 @@ export default function LoginPage() {
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        const submittedForm = e.currentTarget;
         if (isLoading) return;
         setError("");
 
@@ -44,11 +47,7 @@ export default function LoginPage() {
             login(user);
             navigate("/");
         } catch (err) {
-            if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError("Unable to complete this request. Please try again.");
-            }
+            if (!reportFormError(submittedForm, err)) setError(friendlyError(err, "Unable to log in. Please try again."));
         }
     }
 
@@ -60,7 +59,7 @@ export default function LoginPage() {
                     <h1>Log in</h1>
                 </div>
 
-                    <form className={styles.form} onSubmit={handleSubmit}>
+                    <ValidatedForm className={styles.form} onSubmit={handleSubmit}>
                         <div className={styles.field}>
                             <label htmlFor="email">Email</label>
 
@@ -109,7 +108,7 @@ export default function LoginPage() {
                             )}
                             </span><span className={styles.submitArrow}><Icon icon={ArrowRight} /></span>
                         </Button>
-                    </form>
+                    </ValidatedForm>
 
                 <p className={styles.bottomText}>
                     No account?{" "}

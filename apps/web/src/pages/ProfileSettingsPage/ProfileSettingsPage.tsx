@@ -1,3 +1,4 @@
+import { friendlyError } from "../../utils/formValidation";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
@@ -43,7 +44,7 @@ export default function ProfileSettingsPage() {
             navigate("/");
         } catch (error) {
             if (error instanceof Error) {
-                setDeleteError(error.message);
+                setDeleteError(friendlyError(error));
             } else {
                 setDeleteError("Failed to delete account");
             }

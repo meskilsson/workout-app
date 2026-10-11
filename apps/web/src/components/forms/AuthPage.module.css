@@ -19,6 +19,11 @@
 .field input:focus { outline: none; border-bottom: 2px solid var(--color-focus); border-radius: 5px 5px 0 0; }
 :global(:root) .field input:focus-visible,
 :global(:root) .field input[aria-invalid="true"] { outline: none; }
+:global(:root) body .field input[aria-invalid="true"]:focus {
+  border-color: transparent !important;
+  border-bottom-color: var(--color-danger-text) !important;
+  box-shadow: none !important;
+}
 .fieldError { grid-column: 1 / -1; margin: 0; color: var(--color-danger-text); font-size: var(--text-xs); overflow-wrap: anywhere; }
 .error { margin: 0; padding: 12px; color: var(--color-danger-text); background: var(--color-danger-soft); font-size: var(--text-sm); overflow-wrap: anywhere; }
 .submit.submit { --color-primary: var(--auth-action); --color-primary-hover: var(--auth-action-hover); --color-on-primary: var(--auth-on-action); --color-primary-border: transparent; width: 100%; min-height: 52px; padding: 0; margin-top: 12px; border-radius: 0; justify-content: space-between; gap: 0; clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px)); }

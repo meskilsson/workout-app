@@ -1,3 +1,4 @@
+import { friendlyError } from "../../utils/formValidation";
 import { ArrowLeft } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useQuery } from "@tanstack/react-query";
@@ -22,7 +23,7 @@ export default function ExerciseDetailsPage() {
 
     const exerciseQuery = useQuery(exerciseDetailOptions(user?._id, id ?? ""));
     const exercise = exerciseQuery.data;
-    const error = !id ? "Exercise details id is missing." : exerciseQuery.error?.message ?? "";
+    const error = !id ? "Exercise details id is missing." : (exerciseQuery.error ? friendlyError(exerciseQuery.error, "Unable to load this content. Please try again.") : "");
     const isLoading = !!id && exerciseQuery.isPending;
 
     if (isLoading && !exercise) {

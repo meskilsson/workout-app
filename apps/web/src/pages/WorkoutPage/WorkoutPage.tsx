@@ -1,3 +1,4 @@
+import { friendlyError } from "../../utils/formValidation";
 import { useFieldMotion } from "../../components/motion/useFieldMotion";
 import { useMotionTransition } from "../../components/motion/useMotionTransition";
 import { useReducedMotion } from "../../components/motion/useReducedMotion";
@@ -625,9 +626,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                     clearWorkoutSnapshot(scope);
                 }
                 setError(
-                    err instanceof Error
-                        ? err.message
-                        : "Failed to load workout draft.",
+                    friendlyError(err, "Failed to load workout draft."),
                 );
             } finally {
                 if (!cancelled) setIsLoadingDraft(false);
@@ -708,9 +707,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                         }
                     } catch (err) {
                         setError(
-                            err instanceof Error
-                                ? err.message
-                                : "Failed to save workout progress.",
+                            friendlyError(err, "Failed to save workout progress."),
                         );
                     } finally {
                         setIsSavingDraft(false);
@@ -811,9 +808,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             setSelectedExercises(previousOrder);
 
             setError(
-                err instanceof Error
-                    ? err.message
-                    : "Failed to reorder exercises",
+                friendlyError(err, "Failed to reorder exercises"),
             );
         } finally {
             setIsReorderingExercises(false);
@@ -975,9 +970,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             startRestTimer();
         } catch (err) {
             setError(
-                err instanceof Error
-                    ? err.message
-                    : "Failed to save completed set.",
+                friendlyError(err, "Failed to save completed set."),
             );
         }
     }
@@ -1003,9 +996,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             );
         } catch (err) {
             setError(
-                err instanceof Error
-                    ? err.message
-                    : "Failed to save the workout before adding an exercise.",
+                friendlyError(err, "Failed to save the workout before adding an exercise."),
             );
 
             setIsOpeningExerciseSelect(false);
@@ -1069,9 +1060,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             setExerciseToRemove(null);
         } catch (err) {
             setError(
-                err instanceof Error
-                    ? err.message
-                    : "Failed to remove exercise from workout.",
+                friendlyError(err, "Failed to remove exercise from workout."),
             );
         } finally {
             setIsRemovingExercise(false);
@@ -1103,7 +1092,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             setIsAbandonModalOpen(false);
             navigate("/workout-select", { replace: true });
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to abandon workout. Please try again.");
+            setError(friendlyError(err, "Failed to abandon workout. Please try again."));
         } finally {
             actionRequestPending.current = false;
             setIsAbandoning(false);
@@ -1175,9 +1164,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             );
         } catch (err) {
             setError(
-                err instanceof Error
-                    ? err.message
-                    : "Failed to save workout session.",
+                friendlyError(err, "Failed to save workout session."),
             );
         } finally {
             actionRequestPending.current = false;

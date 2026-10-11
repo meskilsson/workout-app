@@ -1,3 +1,4 @@
+import { friendlyError } from "../../utils/formValidation";
 import { cardRest, cardHover } from "../../components/motion/presets";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
@@ -28,7 +29,7 @@ export default function ProfileWorkoutsPage() {
     const sessions = sessionsQuery.data ?? [];
     const isLoading = sessionsQuery.isFetching;
     const hasLoadedOnce = !sessionsQuery.isPending;
-    const error = sessionsQuery.error?.message ?? "";
+    const error = (sessionsQuery.error ? friendlyError(sessionsQuery.error, "Unable to load this content. Please try again.") : "");
     const [actionError, setActionError] = useState("");
     const [deleteAction, setDeleteAction] = useState("");
     const repeatMutation = useRepeatSessionMutation();
@@ -45,7 +46,7 @@ export default function ProfileWorkoutsPage() {
             navigate(`/workout-summary/${draft._id}`);
         } catch (error) {
             if (error instanceof Error) {
-                setActionError(error.message);
+                setActionError(friendlyError(error));
             } else {
                 setActionError("Failed to prepare workout.");
             }
@@ -60,7 +61,7 @@ export default function ProfileWorkoutsPage() {
 
         } catch (error) {
             if (error instanceof Error) {
-                setDeleteAction(error.message || "Failed to delete");
+                setDeleteAction(friendlyError(error));
             } else {
                 setDeleteAction("Unable to complete this request. Please try again.");
             }
