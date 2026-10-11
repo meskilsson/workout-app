@@ -6,7 +6,33 @@ const sv = require('../src/i18n/locales/sv.json');
 const { validationMessage, apiFieldErrors, friendlyError } = require('../src/utils/formValidation.ts');
 const { ApiRequestError } = require('../src/utils/parseJsonResponse.ts');
 const { formatCompletedDate } = require('../src/utils/formatCompletedDate.ts');
+const { exerciseText, snapshotExerciseName } = require('../src/i18n/exercises.ts');
 afterEach(() => i18n.default.changeLanguage('en'));
+
+test('muscle labels are capitalized in both languages without changing stored values', async () => {
+    assert.equal(i18n.displayValue('chest'), 'Chest');
+    await i18n.default.changeLanguage('sv');
+    assert.equal(i18n.displayValue('chest'), 'Bröst');
+    assert.equal(i18n.displayValue('hamstrings'), 'Baksida lår');
+});
+test('exercise localization is presentation-only with English fallback and custom content protection', async () => {
+    const exercise = { name: 'Bench Press', isCustom: false, createdBy: null,
+        description: 'Original description', translations: { sv: { name: 'Bänkpress', description: 'Svensk beskrivning' } } };
+    assert.equal(exerciseText(exercise), 'Bench Press');
+    assert.equal(snapshotExerciseName(exercise, 'Old exercise name'), 'Old exercise name');
+    await i18n.default.changeLanguage('sv');
+    assert.equal(exerciseText(exercise), 'Bänkpress');
+    assert.equal(snapshotExerciseName(exercise, 'Bench Press'), 'Bänkpress');
+    assert.equal(snapshotExerciseName(exercise, 'Old exercise name'), 'Old exercise name');
+    assert.equal(snapshotExerciseName(undefined, 'Deleted exercise'), 'Deleted exercise');
+    assert.equal(exerciseText(exercise, 'description'), 'Svensk beskrivning');
+    assert.equal(exerciseText({ ...exercise, translations: undefined }), 'Bench Press');
+    assert.equal(exerciseText({ ...exercise, isCustom: true }), 'Bench Press');
+    assert.equal(exerciseText({ ...exercise, createdBy: 'owner' }), 'Bench Press');
+    assert.equal(exercise.name, 'Bench Press');
+    await i18n.default.changeLanguage('en');
+    assert.equal(exerciseText(exercise), 'Bench Press');
+});
 
 test('first visit, unsupported preference, and blocked storage use English', () => {
     assert.equal(i18n.savedLanguage(), 'en');

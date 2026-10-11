@@ -26,8 +26,7 @@ export default function Homepage() {
     return (
         <div className={styles.page}>
             <header className={styles.intro}>
-                <p className={styles.kicker}>{user?.name ? t("Homepage.welcomeBackValue", { value0: user.name }) : t("Homepage.yourTrainingInOnePlace")}</p>
-                <h1 className={styles.title}>{t("Homepage.readyForYourNextSession")}</h1>
+                <h1 className={styles.title}>{user?.name ? t("Homepage.welcomeBackValue", { value0: user.name }) : t("Homepage.yourTrainingInOnePlace")}</h1>
                 <p className={styles.subtitle}>{t("Homepage.planYourWorkoutLogYourSetsKeepMovingForward")}</p>
             </header>
             <section className={styles.sessionSection} aria-label={t("Homepage.startOrResumeTraining")}>

@@ -3,6 +3,7 @@ import WorkoutSession from "../models/WorkoutSession";
 import { Types } from "mongoose";
 import type { ExerciseSort } from "@workout-app/shared";
 import { ValidationError } from "../errors/AppError";
+import { exerciseTranslations } from "../localization/exercises";
 
 export async function findPaginatedExercises(
     filter: Record<string, unknown>,
@@ -56,6 +57,10 @@ export async function findPaginatedExercises(
         totalPages: Math.ceil(total / limit),
         hasNextPage: page * limit < total,
         hasPreviousPage: page > 1,
-        exercises,
+        exercises: exercises.map(exercise => {
+            const record = typeof exercise.toJSON === "function" ? exercise.toJSON() : exercise;
+            const translations = exerciseTranslations(record);
+            return translations ? { ...record, translations } : record;
+        }),
     };
 }

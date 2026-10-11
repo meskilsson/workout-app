@@ -1,3 +1,4 @@
+import ExerciseName from "../../components/exercises/ExerciseName";
 import { formatNumber, translateMessage, t } from "../../i18n";
 import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
@@ -292,7 +293,7 @@ export default function WorkoutHistoryDetailPage() {
                                     </p>
 
                                     <h3 className={styles.exerciseTitle}>
-                                        {exercise.exerciseName}
+                                        <ExerciseName id={exercise.exerciseId} name={exercise.exerciseName} />
                                     </h3>
                                 </div>
 

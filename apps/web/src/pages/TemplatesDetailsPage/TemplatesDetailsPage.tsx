@@ -1,3 +1,5 @@
+import { exerciseText } from "../../i18n/exercises";
+import ExerciseName from "../../components/exercises/ExerciseName";
 import { formatNumber, displayValue, translateMessage, t } from "../../i18n";
 import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
@@ -194,7 +196,7 @@ export default function TemplatesDetailsPage({
                                             </p>
 
                                             <h3 className={styles.exerciseName}>
-                                                {templateExercise.exerciseName}
+                                                <ExerciseName id={exercise?._id} name={templateExercise.exerciseName} />
                                             </h3>
                                         </div>
 
@@ -233,7 +235,7 @@ export default function TemplatesDetailsPage({
                                                 <p className={styles.blockTitle}> {t("common.description")} </p>
 
                                                 <p className={styles.descriptionText}>
-                                                    {fullExercise.description}
+                                                    {exerciseText(fullExercise, "description")}
                                                 </p>
                                             </div>
                                         )}
@@ -242,7 +244,7 @@ export default function TemplatesDetailsPage({
                                             <summary className={styles.blockTitle}>{t("TemplatesDetailsPage.technique")}</summary>
 
                                             <p className={styles.instructions}>
-                                                {fullExercise?.instructions ||
+                                                {(fullExercise && exerciseText(fullExercise, "instructions")) ||
                                                     t("common.noInstructionsAvailable")}
                                             </p>
                                         </details>
@@ -285,7 +287,7 @@ export default function TemplatesDetailsPage({
                                             <img
                                                 className={styles.exerciseImage}
                                                 src={fullExercise.imageUrl}
-                                                alt={templateExercise.exerciseName}
+                                                alt={exerciseText(fullExercise)}
                                             />
                                         )}
 

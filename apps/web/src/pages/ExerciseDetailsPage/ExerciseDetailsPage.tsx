@@ -1,3 +1,4 @@
+import { exerciseText } from "../../i18n/exercises";
 import { displayValue, t } from "../../i18n";
 import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
@@ -77,7 +78,7 @@ export default function ExerciseDetailsPage() {
             <header className={styles.header}>
                 <div>
 
-                    <h1 className={styles.title}>{exercise.name}</h1>
+                    <h1 className={styles.title}>{exerciseText(exercise)}</h1>
 
                     <p className={styles.subtitle}> {t("ExerciseDetailsPage.equipmentTechniqueAndTargetMuscles")} </p>
                     <Button
@@ -104,7 +105,7 @@ export default function ExerciseDetailsPage() {
                 >
                     <section className={styles.infoColumn}>
                         <p className={styles.description}>
-                            {exercise.description || t("common.noDescription")}
+                            {exerciseText(exercise, "description") || t("common.noDescription")}
                         </p>
 
                         <div className={styles.quickInfo}>
@@ -134,7 +135,7 @@ export default function ExerciseDetailsPage() {
                             <h3 className={styles.sectionTitle}>{t("common.instructions")}</h3>
 
                             <p className={styles.instructions}>
-                                {exercise.instructions || t("common.noInstructions")}
+                                {exerciseText(exercise, "instructions") || t("common.noInstructions")}
                             </p>
                         </div>
                     </section>
@@ -154,7 +155,7 @@ export default function ExerciseDetailsPage() {
                             <img
                                 className={styles.exerciseImage}
                                 src={imageUrl}
-                                alt={exercise.name}
+                                alt={exerciseText(exercise)}
                             />
                         </section>
                     )}

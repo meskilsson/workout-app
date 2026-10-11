@@ -15,7 +15,7 @@
 .menuButton { display: none; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border: 1px solid var(--color-border); background: var(--color-surface); border-radius: var(--radius-sm); cursor: pointer; }
 .mobileMenu, .bottomNav { display: none; }
 :global(html[data-viewport-obstructed="true"]) .navbar { position: relative; }
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
     .links, .actions { display: none; }
     .menuButton { display: flex; }
     .inner { padding: 0.65rem 1rem; }
@@ -36,10 +36,19 @@
 @media (max-height: 480px) { .mobileLinks { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 .headerControls { display: flex; align-items: center; gap: 0.5rem; }
-@media (min-width: 1201px) {
+@media (min-width: 1401px) {
     .headerControls { display: none; }
     .actions {
         position: relative;
         inset-inline-start: max(0px, calc((100vw - var(--max-width-navigation)) / 4));
     }
+}
+
+/* Keep navigation labels intact before switching to the compact menu. */
+.links, .actions { flex-shrink: 0; }
+.link { white-space: nowrap; }
+@media (max-width: 1400px) {
+    .mobileActions { align-items: flex-start; }
+    .mobileActions > label { width: auto; max-width: 100%; flex-wrap: wrap; }
+    .mobileActions > label select { flex: 0 1 auto; width: auto; min-width: 7rem; max-width: 9rem; }
 }

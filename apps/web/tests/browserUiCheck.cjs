@@ -32,6 +32,10 @@ let browser, ws;
  function send(method,params={}){const id=++sequence;return new Promise((resolve,reject)=>{const timeout=setTimeout(()=>{pending.delete(id);reject(Error(method+' timeout'));},15000);pending.set(id,{resolve:v=>{clearTimeout(timeout);resolve(v)},reject:e=>{clearTimeout(timeout);reject(e)}});ws.send(JSON.stringify({id,method,params}));});}
  const exercise={_id:exerciseId,name:'Barbell bench press',exerciseType:'strength',equipment:'barbell',difficulty:'beginner',primaryMuscles:['chest'],secondaryMuscles:['triceps','shoulders'],isCustom:true,description:'A controlled compound movement for a balanced strength session.',instructions:'Keep control throughout the movement.'};
  const exercises=[exercise,{...exercise,_id:'0123456789abcdef01234570',name:'Seated cable row',equipment:'cable',primaryMuscles:['back'],secondaryMuscles:['biceps']},{...exercise,_id:'0123456789abcdef01234571',name:'Dumbbell overhead shoulder press',equipment:'dumbbell',primaryMuscles:['shoulders'],secondaryMuscles:['triceps']}];
+ if(['localized-exercise-ui','language-controls'].includes(process.env.UI_CHECK_PHASE)) {
+  exercise.isCustom=false;
+  exercise.translations={sv:{name:'Bänkpress',description:'Bröstpress med skivstång på en plan bänk.',instructions:'Sänk stången kontrollerat mot bröstet och pressa upp.'}};
+ }
  const draft={_id:draftId,userId,status:'active',selectedMuscleGroups:['chest','back'],exercises:exercises.map((e,j)=>({exerciseId:e._id,exerciseName:e.name,sets:Array.from({length:3},(_,i)=>({id:`f8f6de5c-e305-4bba-b62b-a5375d3b79b${j*3+i}`,weight:j?25:40,reps:8+i}))}))};
  if(process.env.UI_CHECK_PHASE==='direct-start') {
   exercises[1].exerciseType='cardio';exercises[1].name='Cycling';
@@ -112,29 +116,29 @@ let browser, ws;
  async function metrics(width,height){await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1000});await send('Emulation.setTouchEmulationEnabled',{enabled:width<1000,maxTouchPoints:1});}
  await send('Page.navigate',{url:base}); await wait(800);
  const routes=[
- ['home','/',false,'Ready for your next session?'],['home-alias','/homepage',true,'Ready for your next session?'],
- ['guest-library','/library',true,'Exercise library'],['guest-exercise','/exercises/'+exerciseId,true,'Barbell bench press'],['guest-templates','/templates/pre-made',true,'Browse templates'],['guest-template-details','/templates/pre-made/templates-details/'+templates[0]._id,true,'Upper body essentials'],
+ ['home','/',false,'Your training'],['home-alias','/homepage',true,'Your training'],
+ ['guest-library','/library',true,'Exercise Library'],['guest-exercise','/exercises/'+exerciseId,true,'Barbell bench press'],['guest-templates','/templates/pre-made',true,'Browse workouts'],['guest-template-details','/templates/pre-made/templates-details/'+templates[0]._id,true,'Upper body essentials'],
  ['login','/login',true,'Log in'],['signup','/signup',true,'Register'],
  ['workout-select','/workout-select',false,'Choose muscle groups'],['template-select','/workout-select?purpose=template',false,'Choose workout muscles'],
  ['exercise-select','/exercise-select/'+draftId,false,'Edit exercises'],['workout-summary','/workout-summary/'+draftId,false,'Workout summary'],
  ['template-summary','/workout-summary/'+draftId+'?template',false,'Template review'],['workout','/workout/'+draftId,false,'Barbell bench press'],
- ['result','/workout-result/'+sessions[0]._id,false,'Workout saved'],['library','/library',false,'Exercise library'],
+ ['result','/workout-result/'+sessions[0]._id,false,'Workout saved'],['library','/library',false,'Exercise Library'],
  ['exercise-details','/exercises/'+exerciseId,false,'Barbell bench press'],['create-exercise','/create-exercise',false,'Create exercise'],['edit-exercise','/edit-exercise/'+exerciseId,false,'Edit exercise'],
- ['templates','/templates',false,'Browse templates'],['public-templates','/templates/pre-made',false,'Browse templates'],['my-templates','/templates/my',false,'My templates'],
+ ['templates','/templates',false,'Browse workouts'],['public-templates','/templates/pre-made',false,'Browse workouts'],['my-templates','/templates/my',false,'My templates'],
  ['public-template-details','/templates/pre-made/templates-details/'+templates[0]._id,false,'Upper body essentials'],['my-template-details','/templates/my/templates-details/'+templates[0]._id,false,'Upper body essentials'],
  ['create-template','/templates/create',false,'Create a template'],['profile','/profile',false,'Your profile'],['history','/profile/workouts',false,'Workout history'],
  ['session-details','/profile/workouts/'+sessions[0]._id,false,'Workout details'],['my-exercises','/profile/exercises',false,'My exercises'],['settings','/profile/settings',false,'Account settings'],
  ];
  const routeMatches = route => !process.env.UI_CHECK_ROUTES || process.env.UI_CHECK_ROUTES.split(',').includes(route[0]);
  async function visit(route,mode,width,state='populated') {
-  scenario=state;guest=route[2];routePath=route[1];await metrics(width,width===844?390:width<1000?812:900);
+  scenario=state;guest=route[2];routePath=route[1];await metrics(width,width===1225?527:width===844?390:width<1000?812:900);
   await evalValue("localStorage.setItem('color_theme', '"+mode+"')");
   await send('Page.navigate',{url:base+routePath});await wait(state.endsWith('loading')?500:1000);
   const info=await evalValue("({width:innerWidth,scroll:document.documentElement.scrollWidth,text:document.body.innerText,busy:!!document.querySelector('[aria-busy=true]'),shapes:document.querySelectorAll('[class*=shape]').length,heading:!!document.querySelector('h1,h2'),fonts:[...document.querySelectorAll('input:not([type=checkbox]),select,textarea')].map(x=>parseFloat(getComputedStyle(x).fontSize))})");
   assert(info.scroll<=info.width+1,route[0]+' '+state+' horizontal overflow');
   if(width<1000)assert(info.fonts.every(x=>x>=16),route[0]+' input font size');
   assert.equal(await evalValue("document.documentElement.dataset.theme"),mode);
-  if(state==='populated') {const en=require('../src/i18n/locales/en.json'),sv=require('../src/i18n/locales/sv.json');const language=await evalValue('document.documentElement.lang');const key=Object.keys(en).find(key=>en[key]===route[3]);const expected=language==='sv' && key ? sv[key] : route[3];assert(info.text.toLowerCase().includes(expected.toLowerCase()),route[0]+' missing populated content: '+info.text);assert(info.heading);}
+  if(state==='populated') {const en=require('../src/i18n/locales/en.json'),sv=require('../src/i18n/locales/sv.json');const language=await evalValue('document.documentElement.lang');const key=Object.keys(en).find(key=>en[key]===route[3]);const expected=language==='sv' && key ? sv[key] : language==='sv' && ['localized-exercise-ui','language-controls'].includes(process.env.UI_CHECK_PHASE) && route[3]===exercise.name ? exercise.translations.sv.name : route[3];assert(info.text.toLowerCase().includes(expected.toLowerCase()),route[0]+' missing populated content: '+info.text);assert(info.heading);}
   if(state.endsWith('loading'))assert(info.busy && info.shapes>0,route[0]+' missing skeleton');
   if(state==='error')assert(info.text.includes('Servern kunde inte slutf') || info.text.includes('The server could not complete your request') || route[0]==='workout' && info.text.includes('Unable to restore your workout'),route[0]+' missing friendly error');
   if(state==='populated' && route[0].includes('library'))assert(await evalValue("[...document.querySelectorAll('article')].every(card=>{const figure=card.querySelector('figure'),text=card.querySelector('[class*=exerciseText]');return figure && figure.getBoundingClientRect().top>=text.getBoundingClientRect().bottom && figure.getBoundingClientRect().bottom<=card.getBoundingClientRect().bottom+1})"),'Library figure overlaps or is clipped');
@@ -158,6 +162,67 @@ let browser, ws;
 
 
 
+ if(process.env.UI_CHECK_PHASE==='language-controls') {
+  for(const mode of ['light','dark'])for(const width of [375,1225,1440]) {
+   await evalValue('localStorage.setItem("workout-language","en")');
+   await visit(routes.find(route=>route[0]==='workout'),mode,width);
+   const before=await evalValue(`JSON.stringify([...document.querySelectorAll('main input')].map(input=>[input.type,input.value,input.checked]))`);
+   async function openLanguage() {
+    if(width<=1400)await evalValue(`document.querySelector('button[aria-controls="mobile-menu"]').click()`);
+    await wait(60);
+    await evalValue(`[...document.querySelectorAll('button[aria-haspopup=menu]')].find(button=>button.getClientRects().length).click()`);await wait(60);
+   }
+   await openLanguage();
+   await evalValue(`document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}))`);
+   assert.equal(await evalValue('document.activeElement.lang'),'sv');
+   await evalValue('document.activeElement.click()');await wait(400);
+   assert.equal(await evalValue('document.documentElement.lang'),'sv');
+   assert(await evalValue(`document.querySelector('main').textContent.includes('Bänkpress')`));
+   assert.equal(await evalValue(`JSON.stringify([...document.querySelectorAll('main input')].map(input=>[input.type,input.value,input.checked]))`),before);
+   if(width<=1400)await evalValue(`document.querySelector('button[aria-controls="mobile-menu"]').click()`);
+   // Guest controls must also fit, including the existing register action.
+   await visit(routes.find(route=>route[0]==='login'),mode,width);
+   await openLanguage();
+   assert(await evalValue(`(()=>{const rect=document.querySelector('[role=menu]').getBoundingClientRect();return rect.left>=0 && rect.right<=innerWidth && rect.bottom<=innerHeight})()`));
+   const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(process.env.TEMP,`compact-menu-${mode}-${width}.png`),Buffer.from(shot.data,'base64'));
+   await evalValue(`document.querySelector('h1').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}))`);
+   assert.equal(await evalValue('!!document.querySelector("[role=menu]")'),false);
+   console.log('PASS keyboard language switch, retained workout inputs, guest dropdown containment',mode,width);
+  }
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));await send('Page.navigate',{url:'about:blank'});await wait(200);await send('Browser.close');return;
+ }
+ if(process.env.UI_CHECK_PHASE==='localized-exercise-ui') {
+  for(const language of (process.env.UI_CHECK_LANGUAGES?.split(',') ?? ['en','sv']))for(const mode of ['light','dark'])for(const width of (process.env.UI_CHECK_WIDTHS?.split(',').map(Number) ?? [320,375,844,1225,1440])) {
+   await evalValue('localStorage.setItem("workout-language",'+JSON.stringify(language)+')');
+   for(const name of ['home','library','public-templates','workout-select','exercise-select','workout','exercise-details','history','session-details','result','public-template-details'].filter(name=>routeMatches(routes.find(route=>route[0]===name)))) {
+    await visit(routes.find(route=>route[0]===name),mode,width);
+    if(['library','exercise-select'].includes(name)) {
+     assert(await evalValue(`(()=>{const input=document.querySelector('input[type=search]').getBoundingClientRect();const button=document.querySelector('button[aria-haspopup=dialog]').getBoundingClientRect();return button.left>=input.right && Math.abs(input.bottom-button.bottom)<=1})()`),'sort button should align beside search');
+     await evalValue(`document.querySelector('button[aria-haspopup=dialog]').click()`);await wait(200);
+     assert.equal(await evalValue(`document.querySelectorAll('[role=dialog] input[type=radio]').length`),3);
+     await evalValue(`document.querySelector('[role=dialog] input[value=name]').click()`);await wait(300);
+     assert.equal(await evalValue(`document.querySelector('button[aria-haspopup=dialog]').getAttribute('aria-expanded')`),'false');
+    }
+    if(['library','exercise-select','workout','exercise-details','history','session-details','result','public-template-details'].includes(name)) {
+     const text=await evalValue('document.body.innerText');
+     assert(text.toLowerCase().includes((language==='sv'?'Bänkpress':exercise.name).toLowerCase()),name+' translated exercise name missing: '+text);
+     if(name==='library')assert(text.toLowerCase().includes('seated cable row'),'custom exercise must keep original name');
+    }
+   }
+   await visit(routes.find(route=>route[0]==='home'),mode,width);
+   if(width<=1400) {
+    await evalValue(`document.querySelector('button[aria-controls="mobile-menu"]').click()`);await wait(100);
+    await evalValue(`document.querySelector('#mobile-menu button[aria-haspopup=menu]').click()`);await wait(80);
+    assert(await evalValue(`(()=>{const menu=document.querySelector('[role=menu]').getBoundingClientRect();const select=document.querySelector('#mobile-menu select').getBoundingClientRect();return menu.left>=0 && menu.right<=innerWidth && select.width<=150 && menu.bottom<=innerHeight})()`),'mobile dropdown must stay contained');
+    await evalValue(`document.querySelector('[role=menu]').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`);await wait(50);
+    assert.equal(await evalValue(`document.querySelector('#mobile-menu button[aria-haspopup=menu]').getAttribute('aria-expanded')`),'false');
+    await evalValue(`document.querySelector('#mobile-menu select').value=${JSON.stringify(mode==='light'?'dark':'light')};document.querySelector('#mobile-menu select').dispatchEvent(new Event('change',{bubbles:true}))`);await wait(100);
+    assert.equal(await evalValue('document.documentElement.dataset.theme'),mode==='light'?'dark':'light');
+   }
+   console.log('PASS localized exercises, custom fallback, shared sorting and compact menu',language,mode,width);
+  }
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));await send('Page.navigate',{url:'about:blank'});await wait(200);await send('Browser.close');return;
+ }
  if(process.env.UI_CHECK_PHASE==='language-motion') {
   for(const mode of ['light','dark'])for(const width of [375,1440]) {
    await evalValue("localStorage.setItem('workout-language','en')");await visit(routes.find(route=>route[0]==='login'),mode,width);

@@ -1,3 +1,4 @@
+import useExerciseName from "../../hooks/useExerciseName";
 import { formatNumber, displayValue, translateMessage, t } from "../../i18n";
 import { dragAccessibility } from "../../i18n/dragAccessibility";
 import { useTranslation } from "react-i18next";
@@ -112,6 +113,7 @@ function SortableSummaryExerciseCard({
   onSave, onDirty,
 }: SortableSummaryExerciseCardProps) {
     useTranslation();
+  const displayName = useExerciseName(exercise.exerciseId, exercise.exerciseName);
   const {
     attributes,
     listeners,
@@ -145,15 +147,15 @@ function SortableSummaryExerciseCard({
             </p>
 
             <h3 className={styles.exerciseTitle}>
-              {exercise.exerciseName}
+              {displayName}
             </h3>
           </div>
 
           <div className={styles.reorderControls}>
-          <Button type="button" variant="ghost" iconOnly aria-label={t("WorkoutSummaryPage.moveValueUp", { value0: exercise.exerciseName })} disabled={index === 0 || isReordering} onClick={() => onMove(index, index - 1)}><Icon icon={ArrowUp} /></Button>
-          <Button type="button" variant="ghost" iconOnly aria-label={t("WorkoutSummaryPage.moveValueDown", { value0: exercise.exerciseName })} disabled={index === total - 1 || isReordering} onClick={() => onMove(index, index + 1)}><Icon icon={ArrowDown} /></Button>
+          <Button type="button" variant="ghost" iconOnly aria-label={t("WorkoutSummaryPage.moveValueUp", { value0: displayName })} disabled={index === 0 || isReordering} onClick={() => onMove(index, index - 1)}><Icon icon={ArrowUp} /></Button>
+          <Button type="button" variant="ghost" iconOnly aria-label={t("WorkoutSummaryPage.moveValueDown", { value0: displayName })} disabled={index === total - 1 || isReordering} onClick={() => onMove(index, index + 1)}><Icon icon={ArrowDown} /></Button>
           <button type="button" className={styles.dragHandle} {...attributes} {...listeners} disabled={isReordering}
-            aria-label={t("common.reorderValue", { value0: exercise.exerciseName })}><Icon icon={GripVertical} /></button>
+            aria-label={t("common.reorderValue", { value0: displayName })}><Icon icon={GripVertical} /></button>
           </div>
         </div>
       {exercise.training && exercise.training.format !== "strength" && <details><summary>{t("WorkoutSummaryPage.durationAmpIntervals")}</summary><TrainingConfigForm cardioOnly initial={exercise.training} onSave={onSave} onDirty={onDirty} /></details>}

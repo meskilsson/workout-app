@@ -427,6 +427,8 @@
 
 .backButton { width: 44px !important; min-width: 44px !important; height: 44px; padding: 0; }
 
+.searchControls { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+
 .exerciseLink { align-content: start; }
 .cardDummy { align-items: flex-start; }
 .exerciseText { text-align: left; }

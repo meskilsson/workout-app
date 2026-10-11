@@ -1,3 +1,5 @@
+import { exerciseText } from "../../i18n/exercises";
+import ExerciseSortControl from "../../components/exercises/ExerciseSortControl";
 import { translateMessage, displayValue, t } from "../../i18n";
 import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
@@ -86,8 +88,7 @@ export default function LibraryPage() {
         return (
             <Box className={styles.page}>
                 <div className={styles.stateCard}>
-                    <p className={styles.kicker}>{t("common.exerciseLibrary")}</p>
-                    <h1 className={styles.title}>{t("common.library")}</h1>
+                    <h1 className={styles.title}>{t("common.exerciseLibrary")}</h1>
                     <p className={styles.errorText} role="alert">{translateMessage(error)}</p>
                 </div>
             </Box>
@@ -98,8 +99,7 @@ export default function LibraryPage() {
         <Box className={styles.page}>
             <div ref={pageTopRef} className={styles.header}>
                 <div>
-                    <p className={styles.kicker}>{t("common.exerciseLibrary")}</p>
-                    <h1 className={styles.title}>{t("common.library")}</h1>
+                    <h1 className={styles.title}>{t("common.exerciseLibrary")}</h1>
                     <p className={styles.subtitle}> {t("LibraryPage.findExercisesForYourNextSession")} </p>
 
                 </div>
@@ -135,19 +135,8 @@ export default function LibraryPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 </label>
-                <label className={styles.sortLabel}> {t("LibraryPage.sortBy")} <select
-                        className={styles.sortSelect}
-                        value={effectiveSort}
-                        onChange={(event) => {
-                            setSort(event.target.value as ExerciseSort);
-                            setPage(1);
-                        }}
-                    >
-                        <option value="name">{t("LibraryPage.nameAZ")}</option>
-                        <option value="popular">{t("common.mostPopular")}</option>
-                        {isAuthenticated && <option value="mostUsed">{t("common.myMostUsed")}</option>}
-                    </select>
-                </label>
+                <ExerciseSortControl value={effectiveSort} authenticated={isAuthenticated}
+                    onChange={value => { setSort(value); setPage(1); }} />
                 </div>
                 {effectiveSort !== "name" && (
                     <p className={styles.sortHint}>
@@ -171,7 +160,7 @@ export default function LibraryPage() {
 
                             <Link to={`/exercises/${exercise._id}`} className={styles.exerciseLink}>
                                 <div className={styles.exerciseText}>
-                                    <h2 className={styles.exerciseName}>{exercise.name}</h2>
+                                    <h2 className={styles.exerciseName}>{exerciseText(exercise)}</h2>
 
                                     <p className={styles.exerciseMetaText}>
                                         {displayValue(exercise.exerciseType)} · {displayValue(exercise.equipment)} · {displayValue(exercise.difficulty)}

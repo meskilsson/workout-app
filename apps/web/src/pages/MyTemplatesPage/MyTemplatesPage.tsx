@@ -1,3 +1,4 @@
+import ExerciseName from "../../components/exercises/ExerciseName";
 import { translateMessage, displayValue, t } from "../../i18n";
 import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
@@ -205,8 +206,7 @@ export default function MyTemplatesPage() {
                                                 <span>{exercise.order + 1}.</span>
 
                                                 <span>
-                                                    {exercise.exerciseName ||
-                                                        t("common.missingExercise")}
+                                                    <ExerciseName id={exercise.exercise?._id} name={exercise.exerciseName || t("common.missingExercise")} />
                                                 </span>
                                             </div>
                                         ))

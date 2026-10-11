@@ -2,6 +2,7 @@ import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
 import en from "./locales/en.json";
 import sv from "./locales/sv.json";
+import { MUSCLE_OPTIONS } from "@workout-app/shared";
 
 export type Language = "en" | "sv";
 export const LANGUAGE_STORAGE_KEY = "workout-language";
@@ -34,11 +35,13 @@ export function formatNumber(value: number | null | undefined): string {
 }
 export function displayValue(value: string | undefined): string {
     if (!value) return "";
-    if (i18next.resolvedLanguage !== "sv") return value;
     const normalized = value.trim().toLowerCase();
     const key = `values.${normalized}`;
     const categoryKey = `values.${normalized.replaceAll(" ", "_")}`;
-    return i18next.exists(key) ? t(key) : i18next.exists(categoryKey) ? t(categoryKey) : value;
+    const label = i18next.resolvedLanguage !== "sv" ? value
+        : i18next.exists(key) ? t(key) : i18next.exists(categoryKey) ? t(categoryKey) : value;
+    return MUSCLE_OPTIONS.some(muscle => muscle === normalized)
+        ? label.charAt(0).toLocaleUpperCase(locale()) + label.slice(1) : label;
 }
 
 // Only translate messages owned by this application, never arbitrary user content.

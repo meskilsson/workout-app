@@ -749,14 +749,6 @@
 .header .backButton { flex: 0 0 44px; margin: 0; }
 .subtitle { margin-top: 0.4rem; }
 .searchWrapper { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 0.65rem; }
-.sortButton { min-height: 50px; padding-inline: 0.75rem; }
-.sortOptions { border: 0; padding: 0; margin: 0; display: grid; gap: 0.5rem; min-width: 0; }
-.sortOptions legend { margin-bottom: 0.75rem; color: var(--color-text-muted); font-size: var(--text-sm); }
-.sortOption { display: flex; align-items: center; gap: 0.75rem; min-height: 60px; padding: 0.75rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; }
-.sortOption:has(input:checked) { border-color: var(--color-primary-border); background: var(--color-primary-soft); }
-.sortOption input { flex: 0 0 auto; width: 20px; height: 20px; accent-color: var(--color-primary-text); }
-.sortOption span { min-width: 0; overflow-wrap: anywhere; }
-.sortOption small { display: block; margin-top: 0.2rem; color: var(--color-text-muted); line-height: 1.4; }
 
 /* Compact cards keep the muscle labels readable without separate tall blocks. */
 .exerciseGrid { grid-auto-rows: auto; gap: 0.75rem; }

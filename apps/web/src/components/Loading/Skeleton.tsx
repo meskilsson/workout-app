@@ -50,7 +50,7 @@ export function SkeletonContent({ layout }: { layout: SkeletonLayout }) {
         </div>)}</div>
     </div>;
     if (layout === "home") return <div className={styles.content}>
-        <div className={styles.heading}><Skeleton width="8rem" /><Skeleton width="min(80%, 24rem)" height="2rem" /><Skeleton width="min(90%, 30rem)" /></div>
+        <div className={styles.heading}><Skeleton width="min(80%, 24rem)" height="2rem" /><Skeleton width="min(90%, 30rem)" /></div>
         <div className={styles.card}><Skeleton width="12rem" height="1.5rem" /><Skeleton width="75%" /><Skeleton width="9rem" height="2.75rem" /></div>
         <div className={styles.stack}>{[0, 1, 2].map(i => <div className={styles.card} key={i}><Skeleton width="12rem" /><Skeleton width="75%" /></div>)}</div>
     </div>;
@@ -61,7 +61,7 @@ export function SkeletonContent({ layout }: { layout: SkeletonLayout }) {
     const grid = layout === "cards" || layout === "exercises" || layout === "library";
     return <div className={`${styles.content} ${workout || form ? styles.narrow : ""}`}>
         {workout ? <div className={styles.timer}><Skeleton width="8rem" /><Skeleton width="5rem" height="2rem" /></div>
-            : <div className={styles.heading}><Skeleton width="7rem" height="0.8rem" /><Skeleton width="min(75%, 26rem)" height="2rem" /><Skeleton width="min(90%, 36rem)" /></div>}
+            : <div className={styles.heading}>{layout !== "library" && layout !== "exercises" && layout !== "cards" && <Skeleton width="7rem" height="0.8rem" />}<Skeleton width="min(75%, 26rem)" height="2rem" />{layout !== "exercises" && <Skeleton width="min(90%, 36rem)" />}</div>}
         {workout && <div className={styles.workoutActions}><Skeleton width="9rem" height="2.75rem" /></div>}
         {grid && <div className={styles.search}><Skeleton height="3rem" /></div>}
         {detail && <div className={`${styles.stats} ${layout === "summary" ? styles.summaryStats : ""}`}>{Array.from({ length: layout === "result" ? 4 : layout === "sessionDetails" ? 5 : 3 }, (_, i) => i).map(i => <div className={styles.card} key={i}><Skeleton width="60%" /><Skeleton height="2rem" /></div>)}</div>}

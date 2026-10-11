@@ -1,3 +1,4 @@
+import ExerciseName from "../../components/exercises/ExerciseName";
 import { translateMessage, displayValue, t } from "../../i18n";
 import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
@@ -95,7 +96,7 @@ export default function TemplatesPage() {
                                 <span>{exercise.order + 1}.</span>
 
                                 <span>
-                                    {exercise.exerciseName || t("common.missingExercise")}
+                                    <ExerciseName id={exercise.exercise?._id} name={exercise.exerciseName || t("common.missingExercise")} />
                                 </span>
                             </div>
                         ))
@@ -162,9 +163,9 @@ export default function TemplatesPage() {
             {error && <p className={styles.errorText} role="alert">{translateMessage(error)}</p>}
             {isLoading && <LoadingAnnouncement message={t("common.updatingContent")} />}
             <header className={styles.header}>
-                <p className={styles.kicker}>{t("common.workoutTemplates")}</p>
 
-                <h1 className={styles.title}>{t("TemplatesPage.browseTemplates")}</h1>
+
+                <h1 className={styles.title}>{t("TemplatesPage.browseWorkouts")}</h1>
 
                 <p className={styles.subtitle}> {t("TemplatesPage.chooseARoutineForYourNextSession")} </p>
 

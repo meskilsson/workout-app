@@ -286,7 +286,7 @@
   "ExerciseDetailsPage.equipmentTechniqueAndTargetMuscles": "Equipment, technique, and target muscles.",
   "common.type": "Type",
   "common.abs": "Abs",
-  "common.exerciseLibrary": "Exercise library",
+  "common.exerciseLibrary": "Exercise Library",
   "common.loadingWorkoutDraftAndExercises": "Loading workout draft and exercises...",
   "common.selectExercises": "Select exercises",
   "common.unableToLoadYourWorkoutPleaseTryAgain": "Unable to load your workout. Please try again.",
@@ -716,5 +716,6 @@
   "fields.reps": "Reps",
   "fields.weight": "Weight",
   "fields.restSeconds": "Rest (seconds)",
-  "drag.role": "sortable exercise"
+  "drag.role": "sortable exercise",
+  "TemplatesPage.browseWorkouts": "Browse workouts"
 }

@@ -1,3 +1,5 @@
+import { exerciseText } from "../../i18n/exercises";
+import ExerciseSortControl from "../../components/exercises/ExerciseSortControl";
 import { translateMessage, displayValue, t } from "../../i18n";
 import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
@@ -5,7 +7,7 @@ import { motion } from "motion/react";
 import { useMotionTransition } from "../../components/motion/useMotionTransition";
 import { useFieldMotion } from "../../components/motion/useFieldMotion";
 import { searchRest, searchFocus, pageButtonRest, pageButtonHover, cardRest, selectedCard } from "../../components/motion/presets";
-import { ArrowLeft, ArrowDownUp, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "../../routes/navigationHooks";
@@ -19,7 +21,6 @@ import { useDraftMutations } from "../../query/useDraftMutations";
 import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
-import Modal from "../../components/ui/modal/Modal";
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 import { LoadingAnnouncement } from "../../components/Loading/Skeleton";
 import LoadingState from "../../components/Loading/LoadingState";
@@ -99,13 +100,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
     const selectedExerciseDetails = [...detailQueries.flatMap(query => query.data ? [query.data] : []), ...chosenDetails];
     const [actionError, setActionError] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
-    const [sortOpen, setSortOpen] = useState(false);
     const [sort, setSort] = useState<ExerciseSort>("popular");
-    const sortOptions: { value: ExerciseSort; label: string; description: string }[] = [
-        { value: "name", label: t("ExerciseSelectPage.nameAZ"), description: t("ExerciseSelectPage.alphabeticalOrder") },
-        { value: "popular", label: t("common.mostPopular"), description: t("ExerciseSelectPage.mostCompletedAcrossAllUsers") },
-        ...(isAuthenticated ? [{ value: "mostUsed" as const, label: t("common.myMostUsed"), description: t("ExerciseSelectPage.mostCompletedInYourWorkouts") }] : []),
-    ];
     const effectiveSort = sort === "mostUsed" && !isAuthenticated ? "popular" : sort;
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
     const [page, setPage] = useState(1);
@@ -277,7 +272,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                     <div className={styles.exerciseCardTop}>
                         <div className={styles.exerciseMainInfo}>
                             <h3 className={styles.exerciseName}>
-                                {exercise.name} {(isSelected || isAlreadyInWorkout) && <Icon icon={CheckCircle2} />}
+                                {exerciseText(exercise)} {(isSelected || isAlreadyInWorkout) && <Icon icon={CheckCircle2} />}
                             </h3>
 
                             {isAlreadyInWorkout && (
@@ -428,7 +423,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                         <Icon icon={ArrowLeft} />
                     </Button>
                 <div className={styles.headerIntro}>
-                    <p className={styles.kicker}> {t("common.exerciseLibrary")} </p>
+
 
                     <h1 className={styles.title}>
                         {isActiveWorkout
@@ -438,11 +433,11 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                                 : t("common.selectExercises")}
                     </h1>
 
-                    <p className={styles.subtitle}>
+                    {(isActiveWorkout || isCardioOnly || includeCardio) && <p className={styles.subtitle}>
                         {isActiveWorkout
                             ? t("ExerciseSelectPage.selectExercisesToAddToYourWorkout")
-                            : isCardioOnly ? t("ExerciseSelectPage.chooseYourCardioActivities") : includeCardio ? t("ExerciseSelectPage.chooseExercisesForYourWorkout") : t("ExerciseSelectPage.chooseExercisesForYourSelectedMuscles")}
-                    </p>
+                            : isCardioOnly ? t("ExerciseSelectPage.chooseYourCardioActivities") : includeCardio ? t("ExerciseSelectPage.chooseExercisesForYourWorkout") : null}
+                    </p>}
 
 
                 </div>
@@ -450,16 +445,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
 
             </div>
 
-            <Modal title={t("ExerciseSelectPage.sortExercises")} isOpen={sortOpen} onClose={() => setSortOpen(false)}>
-                <fieldset className={styles.sortOptions}>
-                    <legend>{t("ExerciseSelectPage.orderExercisesBy")}</legend>
-                    {sortOptions.map(option => <label className={styles.sortOption} key={option.value}>
-                        <input type="radio" name="exercise-sort" value={option.value} checked={effectiveSort === option.value}
-                            onChange={() => { setSort(option.value); setPage(1); setSortOpen(false); }} />
-                        <span>{option.label}<small>{option.description}</small></span>
-                    </label>)}
-                </fieldset>
-            </Modal>
+
             <div className={styles.searchWrapper}>
                 <label className={styles.searchLabel}> {t("common.searchExercises")} <motion.input {...fieldMotion("search", searchRest, searchFocus)}
                     className={styles.searchInput}
@@ -472,10 +458,8 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                     }
                 />
                 </label>
-                <Button type="button" variant="ghost" className={styles.sortButton} icon={ArrowDownUp}
-                    aria-haspopup="dialog" aria-expanded={sortOpen}
-                    aria-label={t("ExerciseSelectPage.sortExercisesValue", { value0: sortOptions.find(option => option.value === effectiveSort)?.label })}
-                    onClick={() => setSortOpen(true)}>{t("ExerciseSelectPage.sort")}</Button>
+                <ExerciseSortControl value={effectiveSort} authenticated={isAuthenticated}
+                    onChange={value => { setSort(value); setPage(1); }} />
             </div>
 
             {isLoadingExercises && hasLoadedOnce && (

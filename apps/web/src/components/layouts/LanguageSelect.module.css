@@ -5,3 +5,8 @@
 .menu button { width: 100%; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.65rem 0.75rem; border: 0; border-radius: var(--radius-sm); background: transparent; color: inherit; text-align: start; cursor: pointer; }
 .menu button:hover, .menu button[aria-checked="true"] { background: var(--color-primary-soft); color: var(--color-primary-text); }
 .trigger:focus-visible, .menu button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+@media (max-width: 1400px) {
+    .root { max-width: 100%; }
+    .menu { position: static; min-width: 0; width: 9rem; max-width: 100%; margin-top: 0.35rem; box-shadow: none; }
+}

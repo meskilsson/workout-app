@@ -716,5 +716,6 @@
   "fields.reps": "Repetitioner",
   "fields.weight": "Vikt",
   "fields.restSeconds": "Vila (sekunder)",
-  "drag.role": "sorterbar övning"
+  "drag.role": "sorterbar övning",
+  "TemplatesPage.browseWorkouts": "Bläddra bland träningspass"
 }

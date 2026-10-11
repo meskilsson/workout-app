@@ -1,3 +1,4 @@
+import useExerciseName from "../../hooks/useExerciseName";
 import { translateMessage, t } from "../../i18n";
 import { dragAccessibility } from "../../i18n/dragAccessibility";
 import { useTranslation } from "react-i18next";
@@ -169,6 +170,7 @@ function SortableWorkoutExerciseCard({
     onMove,
 }: SortableWorkoutExerciseCardProps) {
     useTranslation();
+    const displayName = useExerciseName(exercise._id, exercise.name);
     const {
         attributes,
         listeners,
@@ -215,7 +217,7 @@ function SortableWorkoutExerciseCard({
                         type="button"
                         ref={setActivatorNodeRef}
                         className={styles.dragHandle}
-                        aria-label={t("common.reorderValue", { value0: exercise.name })}
+                        aria-label={t("common.reorderValue", { value0: displayName })}
                         {...attributes}
                         {...listeners}
                     >
@@ -223,7 +225,7 @@ function SortableWorkoutExerciseCard({
                     </button>
 
                     <div>
-                        <h2 className={styles.exerciseName}><button type="button" className={styles.exerciseToggle} aria-expanded={expanded} aria-controls={`sets-${exercise._id}`} onClick={() => setExpanded(value => !value)}>{exercise.name}<span aria-hidden="true">{expanded ? "\u2212" : "+"}</span></button></h2>
+                        <h2 className={styles.exerciseName}><button type="button" className={styles.exerciseToggle} aria-expanded={expanded} aria-controls={`sets-${exercise._id}`} onClick={() => setExpanded(value => !value)}>{displayName}<span aria-hidden="true">{expanded ? "\u2212" : "+"}</span></button></h2>
                         {(!exercise.training || exercise.training.format === "strength") && <p className={styles.exerciseProgress}>{exerciseSets.filter(set => set.isCompleted).length} {t("common.of")} {exerciseSets.length} {t("WorkoutPage.setsCompleted")}</p>}
                     </div>
                 </div>
@@ -249,7 +251,7 @@ function SortableWorkoutExerciseCard({
                             className={
                                 styles.exerciseMenuButton
                             }
-                            aria-label={t("WorkoutPage.openMenuForValue", { value0: exercise.name })}
+                            aria-label={t("WorkoutPage.openMenuForValue", { value0: displayName })}
                         >
                             <Icon icon={MoreHorizontal} />
                         </motion.summary>
@@ -276,7 +278,7 @@ function SortableWorkoutExerciseCard({
                                 disabled={!canRemoveExercise}
                                 title={
                                     canRemoveExercise
-                                        ? t("WorkoutPage.removeValue", { value0: exercise.name })
+                                        ? t("WorkoutPage.removeValue", { value0: displayName })
                                         : t("WorkoutPage.addAnotherExerciseBeforeRemovingTheFinalExercise")
                                 }
                             >
@@ -304,7 +306,7 @@ function SortableWorkoutExerciseCard({
                             <motion.input {...fieldMotion(set.id + "-weight", { borderBottomColor: "var(--color-input-border)" }, { borderBottomColor: "var(--color-focus)" })}
                                 type="number"
                                 min={0}
-                                aria-label={t("WorkoutPage.weightForValueSetValue", { value0: exercise.name, value1: setIndex + 1 })}
+                                aria-label={t("WorkoutPage.weightForValueSetValue", { value0: displayName, value1: setIndex + 1 })}
                                 value={set.weight}
                                 className={
                                     styles.underlineInput
@@ -332,7 +334,7 @@ function SortableWorkoutExerciseCard({
                             <motion.input {...fieldMotion(set.id + "-reps", { borderBottomColor: "var(--color-input-border)" }, { borderBottomColor: "var(--color-focus)" })}
                                 type="number"
                                 min={0}
-                                aria-label={t("WorkoutPage.repsForValueSetValue", { value0: exercise.name, value1: setIndex + 1 })}
+                                aria-label={t("WorkoutPage.repsForValueSetValue", { value0: displayName, value1: setIndex + 1 })}
                                 value={set.reps}
                                 className={
                                     styles.underlineInput
@@ -445,6 +447,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         exerciseToRemove,
         setExerciseToRemove,
     ] = useState<SelectedExercise | null>(null);
+    const removalName = useExerciseName(exerciseToRemove?._id, exerciseToRemove?.name ?? t("common.exercise"));
 
     const [error, setError] = useState("");
 
@@ -1346,8 +1349,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                 </div>
 
                 <Modal
-                    title={t("WorkoutPage.removeValue2", { value0: exerciseToRemove?.name ??
-                        "exercise" })}
+                    title={t("WorkoutPage.removeValue2", { value0: removalName })}
                     isOpen={
                         exerciseToRemove !== null
                     }

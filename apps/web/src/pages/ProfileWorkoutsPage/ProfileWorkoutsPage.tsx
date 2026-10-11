@@ -1,3 +1,4 @@
+import ExerciseName from "../../components/exercises/ExerciseName";
 import { formatNumber, translateMessage, t } from "../../i18n";
 import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
@@ -210,7 +211,7 @@ export default function ProfileWorkoutsPage() {
                                             key={`${session._id}-${exercise.exerciseName}`}
                                             className={styles.exerciseTag}
                                         >
-                                            {exercise.exerciseName}
+                                            <ExerciseName id={exercise.exerciseId} name={exercise.exerciseName} />
                                         </span>
                                     ))}
 

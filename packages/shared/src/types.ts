@@ -87,6 +87,7 @@ export type Exercise = {
     name: string;
     description?: string;
     instructions?: string;
+    translations?: { sv?: { name?: string; description?: string; instructions?: string } };
     exerciseType?: "strength" | "cardio" | "mobility";
     primaryMuscles?: string[];
     secondaryMuscles?: string[];

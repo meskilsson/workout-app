@@ -1,4 +1,5 @@
 import { Schema, model, Types } from "mongoose";
+import { exerciseTranslations } from "../localization/exercises";
 import {
     MUSCLE_OPTIONS,
     EQUIPMENT_OPTIONS,
@@ -103,8 +104,13 @@ const exerciseSchema = new Schema<IExercise>(
     },
     {
         timestamps: true,
+        toJSON: { virtuals: ["translations"] },
     },
 );
+
+exerciseSchema.virtual("translations").get(function () {
+    return exerciseTranslations(this);
+});
 
 const Exercise = model<IExercise>("Exercise", exerciseSchema);
 

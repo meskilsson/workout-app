@@ -102,9 +102,6 @@ export default function WorkoutSelectPage() {
   return (
     <Box className={styles.page}>
       <div className={styles.header}>
-        <p className={styles.kicker}>
-          {isTemplatePurpose ? t("common.workoutBuilder") : t("common.workoutBuilder")}
-        </p>
 
         <h1 className={styles.title}>
           {isTemplatePurpose ? t("WorkoutSelectPage.chooseWorkoutMuscles") : t("WorkoutSelectPage.chooseMuscleGroups")}
