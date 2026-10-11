@@ -337,20 +337,6 @@
     border: 1px solid var(--color-primary-border);
 }
 
-.selectedCard .primaryTag {
-    color: var(--color-accent-text);
-    background: var(--color-surface);
-
-    border: 1px solid var(--color-accent-border);
-}
-
-.selectedCard .secondaryTag {
-    color: var(--color-text-muted);
-    background: var(--color-surface);
-
-    border: 1px solid var(--color-input-border);
-}
-
 .emptyText {
     grid-column: 1 / -1;
     margin: 0;
@@ -697,8 +683,8 @@
 .cardDummy { overflow: visible; padding: 0.75rem 0; }
 .exerciseText { align-items: flex-start; gap: 0.45rem; }
 
-.primaryTag { background: var(--color-dummy-muscle-primary); color: var(--color-muscle-primary-text); border-color: var(--color-dummy-muscle-primary); }
-.secondaryTag { background: var(--color-dummy-muscle-secondary); color: var(--color-muscle-secondary-text); border-color: var(--color-dummy-muscle-secondary); }
+.primaryTag { background: var(--red-600); color: var(--color-muscle-primary-text); border-color: var(--red-600); }
+.secondaryTag { background: var(--red-200); color: var(--color-muscle-secondary-text); border-color: var(--red-200); }
 
 .backButton { width: 44px !important; min-width: 44px !important; height: 44px; padding: 0; }
 

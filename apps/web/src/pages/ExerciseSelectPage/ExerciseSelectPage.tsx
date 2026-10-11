@@ -1,3 +1,4 @@
+import { useExerciseBrowseState } from "../../hooks/useExerciseBrowseState";
 import { exerciseText } from "../../i18n/exercises";
 import ExerciseSortControl from "../../components/exercises/ExerciseSortControl";
 import { translateMessage, displayValue, t } from "../../i18n";
@@ -32,7 +33,7 @@ import "../../components/ui/cards/card.css";
 
 import styles from "./ExerciseSelectPage.module.css";
 
-import type { Exercise, ExerciseFilters, ExerciseSort } from "@workout-app/shared";
+import type { Exercise } from "@workout-app/shared";
 
 import { usePaginationScroll } from "../../hooks/usePaginationScroll";
 
@@ -99,12 +100,14 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
     const detailQueries = useQueries({ queries: [...new Set(existingExerciseIds)].map(id => exerciseDetailOptions(user?._id, id)) });
     const selectedExerciseDetails = [...detailQueries.flatMap(query => query.data ? [query.data] : []), ...chosenDetails];
     const [actionError, setActionError] = useState("");
-    const [searchTerm, setSearchTerm] = useState("");
-    const [filters, setFilters] = useState<ExerciseFilters>({});
-    const [sort, setSort] = useState<ExerciseSort>("popular");
+    const browse = useExerciseBrowseState(user?._id, draftId);
+    const { search: searchTerm, filters, sort, page, update } = browse;
+    const setSearchTerm = (value: string) => update("search", value);
+    const setFilters = (value: typeof filters) => update("filters", value);
+    const setSort = (value: typeof sort) => update("sort", value);
+    const setPage = (value: number | ((previous: number) => number)) => update("page", typeof value === "function" ? value(page) : value);
     const effectiveSort = sort === "mostUsed" && !isAuthenticated ? "popular" : sort;
-    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-    const [page, setPage] = useState(1);
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm.trim());
     const isCardioOnly = selectedMuscleGroups.length === 0;
     const exercisesQuery = useQuery({
         ...exerciseListOptions(user?._id, {
@@ -126,9 +129,9 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
     const error = exerciseError || actionError;
     const isEditingExistingDraft = existingExerciseIds.length > 0;
     useEffect(() => {
-        const timeoutId = window.setTimeout(() => { setDebouncedSearchTerm(searchTerm.trim()); setPage(1); }, 300);
+        const timeoutId = window.setTimeout(() => { setDebouncedSearchTerm(searchTerm.trim()); if (searchTerm.trim() !== debouncedSearchTerm) update("page", 1); }, 300);
         return () => window.clearTimeout(timeoutId);
-    }, [searchTerm]);
+    }, [searchTerm, debouncedSearchTerm, update]);
 
     function handleToggleExercise(exercise: Exercise) {
         if (isSavingExercises) {

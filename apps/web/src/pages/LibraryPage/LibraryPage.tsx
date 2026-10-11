@@ -1,3 +1,4 @@
+import { useExerciseBrowseState } from "../../hooks/useExerciseBrowseState";
 import { exerciseText } from "../../i18n/exercises";
 import ExerciseSortControl from "../../components/exercises/ExerciseSortControl";
 import { translateMessage, displayValue, t } from "../../i18n";
@@ -19,7 +20,6 @@ import { exerciseListOptions } from "../../query/resourceQueries";
 import Box from "../../components/ui/box/Box";
 
 import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
-import type { ExerciseFilters, ExerciseSort } from "@workout-app/shared";
 import { usePaginationScroll } from "../../hooks/usePaginationScroll";
 import Button from "../../components/ui/button/Button";
 import { useNavigate } from "../../routes/navigationHooks";
@@ -40,15 +40,17 @@ export default function LibraryPage() {
     const navigate = useNavigate();
 
 
-    const [searchTerm, setSearchTerm] = useState("");
-    const [filters, setFilters] = useState<ExerciseFilters>({});
-    const [sort, setSort] = useState<ExerciseSort>("popular");
+    const browse = useExerciseBrowseState(user?._id);
+    const { search: searchTerm, filters, sort, page, update } = browse;
+    const setSearchTerm = (value: string) => update("search", value);
+    const setFilters = (value: typeof filters) => update("filters", value);
+    const setSort = (value: typeof sort) => update("sort", value);
+    const setPage = (value: number | ((previous: number) => number)) => update("page", typeof value === "function" ? value(page) : value);
     const effectiveSort = sort === "mostUsed" && !isAuthenticated ? "popular" : sort;
-    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm.trim());
 
 
     const limit = 12;
-    const [page, setPage] = useState(1);
     const exercisesQuery = useQuery({
         ...exerciseListOptions(user?._id, { ...filters, includeCardio: false, sort: effectiveSort, page, limit, search: debouncedSearchTerm }),
         placeholderData: (previous, previousQuery) =>
@@ -65,13 +67,13 @@ export default function LibraryPage() {
     useEffect(() => {
         const timeoutId = window.setTimeout(() => {
             setDebouncedSearchTerm(searchTerm.trim());
-            setPage(1);
+            if (searchTerm.trim() !== debouncedSearchTerm) update("page", 1);
         }, 300);
 
         return () => {
             window.clearTimeout(timeoutId);
         }
-    }, [searchTerm, setPage])
+    }, [searchTerm, debouncedSearchTerm, update])
 
 
     if (isLoading && !hasLoadedOnce) {
