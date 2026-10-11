@@ -1,3 +1,5 @@
+import { useReducedMotion } from "../motion/useReducedMotion";
+import { motion } from "motion/react";
 import type { CSSProperties } from "react";
 
 import styles from "./LoadingPredator.module.css";
@@ -23,6 +25,7 @@ export default function LoadingPredator({
     label = "Loading",
     showLabel = false,
 }: LoadingPredatorProps) {
+    const reduced = useReducedMotion();
     const predatorStyle = {
         "--predator-color": color,
     } as PredatorStyle;
@@ -35,7 +38,7 @@ export default function LoadingPredator({
             aria-live="polite"
             aria-label={label}
         >
-            <span aria-hidden="true" className={styles.spinner} style={predatorStyle} />
+            <motion.span aria-hidden="true" className={styles.spinner} style={predatorStyle} animate={{ rotate: reduced ? 0 : 360 }} transition={{ duration: reduced ? 0 : 0.8, ease: "linear", repeat: reduced ? 0 : Infinity }} />
 
             {showLabel && (
                 <span className={styles.label}>

@@ -1,4 +1,5 @@
-﻿import { LoadingAnnouncement, SkeletonContent, type SkeletonLayout } from "./Skeleton";
+﻿import { useLoadingHandoff } from "../motion/useLoadingHandoff";
+import { LoadingAnnouncement, SkeletonContent, type SkeletonLayout } from "./Skeleton";
 import styles from "./LoadingState.module.css";
 
 type LoadingStateProps = {
@@ -11,6 +12,7 @@ type LoadingStateProps = {
 };
 
 export default function LoadingState({ title, message, variant = "page", layout = "cards", className = "" }: LoadingStateProps) {
+    useLoadingHandoff(variant !== "inline");
     return <div className={`${styles.loadingState} ${!className ? styles[variant] : ""} ${className}`}>
         <LoadingAnnouncement message={message} />
         <div aria-busy="true" aria-label={title ?? "Loading content"} role="region" className={styles.region}>

@@ -28,3 +28,32 @@
 .tableWrap caption { padding-inline: 0.75rem; }
 .stats { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); }
 @media (max-width: 600px) { .page { padding: 1.25rem 1rem; } .form fieldset { padding: 0.75rem; } .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; } .stats article { padding: 0.75rem; } }
+
+/* Editors and record details are portaled outside the dashboard page. */
+.form { color: var(--color-text); max-width: 100%; }
+.form p { margin: 0; color: var(--color-text-muted); line-height: var(--line-body); }
+.form fieldset { display: grid; gap: .85rem; border-color: var(--color-border); background: var(--color-surface-soft); border-radius: var(--radius-md); }
+.form legend { padding-inline: .4rem; font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--color-text); }
+.field { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--color-text); }
+.field select, .form :global(.input-field) { width: 100%; min-width: 0; min-height: 44px; font-size: 16px; border-color: var(--color-input-border); background: var(--color-surface-light); border-radius: var(--radius-sm); }
+.checks { gap: .5rem; }
+.checks label { font-size: var(--text-sm); background: var(--color-surface-light); overflow-wrap: anywhere; }
+.checks input { accent-color: var(--color-primary); flex-shrink: 0; width: 18px; height: 18px; }
+.form .set { align-items: end; padding-block: .75rem; border-bottom: 1px solid var(--color-border-soft); }
+.form .actions { padding-top: .5rem; border-top: 1px solid var(--color-border-soft); }
+.details { margin: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.details > div { min-width: 0; padding: .65rem; border-bottom: 1px solid var(--color-border-soft); }
+.details dt { font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+.details dd { color: var(--color-text-muted); font-size: var(--text-sm); }
+.record { margin-top: 1rem; padding: 1rem; background: var(--color-surface-soft); border: 1px solid var(--color-border-soft); border-radius: var(--radius-md); overflow-wrap: anywhere; }
+.record h3 { margin: 0 0 .5rem; font-size: var(--text-lead); }
+.record p, .record li { font-size: var(--text-sm); color: var(--color-text-muted); }
+.form :focus-visible, .page :focus-visible { outline-color: var(--color-focus); }
+@media (max-width: 600px) { .details { grid-template-columns: minmax(0, 1fr); } .form .set { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .form .actions > button { flex: 1; } }
+
+/* Align toolbar actions with the inputs, below their labels. */
+.toolbar { align-items: flex-end; }
+.toolbar :global(.input-wrapper), .toolbar .field { gap: .5rem; }
+.toolbar :global(.input-label), .toolbar .field { font-size: var(--text-sm); font-weight: var(--weight-semibold); line-height: 1.4; }
+.toolbar :global(.input-field), .toolbar select, .toolbar > button { height: var(--control-height); min-height: var(--control-height); }
+@media (max-width: 600px) { .toolbar { align-items: stretch; } }

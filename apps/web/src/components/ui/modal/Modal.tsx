@@ -1,3 +1,5 @@
+import { AnimatePresence, motion, useIsPresent, type HTMLMotionProps } from "motion/react";
+import { useMotionTransition } from "../../motion/useMotionTransition";
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
@@ -12,6 +14,11 @@ type ModalProps = {
     actions?: ReactNode;
 };
 
+function DialogOverlay(props: HTMLMotionProps<"div">) {
+    const present = useIsPresent();
+    return <motion.div {...props} inert={!present} aria-hidden={!present || undefined} />;
+}
+
 export default function Modal({
     title,
     isOpen,
@@ -19,6 +26,7 @@ export default function Modal({
     children,
     actions,
 }: ModalProps) {
+    const transition = useMotionTransition(0.15);
     const titleId = useId();
     const panelRef = useRef<HTMLDivElement>(null);
     const closeRef = useRef(onClose);
@@ -64,11 +72,11 @@ export default function Modal({
             if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
         };
     }, [isOpen]);
-    if (!isOpen) return null;
 
     return createPortal(
-        <div className="modal-overlay" onClick={onClose}>
-            <div
+        <AnimatePresence>
+        {isOpen && <DialogOverlay key="dialog" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={transition} className="modal-overlay" onClick={onClose}>
+            <motion.div initial={{ scale: transition.duration === 0 ? 1 : 0.98 }} animate={{ scale: 1 }} exit={{ scale: transition.duration === 0 ? 1 : 0.98 }} transition={transition}
                 className="modal-shell"
                 ref={panelRef}
                 role="dialog"
@@ -88,7 +96,8 @@ export default function Modal({
 
                     {actions && <div className="modal-actions">{actions}</div>}
                 </Box>
-            </div>
-        </div>, document.body,
+            </motion.div>
+        </DialogOverlay>}
+        </AnimatePresence>, document.body,
     );
 }

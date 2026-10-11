@@ -1,3 +1,6 @@
+import { motion } from "motion/react";
+import { useFieldMotion } from "../../components/motion/useFieldMotion";
+import { authRest, authFocus } from "../../components/motion/presets";
 import { UserPlus } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useLayoutEffect, useRef, useState } from "react";
@@ -59,6 +62,7 @@ function getSignupFieldErrors(errorData: unknown): SignupFieldErrors {
 }
 
 export default function SignupPage() {
+    const fieldMotion = useFieldMotion(0.18);
     const navigate = useNavigate();
 
     const [name, setName] = useState("");
@@ -129,7 +133,7 @@ export default function SignupPage() {
                         <div className={styles.field}>
                             <label htmlFor="name">Name</label>
 
-                            <input
+                            <motion.input {...fieldMotion("name", authRest, authFocus)}
                                 id="name"
                                 aria-invalid={Boolean(fieldErrors.name)}
                                 aria-describedby={fieldErrors.name ? "name-error" : undefined}
@@ -158,7 +162,7 @@ export default function SignupPage() {
                         <div className={styles.field}>
                             <label htmlFor="email">Email</label>
 
-                            <input
+                            <motion.input {...fieldMotion("email", authRest, authFocus)}
                                 id="email"
                                 aria-invalid={Boolean(fieldErrors.email)}
                                 aria-describedby={fieldErrors.email ? "email-error" : undefined}
@@ -187,7 +191,7 @@ export default function SignupPage() {
                         <div className={styles.field}>
                             <label htmlFor="username">Username</label>
 
-                            <input
+                            <motion.input {...fieldMotion("username", authRest, authFocus)}
                                 id="username"
                                 aria-invalid={Boolean(fieldErrors.username)}
                                 aria-describedby={fieldErrors.username ? "username-error" : undefined}
@@ -218,7 +222,7 @@ export default function SignupPage() {
                         <div className={styles.field}>
                             <label htmlFor="password">Password</label>
 
-                            <input
+                            <motion.input {...fieldMotion("password", authRest, authFocus)}
                                 id="password"
                                 aria-invalid={Boolean(fieldErrors.password)}
                                 aria-describedby={fieldErrors.password ? "password-error" : undefined}

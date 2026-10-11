@@ -15,7 +15,7 @@ export default function TemplatesLayout() {
             <div className={styles.layout}>
                 <aside className={styles.sidebar}>
                     <nav className={styles.nav} aria-label="Template navigation">
-                        <NavLink
+                        <NavLink animated
                             to="/templates/pre-made"
                             className={({ isActive }) =>
                                 `${styles.navLink} ${isActive ? styles.activeLink : ""
@@ -27,7 +27,7 @@ export default function TemplatesLayout() {
 
                         {isAuthenticated ? (
                             <>
-                                <NavLink
+                                <NavLink animated
                                     to="/templates/my"
                                     className={({ isActive }) =>
                                         `${styles.navLink} ${isActive ? styles.activeLink : ""
@@ -37,7 +37,7 @@ export default function TemplatesLayout() {
                                     <Icon icon={Dumbbell} /> My templates
                                 </NavLink>
 
-                                <NavLink
+                                <NavLink animated
                                     to="/templates/create"
                                     className={({ isActive }) =>
                                         `${styles.navLink} ${isActive ? styles.activeLink : ""

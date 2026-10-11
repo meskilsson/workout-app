@@ -1,9 +1,15 @@
+import { readRestDuration } from "../../utils/restTimerPreference";
 import { useEffect, useMemo, type ReactNode } from "react";
 import { RestTimerProvider } from "@workout-app/shared/timer/rest";
 import { useCurrentWorkout } from "@workout-app/shared/currentWorkoutContext";
 import { useAuth } from "../../context/AuthContext";
 import { playRestCompleteAlert, prepareRestAlertAudio } from "../../utils/restTimerAlerts";
 import { createWebRestTimerStorage, WORKOUT_SNAPSHOT_CLEARED, workoutScope } from "../../utils/workoutProgressStorage";
+
+function announceRestComplete() {
+    playRestCompleteAlert();
+    window.dispatchEvent(new Event("rest-timer-completed"));
+}
 
 export default function WebRestTimerProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
@@ -33,5 +39,5 @@ export default function WebRestTimerProvider({ children }: { children: ReactNode
         };
     }, [scope, setCurrentWorkoutId]);
     // A changed owner/draft must initialize a separate timer before any writes.
-    return <RestTimerProvider key={scope ?? "inactive"} storage={storage} onComplete={playRestCompleteAlert}>{children}</RestTimerProvider>;
+    return <RestTimerProvider key={scope ?? "inactive"} storage={storage} durationMs={readRestDuration(user?._id)} onComplete={announceRestComplete}>{children}</RestTimerProvider>;
 }

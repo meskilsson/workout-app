@@ -1,6 +1,8 @@
-import type { HTMLAttributes, ReactNode } from "react";
+import type { ReactNode } from "react";
+import { motion, type HTMLMotionProps } from "motion/react";
+import { useMotionTransition } from "../../motion/useMotionTransition";
 
-type CardProps = HTMLAttributes<HTMLDivElement> & {
+type CardProps = HTMLMotionProps<"div"> & {
     title?: string;
     className?: string;
     children?: ReactNode;
@@ -14,13 +16,17 @@ export default function Card({
     variant = "default",
     onClick,
     onKeyDown,
+    transition,
     ...rest
 }: CardProps) {
+    const timing = useMotionTransition(0.2);
     return (
-        <div className={`card card--${variant} ${className}`.trim()}
+        <motion.div className={`card card--${variant} ${className}`.trim()}
             role={onClick ? "button" : undefined}
             tabIndex={onClick ? 0 : undefined}
             {...rest}
+            initial={false}
+            transition={transition ?? timing}
             onClick={onClick}
             onKeyDown={(event) => {
                 onKeyDown?.(event);
@@ -33,6 +39,6 @@ export default function Card({
         >
             {title && <h2 className="card__title">{title}</h2>}
             {children}
-        </div>
+        </motion.div>
     );
 }

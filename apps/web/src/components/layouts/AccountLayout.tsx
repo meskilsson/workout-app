@@ -11,7 +11,7 @@ export default function AccountLayout() {
                 <aside className={styles.sideNav}>
 
                     <nav className={styles.links} aria-label="Profile navigation">
-                        <NavLink
+                        <NavLink animated
                             to="/profile"
                             end
                             className={({ isActive }) =>
@@ -23,7 +23,7 @@ export default function AccountLayout() {
                             <Icon icon={UserRound} /> Profile
                         </NavLink>
 
-                        <NavLink
+                        <NavLink animated
                             to="/profile/workouts"
                             className={({ isActive }) =>
                                 isActive
@@ -34,7 +34,7 @@ export default function AccountLayout() {
                             <Icon icon={History} /> Workout history
                         </NavLink>
 
-                        <NavLink
+                        <NavLink animated
                             to="/profile/exercises"
                             className={({ isActive }) =>
                                 isActive
@@ -45,7 +45,7 @@ export default function AccountLayout() {
                             <Icon icon={Dumbbell} /> My exercises
                         </NavLink>
 
-                        <NavLink
+                        <NavLink animated
                             to="/profile/settings"
                             className={({ isActive }) =>
                                 isActive

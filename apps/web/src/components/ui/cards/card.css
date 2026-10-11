@@ -1,11 +1,7 @@
 .card {
+    --selected-card-shadow: 0 0 0 3px var(--color-accent-soft), var(--shadow-md);
     border-radius: var(--radius-lg);
     padding: var(--space-6);
-    transition:
-        transform 0.25s ease,
-        box-shadow 0.25s ease,
-        border-color 0.25s ease,
-        background 0.25s ease;
 }
 
 /* default */
@@ -103,11 +99,6 @@
 .muscle-group-card {
     cursor: pointer;
     border: 2px solid transparent;
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        border-color 0.2s ease,
-        background 0.2s ease;
 }
 
 .muscle-group-card:hover {
@@ -125,3 +116,9 @@
 .card { min-width: 0; }
 .card--timer { background: var(--color-accent-soft); color: var(--color-accent-text); border-color: var(--color-accent-border); border-radius: var(--radius-lg); }
 @media (max-width: 640px) { .card { padding: var(--space-4); } .card--image { padding: 0; } }
+
+.card[aria-pressed="true"] {
+    --color-text: var(--color-on-selection);
+    --color-text-soft: var(--color-on-selection);
+    --color-text-muted: var(--color-selection-muted);
+}

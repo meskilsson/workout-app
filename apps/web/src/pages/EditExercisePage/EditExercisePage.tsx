@@ -1,3 +1,6 @@
+import { motion } from "motion/react";
+import { useFieldMotion } from "../../components/motion/useFieldMotion";
+import { authRest, authFocus } from "../../components/motion/presets";
 import { Check } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -65,6 +68,7 @@ export default function EditExercisePage() {
 }
 
 function EditExerciseForm({ exercise }: { exercise: Exercise }) {
+    const fieldMotion = useFieldMotion(0.2);
     const navigate = useNavigate();
     const id = exercise._id;
     const [name, setName] = useState(exercise.name ?? "");
@@ -140,7 +144,7 @@ function EditExerciseForm({ exercise }: { exercise: Exercise }) {
                 <form onSubmit={handleSubmit} className={styles.form}>
                     <div className={styles.field}>
                         <label htmlFor="name">Name *</label>
-                        <input
+                        <motion.input {...fieldMotion("name", authRest, authFocus)}
                             id="name"
                             type="text"
                             placeholder="e.g. Cable Chest Fly"
@@ -151,7 +155,7 @@ function EditExerciseForm({ exercise }: { exercise: Exercise }) {
 
                     <div className={styles.field}>
                         <label htmlFor="description">Description</label>
-                        <input
+                        <motion.input {...fieldMotion("description", authRest, authFocus)}
                             id="description"
                             type="text"
                             placeholder="Short description"
@@ -162,7 +166,7 @@ function EditExerciseForm({ exercise }: { exercise: Exercise }) {
 
                     <div className={styles.field}>
                         <label htmlFor="instructions">Instructions</label>
-                        <textarea
+                        <motion.textarea {...fieldMotion("instructions", authRest, authFocus)}
                             id="instructions"
                             placeholder="How to perform the exercise"
                             value={instructions}
@@ -174,7 +178,7 @@ function EditExerciseForm({ exercise }: { exercise: Exercise }) {
                     <div className={styles.row}>
                         <div className={styles.field}>
                             <label htmlFor="exerciseType">Exercise type</label>
-                            <select
+                            <motion.select {...fieldMotion("exerciseType", authRest, authFocus)}
                                 id="exerciseType"
                                 value={exerciseType}
                                 onChange={(e) =>
@@ -187,12 +191,12 @@ function EditExerciseForm({ exercise }: { exercise: Exercise }) {
                                         {type.charAt(0).toUpperCase() + type.slice(1)}
                                     </option>
                                 ))}
-                            </select>
+                            </motion.select>
                         </div>
 
                         <div className={styles.field}>
                             <label htmlFor="difficulty">Difficulty</label>
-                            <select
+                            <motion.select {...fieldMotion("difficulty", authRest, authFocus)}
                                 id="difficulty"
                                 value={difficulty}
                                 onChange={(e) =>
@@ -205,13 +209,13 @@ function EditExerciseForm({ exercise }: { exercise: Exercise }) {
                                         {level.charAt(0).toUpperCase() + level.slice(1)}
                                     </option>
                                 ))}
-                            </select>
+                            </motion.select>
                         </div>
                     </div>
 
                     <div className={styles.field}>
                         <label htmlFor="equipment">Equipment</label>
-                        <select
+                        <motion.select {...fieldMotion("equipment", authRest, authFocus)}
                             id="equipment"
                             value={equipment}
                             onChange={(e) =>
@@ -224,21 +228,23 @@ function EditExerciseForm({ exercise }: { exercise: Exercise }) {
                                     {item.charAt(0).toUpperCase() + item.slice(1)}
                                 </option>
                             ))}
-                        </select>
+                        </motion.select>
                     </div>
 
                     <div className={styles.field}>
                         <span id="primary-muscles-label">Primary muscles</span>
                         <div className={styles.checkboxGrid} role="group" aria-labelledby="primary-muscles-label">
                             {MUSCLE_OPTIONS.map((muscle) => (
-                                <label key={muscle} className={styles.checkboxOption}>
+                                <motion.label key={muscle} className={styles.checkboxOption} initial={false}
+                                    animate={{ backgroundColor: "var(--color-background-soft)", borderColor: "var(--color-border-soft)" }}
+                                    whileHover={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-primary-border)" }} transition={fieldMotion("checkbox", {}, {}).transition}>
                                     <input
                                         type="checkbox"
                                         checked={primaryMuscles.includes(muscle)}
                                         onChange={() => toggleMuscle(muscle, setPrimaryMuscles)}
                                     />
                                     <span>{muscle}</span>
-                                </label>
+                                </motion.label>
                             ))}
                         </div>
                     </div>
@@ -247,14 +253,16 @@ function EditExerciseForm({ exercise }: { exercise: Exercise }) {
                         <span id="secondary-muscles-label">Secondary muscles</span>
                         <div className={styles.checkboxGrid} role="group" aria-labelledby="secondary-muscles-label">
                             {MUSCLE_OPTIONS.map((muscle) => (
-                                <label key={muscle} className={styles.checkboxOption}>
+                                <motion.label key={muscle} className={styles.checkboxOption} initial={false}
+                                    animate={{ backgroundColor: "var(--color-background-soft)", borderColor: "var(--color-border-soft)" }}
+                                    whileHover={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-primary-border)" }} transition={fieldMotion("checkbox", {}, {}).transition}>
                                     <input
                                         type="checkbox"
                                         checked={secondaryMuscles.includes(muscle)}
                                         onChange={() => toggleMuscle(muscle, setSecondaryMuscles)}
                                     />
                                     <span>{muscle}</span>
-                                </label>
+                                </motion.label>
                             ))}
                         </div>
                     </div>

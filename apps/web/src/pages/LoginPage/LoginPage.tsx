@@ -1,3 +1,6 @@
+import { motion } from "motion/react";
+import { useFieldMotion } from "../../components/motion/useFieldMotion";
+import { authRest, authFocus } from "../../components/motion/presets";
 import { LogIn } from "lucide-react";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -14,6 +17,7 @@ import LoadingPredator from "../../components/Loading/LoadingPredator";
 import styles from "./LoginPage.module.css";
 
 export default function LoginPage() {
+    const fieldMotion = useFieldMotion(0.18);
     const navigate = useNavigate();
     const { login } = useAuth();
 
@@ -61,7 +65,7 @@ export default function LoginPage() {
                         <div className={styles.field}>
                             <label htmlFor="email">Email</label>
 
-                            <input
+                            <motion.input {...fieldMotion("email", authRest, authFocus)}
                                 id="email"
                                 type="email"
                                 placeholder="you@example.com"
@@ -75,7 +79,7 @@ export default function LoginPage() {
                         <div className={styles.field}>
                             <label htmlFor="password">Password</label>
 
-                            <input
+                            <motion.input {...fieldMotion("password", authRest, authFocus)}
                                 id="password"
                                 type="password"
                                 placeholder="••••••••"

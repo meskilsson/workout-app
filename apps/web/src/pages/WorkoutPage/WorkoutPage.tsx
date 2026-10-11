@@ -1,10 +1,16 @@
+import { useFieldMotion } from "../../components/motion/useFieldMotion";
+import { useMotionTransition } from "../../components/motion/useMotionTransition";
+import { useReducedMotion } from "../../components/motion/useReducedMotion";
+import { CompletedSetRow, SetCompletionControl } from "./SetCompletion";
+import { AnimatePresence, motion } from "motion/react";
+import { sortableTransition } from "../../components/motion/sortableTransition";
 import { useQueryClient } from "@tanstack/react-query";
 import { draftDetailOptions } from "../../query/resourceQueries";
 import { useDraftMutations } from "../../query/useDraftMutations";
 import { finishWorkout } from "../../utils/finishWorkout";
 import CardioSession, { CARDIO_START } from "../../components/training/CardioSession";
 import type { TrainingConfig, CardioCompletion } from "@workout-app/shared";
-import { Plus, Trash2, Check, Circle, Flag, GripVertical, MoreHorizontal, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Trash2, Flag, GripVertical, MoreHorizontal, ArrowUp, ArrowDown } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import {
     useEffect,
@@ -168,22 +174,33 @@ function SortableWorkoutExerciseCard({
         id: exercise._id,
     });
 
+    const [expanded, setExpanded] = useState(true);
+    const reduced = useReducedMotion();
+    const cardCompleted = (!exercise.training || exercise.training.format === "strength")
+        && exerciseSets.length > 0 && exerciseSets.every(set => set.isCompleted);
+    const fieldMotion = useFieldMotion();
+    const timing = useMotionTransition();
     const cardStyle: CSSProperties = {
-        transform: CSS.Transform.toString(transform),
-        transition,
         opacity: isDragging ? 0.6 : 1,
         zIndex: isDragging ? 10 : "auto",
     };
 
     return (
-        <section
+        <motion.section
             ref={setNodeRef}
+            data-exercise-completed={cardCompleted}
             style={cardStyle}
+            initial={false}
+            animate={{ transform: CSS.Transform.toString(transform) ?? "none", boxShadow: isDragging ? "var(--shadow-md)" : "var(--shadow-sm)" }}
+            transition={{ ...sortableTransition(transition, reduced), boxShadow: { duration: reduced ? 0 : 0.18 } }}
             className={`${styles.exerciseCard} ${isDragging
                 ? styles.exerciseCardDragging
                 : ""
                 }`}
         >
+            <motion.span key={String(reduced)} className={styles.exerciseCompletedFill} aria-hidden="true" initial={false}
+                animate={{ clipPath: cardCompleted ? "polygon(0% -100%, 200% 100%, 0% 100%)" : "polygon(0% 100%, 0% 100%, 0% 100%)" }}
+                transition={{ duration: reduced ? 0 : 0.45, ease: "easeInOut" }} />
             <div className={styles.exerciseHeader}>
                 <div className={styles.exerciseTitleRow}>
                     <button
@@ -198,7 +215,7 @@ function SortableWorkoutExerciseCard({
                     </button>
 
                     <div>
-                        <h2 className={styles.exerciseName}>{exercise.name}</h2>
+                        <h2 className={styles.exerciseName}><button type="button" className={styles.exerciseToggle} aria-expanded={expanded} aria-controls={`sets-${exercise._id}`} onClick={() => setExpanded(value => !value)}>{exercise.name}<span aria-hidden="true">{expanded ? "\u2212" : "+"}</span></button></h2>
                         {(!exercise.training || exercise.training.format === "strength") && <p className={styles.exerciseProgress}>{exerciseSets.filter(set => set.isCompleted).length} of {exerciseSets.length} sets completed</p>}
                     </div>
                 </div>
@@ -210,22 +227,26 @@ function SortableWorkoutExerciseCard({
                         size="small"
                         className={styles.addSetButton}
                         icon={Plus}
-                        onClick={() =>
-                            onAddSet(exercise._id)
-                        }
+                        onClick={() => {
+                            setExpanded(true);
+                            onAddSet(exercise._id);
+                        }}
                     >
                         Add set
                     </Button>}
 
                     <details className={styles.exerciseMenu}>
-                        <summary
+                        <motion.summary initial={false} transition={timing}
+                            animate={{ color: "var(--color-text-muted)", backgroundColor: "var(--color-surface-soft)", borderColor: "var(--color-border-soft)", boxShadow: "none" }}
+                            whileHover={{ color: "var(--color-text)", backgroundColor: "var(--color-primary-soft)", borderColor: "var(--color-primary-border)" }}
+                            whileFocus={{ borderColor: "var(--color-primary)", boxShadow: "var(--shadow-focus)" }}
                             className={
                                 styles.exerciseMenuButton
                             }
                             aria-label={`Open menu for ${exercise.name}`}
                         >
                             <Icon icon={MoreHorizontal} />
-                        </summary>
+                        </motion.summary>
 
                         <div
                             className={
@@ -234,7 +255,9 @@ function SortableWorkoutExerciseCard({
                         >
                             <Button type="button" variant="ghost" disabled={!canMoveUp} icon={ArrowUp} onClick={() => onMove(-1)}>Move up</Button>
                             <Button type="button" variant="ghost" disabled={!canMoveDown} icon={ArrowDown} onClick={() => onMove(1)}>Move down</Button>
-                            <button
+                            <motion.button initial={false} transition={timing}
+                                animate={{ opacity: canRemoveExercise ? 1 : 0.65, color: canRemoveExercise ? "var(--color-danger-text)" : "var(--color-text-muted)", backgroundColor: "transparent" }}
+                                whileHover={canRemoveExercise ? { backgroundColor: "var(--color-danger-soft)" } : undefined}
                                 type="button"
                                 className={
                                     styles.removeExerciseButton
@@ -252,19 +275,17 @@ function SortableWorkoutExerciseCard({
                                 }
                             >
                                 <Icon icon={Trash2} /> Remove exercise
-                            </button>
+                            </motion.button>
                         </div>
                     </details>
                 </div>
             </div>
 
-            {exercise.training && exercise.training.format !== "strength" ? <CardioSession key={JSON.stringify(exercise.training)} scope={scope} exerciseId={exercise._id} config={exercise.training} completion={exercise.cardioCompletion} onCompletion={onCardioCompletion} /> : <div className={styles.setsList}>
+            <motion.div id={`sets-${exercise._id}`} initial={false} animate={{ height: expanded ? "auto" : 0, opacity: expanded ? 1 : 0 }} transition={{ duration: reduced ? 0 : 0.2 }} style={{ overflow: "hidden" }} inert={!expanded}>
+            {exercise.training && exercise.training.format !== "strength" ?  <CardioSession key={JSON.stringify(exercise.training)} scope={scope} exerciseId={exercise._id} config={exercise.training} completion={exercise.cardioCompletion} onCompletion={onCardioCompletion} /> : <div className={styles.setsList}>
+                <AnimatePresence initial={false}>
                 {exerciseSets.map((set, setIndex) => (
-                    <div
-                        key={set.id}
-                        className={styles.setRow}
-                        data-completed={set.isCompleted}
-                    >
+                    <CompletedSetRow key={set.id} completed={set.isCompleted}>
                         <span className={styles.setCaption}>Set {setIndex + 1}{set.isCompleted ? " - Completed" : ""}</span>
                         <div className={styles.inputGroup}>
                             {(
@@ -277,7 +298,7 @@ function SortableWorkoutExerciseCard({
                                 </label>
                             )}
 
-                            <input
+                            <motion.input {...fieldMotion(set.id + "-weight", { borderBottomColor: "var(--color-input-border)" }, { borderBottomColor: "var(--color-focus)" })}
                                 type="number"
                                 min={0}
                                 aria-label={`Weight for ${exercise.name}, set ${setIndex + 1}`}
@@ -307,7 +328,7 @@ function SortableWorkoutExerciseCard({
                                 </label>
                             )}
 
-                            <input
+                            <motion.input {...fieldMotion(set.id + "-reps", { borderBottomColor: "var(--color-input-border)" }, { borderBottomColor: "var(--color-focus)" })}
                                 type="number"
                                 min={0}
                                 aria-label={`Reps for ${exercise.name}, set ${setIndex + 1}`}
@@ -326,31 +347,14 @@ function SortableWorkoutExerciseCard({
                             />
                         </div>
 
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="small"
-                            className={`${styles.completeSetButton
-                                } ${set.isCompleted
-                                    ? styles.completedSetButton
-                                    : ""
-                                }`}
-                            onClick={() =>
-                                onCompleteSet(
-                                    exercise._id,
-                                    setIndex,
-                                )
-                            }
-                            aria-label={set.isCompleted ? "Completed set; restart rest timer" : "Complete set and start rest timer"}
-                            aria-pressed={set.isCompleted}
-                        >
-                            <Icon icon={set.isCompleted ? Check : Circle} />
-                        </Button>
+                        <SetCompletionControl completed={set.isCompleted} onComplete={() => onCompleteSet(exercise._id, setIndex)} />
 
                         <Button
                             type="button"
                             variant="ghost"
                             size="small"
+                            animate={{ backgroundColor: "var(--color-danger-soft)", color: "var(--color-danger-text)", borderColor: "var(--color-danger)" }}
+                            whileHover={{ backgroundColor: "var(--color-danger)", color: "var(--color-on-danger)", y: -1 }}
                             className={styles.deleteButton}
                             onClick={() =>
                                 onRemoveSet(
@@ -362,10 +366,12 @@ function SortableWorkoutExerciseCard({
                         >
                             <Icon icon={Trash2} />
                         </Button>
-                    </div>
+                    </CompletedSetRow>
                 ))}
+                </AnimatePresence>
             </div>}
-        </section>
+            </motion.div>
+        </motion.section>
     );
 }
 

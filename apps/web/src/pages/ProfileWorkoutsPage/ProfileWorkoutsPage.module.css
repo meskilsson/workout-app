@@ -45,22 +45,17 @@
     flex-direction: column;
     gap: 1.15rem;
     padding: 1.25rem;
-    border: 1px solid var(--color-border) !important;
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
-    background: var(--color-surface) !important;
-    color: var(--color-text) !important;
+    background: var(--color-surface);
+    color: var(--color-text);
     box-shadow: none;
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        border-color 0.2s ease,
-        background 0.2s ease;
 }
 
 .sessionCard:hover {
 
-    border-color: var(--color-primary-border) !important;
-    background: var(--color-surface-light) !important;
+    border-color: var(--color-primary-border);
+    background: var(--color-surface-light);
     box-shadow: none;
 }
 
@@ -150,10 +145,10 @@
 
 .stateCard {
     padding: 1.25rem;
-    border: 1px solid var(--color-border) !important;
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
-    background: var(--color-surface) !important;
-    color: var(--color-text) !important;
+    background: var(--color-surface);
+    color: var(--color-text);
     box-shadow: none;
 }
 

@@ -115,6 +115,34 @@
     white-space: nowrap;
 }
 
+:global(:root[data-theme="light"]) .addSetButton {
+    --color-primary: var(--color-surface-soft);
+    --color-primary-hover: var(--color-surface-light);
+    --color-primary-border: transparent;
+}
+
+:global(:root[data-theme="light"]) .deleteButton {
+    --color-danger-soft: var(--color-surface-soft);
+}
+
+:global(:root[data-theme="dark"]) .addSetButton {
+    --color-primary: var(--nord-polar-1);
+    --color-primary-hover: var(--nord-polar-2);
+    --color-on-primary: var(--nord-snow-2);
+    --color-primary-border: transparent;
+}
+
+:global(:root[data-theme="dark"]) .deleteButton {
+    --color-danger-soft: var(--nord-polar-1);
+}
+
+:global(:root[data-theme="dark"]) .completeSetButton {
+    --color-set-completion-fill: var(--nord-polar-1);
+    --color-set-completion-hover: var(--nord-polar-2);
+    --color-set-completion-border: var(--mint-500);
+    --set-completion-text: var(--mint-200);
+}
+
 .exerciseMenu {
     position: relative;
     flex: 0 0 auto;
@@ -147,12 +175,6 @@
 
     cursor: pointer;
     list-style: none;
-
-    transition:
-        color 0.2s ease,
-        background 0.2s ease,
-        border-color 0.2s ease,
-        box-shadow 0.2s ease;
 }
 
 .exerciseMenuButton::-webkit-details-marker {
@@ -207,11 +229,6 @@
     text-align: left;
 
     cursor: pointer;
-
-    transition:
-        color 0.2s ease,
-        background 0.2s ease,
-        opacity 0.2s ease;
 }
 
 .removeExerciseButton:hover:not(:disabled) {
@@ -278,10 +295,6 @@
     text-align: center;
 
     appearance: textfield;
-
-    transition:
-        border-color 0.2s ease,
-        color 0.2s ease;
 }
 
 .underlineInput:focus {
@@ -327,17 +340,17 @@
 }
 
 .completeSetButton.completedSetButton {
-    color: var(--color-on-success) !important;
-    background: var(--color-success) !important;
-    border-color: var(--color-success) !important;
+    color: var(--color-on-success);
+    background: var(--color-success);
+    border-color: var(--color-success);
 
-    box-shadow: 0 0 0 3px var(--color-success-soft);
+    box-shadow: var(--set-completion-shadow, 0 0 0 3px var(--color-success-soft));
 }
 
 .completeSetButton.completedSetButton:hover {
-    color: var(--color-on-success) !important;
-    background: var(--color-success-hover) !important;
-    border-color: var(--color-success-hover) !important;
+    color: var(--color-on-success);
+    background: var(--color-success-hover);
+    border-color: var(--color-success-hover);
 }
 
 .deleteButton.deleteButton {
@@ -651,13 +664,27 @@
 .exerciseProgress { margin: 0.35rem 0 0; font-size: var(--text-xs); color: var(--color-text-muted); }
 .setsList { gap: var(--space-3); margin-top: var(--space-4); }
 .setRow { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 46px 46px; gap: 0.65rem; padding: var(--space-3); border-radius: var(--radius-md); background: transparent; }
-.setRow[data-completed="true"] { background: var(--color-success-soft); }
+.setRow { position: relative; isolation: isolate; }
+.completionSymbol { position: relative; display: inline-flex; width: 18px; height: 18px; }
+.completionRing { position: absolute; inset: -5px; border: 1px solid currentColor; border-radius: 50%; pointer-events: none; }
 .setCaption { grid-column: 1 / -1; font-size: var(--text-xs); font-weight: var(--weight-semibold); color: var(--color-text-soft); }
 .inputLabel { font-size: var(--text-xs); font-weight: var(--weight-semibold); }
 
 .underlineInput:focus { border-color: var(--color-focus); }
 .completeSetButton.completeSetButton, .deleteButton.deleteButton { width: 46px; min-width: 46px; height: var(--control-height); }
-.completeSetButton.completeSetButton { color: var(--color-success-text); background: var(--color-success-soft); border-color: var(--color-success-text); }
+.completeSetButton.completeSetButton {
+    --set-completion-fill: var(--color-set-completion-fill, var(--mint-200));
+    --set-completion-hover: var(--color-set-completion-hover, var(--mint-100));
+    --set-completion-text: var(--mint-1000);
+    color: var(--color-success-text);
+    background: transparent;
+    border-color: var(--color-success-text);
+}
+.completeSetButton.completedSetButton {
+    color: var(--set-completion-text);
+    background: var(--set-completion-fill);
+    border-color: var(--color-set-completion-border, var(--set-completion-fill));
+}
 .completeSetButton.completeSetButton:hover { color: var(--color-success-text); border-color: var(--color-success-text); }
 .endSessionWrapper { margin-top: var(--space-6); padding-top: var(--space-5); border-top: 1px solid var(--color-border); }
 @media (max-width: 640px) {
@@ -669,3 +696,18 @@
 @media (max-width: 280px) { .setRow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .exerciseMenuDropdown > button { width: 100%; min-height: 44px; justify-content: flex-start; }
 @media (max-width: 380px) { .setRow { grid-template-columns: repeat(2, minmax(0, 1fr)); } .completeSetButton.completeSetButton, .deleteButton.deleteButton { width: 100%; } }
+
+.completeSetButton.completeSetButton {
+    width: 46px;
+    height: 46px;
+    min-height: 46px;
+    border-radius: var(--radius-md);
+    justify-self: center;
+}
+
+.exerciseToggle { display: flex; align-items: center; gap: .65rem; min-height: 44px; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.exerciseToggle span { color: var(--color-text-muted); }
+
+.exerciseCompletedFill { position: absolute; inset: 0; border-radius: inherit; background: var(--color-completed-exercise); pointer-events: none; z-index: -1; }
+
+.exerciseCard { isolation: isolate; }

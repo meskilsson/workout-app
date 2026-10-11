@@ -63,10 +63,6 @@
     font: inherit;
     color: var(--color-text);
     background: var(--color-surface-light);
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        background-color 0.2s ease;
 }
 
 .field select {
@@ -133,11 +129,6 @@
     background: var(--color-surface-light);
     color: var(--color-text);
     cursor: pointer;
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        background-color 0.2s ease,
-        transform 0.2s ease;
 }
 
 .checkboxOption:hover {

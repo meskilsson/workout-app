@@ -64,6 +64,16 @@ export function restTimerReducer(
             );
         }
 
+        case "SET_DURATION": {
+            if (!Number.isSafeInteger(action.durationMs) || action.durationMs <= 0) return state;
+            return {
+                ...state,
+                duration: action.durationMs,
+                timeLeft: action.durationMs,
+                endTime: state.isRunning ? Date.now() + action.durationMs : null,
+            };
+        }
+
         case "ADJUST_TIME": {
             const currentTime = Date.now();
 

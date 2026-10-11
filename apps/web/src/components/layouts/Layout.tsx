@@ -1,3 +1,7 @@
+import workoutPalette from "../../pages/WorkoutPage/WorkoutPalette.module.css";
+import { LoadingHandoff } from "../motion/LoadingHandoff";
+import { motion } from "motion/react";
+import { useMotionTransition } from "../motion/useMotionTransition";
 import { Mail, CodeXml, BriefcaseBusiness } from "lucide-react";
 import Icon from "../ui/icon/Icon";
 import { Outlet } from "../../routes/navigation";
@@ -11,6 +15,7 @@ import styles from "./Layout.module.css";
 import WebRestTimerProvider from "../timer/WebRestTimerProvider";
 
 export default function Layout() {
+  const transition = useMotionTransition();
   useVisibleViewport();
   const { pathname } = useLocation();
   const { draftId } = useParams();
@@ -18,13 +23,13 @@ export default function Layout() {
 
   return (
     <WebRestTimerProvider>
-      <div className={styles.appLayout}>
+      <div className={`${styles.appLayout} ${isWorkoutPage ? workoutPalette.palette : ""}`}>
         <Navbar />
         <a href="#main-content" className={styles.skipLink}>Skip to content</a>
 
-        <main id="main-content" tabIndex={-1} className={styles.main}>
+        <LoadingHandoff className={styles.main}>
           <Outlet />
-        </main>
+        </LoadingHandoff>
 
         {isWorkoutPage ? (
           <Footer className={styles.timerFooter}>
@@ -43,16 +48,16 @@ export default function Layout() {
                 <div className={styles.contact}>
                   <p className={styles.contactTitle}>Contact</p>
                   <div className={styles.contactLinks}>
-                    <a href="mailto:mattiaseskilsson@hotmail.se" aria-label="Email">
+                    <motion.a initial={false} animate={{ color: "var(--color-text-soft)" }} whileHover={{ color: "var(--color-primary-text)" }} transition={transition} href="mailto:mattiaseskilsson@hotmail.se" aria-label="Email">
                       <Icon icon={Mail} />
-                    </a>
-                    <a href="https://github.com/meskilsson" target="_blank" rel="noreferrer" aria-label="GitHub profile">
+                    </motion.a>
+                    <motion.a initial={false} animate={{ color: "var(--color-text-soft)" }} whileHover={{ color: "var(--color-primary-text)" }} transition={transition} href="https://github.com/meskilsson" target="_blank" rel="noreferrer" aria-label="GitHub profile">
                       <Icon icon={CodeXml} />
-                    </a>
-                    <a href="https://www.linkedin.com/in/mattias-eskilsson-825200367/" target="_blank" rel="noreferrer"
+                    </motion.a>
+                    <motion.a initial={false} animate={{ color: "var(--color-text-soft)" }} whileHover={{ color: "var(--color-primary-text)" }} transition={transition} href="https://www.linkedin.com/in/mattias-eskilsson-825200367/" target="_blank" rel="noreferrer"
                       aria-label="LinkedIn profile">
                       <Icon icon={BriefcaseBusiness} />
-                    </a>
+                    </motion.a>
                   </div>
                 </div>
               </section>

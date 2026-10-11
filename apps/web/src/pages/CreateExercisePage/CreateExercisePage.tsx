@@ -1,3 +1,6 @@
+import { motion } from "motion/react";
+import { useFieldMotion } from "../../components/motion/useFieldMotion";
+import { selectRest, selectFocus } from "../../components/motion/presets";
 import { Plus, ArrowLeft } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useState } from "react";
@@ -20,6 +23,7 @@ import {
 import styles from "./CreateExercisePage.module.css";
 
 export default function CreateExercisePage() {
+    const fieldMotion = useFieldMotion(0.2);
     const navigate = useNavigate();
 
     const [name, setName] = useState("");
@@ -100,7 +104,7 @@ export default function CreateExercisePage() {
                 <form onSubmit={handleSubmit} className={styles.form}>
                     <div className={styles.field}>
                         <label htmlFor="name">Name *</label>
-                        <input
+                        <motion.input {...fieldMotion("name", selectRest, selectFocus)}
                             id="name"
                             type="text"
                             placeholder="e.g. Cable Chest Fly"
@@ -111,7 +115,7 @@ export default function CreateExercisePage() {
 
                     <div className={styles.field}>
                         <label htmlFor="description">Description</label>
-                        <input
+                        <motion.input {...fieldMotion("description", selectRest, selectFocus)}
                             id="description"
                             type="text"
                             placeholder="Short description"
@@ -122,7 +126,7 @@ export default function CreateExercisePage() {
 
                     <div className={styles.field}>
                         <label htmlFor="instructions">Instructions</label>
-                        <textarea
+                        <motion.textarea {...fieldMotion("instructions", selectRest, selectFocus)}
                             id="instructions"
                             placeholder="How to perform the exercise"
                             value={instructions}
@@ -134,7 +138,7 @@ export default function CreateExercisePage() {
                     <div className={styles.row}>
                         <div className={styles.field}>
                             <label htmlFor="exerciseType">Exercise type</label>
-                            <select
+                            <motion.select {...fieldMotion("exerciseType", selectRest, selectFocus)}
                                 id="exerciseType"
                                 value={exerciseType}
                                 onChange={(e) =>
@@ -147,12 +151,12 @@ export default function CreateExercisePage() {
                                         {type.charAt(0).toUpperCase() + type.slice(1)}
                                     </option>
                                 ))}
-                            </select>
+                            </motion.select>
                         </div>
 
                         <div className={styles.field}>
                             <label htmlFor="difficulty">Difficulty</label>
-                            <select
+                            <motion.select {...fieldMotion("difficulty", selectRest, selectFocus)}
                                 id="difficulty"
                                 value={difficulty}
                                 onChange={(e) =>
@@ -165,13 +169,13 @@ export default function CreateExercisePage() {
                                         {level.charAt(0).toUpperCase() + level.slice(1)}
                                     </option>
                                 ))}
-                            </select>
+                            </motion.select>
                         </div>
                     </div>
 
                     <div className={styles.field}>
                         <label htmlFor="equipment">Equipment</label>
-                        <select
+                        <motion.select {...fieldMotion("equipment", selectRest, selectFocus)}
                             id="equipment"
                             value={equipment}
                             onChange={(e) =>
@@ -184,21 +188,23 @@ export default function CreateExercisePage() {
                                     {item.charAt(0).toUpperCase() + item.slice(1)}
                                 </option>
                             ))}
-                        </select>
+                        </motion.select>
                     </div>
 
                     <div className={styles.field}>
                         <span id="primary-muscles-label">Primary muscles</span>
                         <div className={styles.checkboxGrid} role="group" aria-labelledby="primary-muscles-label">
                             {MUSCLE_OPTIONS.map((muscle) => (
-                                <label key={muscle} className={styles.checkboxOption}>
+                                <motion.label key={muscle} className={styles.checkboxOption} initial={false}
+                                    animate={{ backgroundColor: "var(--color-surface-light)", borderColor: "var(--color-border)" }}
+                                    whileHover={{ backgroundColor: "var(--color-surface-soft)", borderColor: "var(--color-primary-border)" }} transition={fieldMotion("checkbox", {}, {}).transition}>
                                     <input
                                         type="checkbox"
                                         checked={primaryMuscles.includes(muscle)}
                                         onChange={() => toggleMuscle(muscle, setPrimaryMuscles)}
                                     />
                                     <span>{muscle}</span>
-                                </label>
+                                </motion.label>
                             ))}
                         </div>
                     </div>
@@ -207,14 +213,16 @@ export default function CreateExercisePage() {
                         <span id="secondary-muscles-label">Secondary muscles</span>
                         <div className={styles.checkboxGrid} role="group" aria-labelledby="secondary-muscles-label">
                             {MUSCLE_OPTIONS.map((muscle) => (
-                                <label key={muscle} className={styles.checkboxOption}>
+                                <motion.label key={muscle} className={styles.checkboxOption} initial={false}
+                                    animate={{ backgroundColor: "var(--color-surface-light)", borderColor: "var(--color-border)" }}
+                                    whileHover={{ backgroundColor: "var(--color-surface-soft)", borderColor: "var(--color-primary-border)" }} transition={fieldMotion("checkbox", {}, {}).transition}>
                                     <input
                                         type="checkbox"
                                         checked={secondaryMuscles.includes(muscle)}
                                         onChange={() => toggleMuscle(muscle, setSecondaryMuscles)}
                                     />
                                     <span>{muscle}</span>
-                                </label>
+                                </motion.label>
                             ))}
                         </div>
                     </div>

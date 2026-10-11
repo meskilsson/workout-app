@@ -101,11 +101,6 @@
 
     box-shadow: none;
     font: inherit;
-
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        background 0.2s ease;
 }
 
 .searchInput::placeholder {
@@ -174,30 +169,23 @@
     min-height: 300px;
     cursor: pointer;
 
-    color: var(--color-text) !important;
-    background: var(--gradient-surface) !important;
+    color: var(--color-text);
+    background: var(--gradient-surface);
 
-    border: 1px solid var(--color-border-soft) !important;
+    border: 1px solid var(--color-border-soft);
     border-radius: var(--radius-lg);
     box-shadow: none;
-
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        border-color 0.2s ease,
-        background 0.2s ease,
-        opacity 0.2s ease;
 }
 
 .exerciseCard:hover {
 
-    border-color: var(--color-primary-border) !important;
+    border-color: var(--color-primary-border);
     box-shadow: none;
 }
 
 .selectedCard {
-    border-color: var(--color-accent) !important;
-    background: var(--color-accent-soft) !important;
+    border-color: var(--color-accent);
+    background: var(--color-selection);
 
     box-shadow:
         0 0 0 3px var(--color-accent-soft),
@@ -211,7 +199,7 @@
 
 .existingCard:hover {
     transform: none;
-    border-color: var(--color-border-soft) !important;
+    border-color: var(--color-border-soft);
     box-shadow: none;
 }
 
@@ -483,13 +471,6 @@
     cursor: pointer;
 
     box-shadow: none;
-
-    transition:
-        transform 0.2s ease,
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        background 0.2s ease,
-        opacity 0.2s ease;
 }
 
 .pageButton:hover:not(:disabled) {

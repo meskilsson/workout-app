@@ -157,7 +157,10 @@
   --color-border: var(--neutral-200);
   --color-border-soft: var(--neutral-100);
   --color-input-border: var(--neutral-600);
-  --color-focus: var(--mint-800);
+  --color-focus: var(--blue-800);
+  --color-selection: var(--blue-200);
+  --color-on-selection: var(--blue-1000);
+  --color-focus-ring: var(--blue-400);
   --color-overlay: rgba(30, 34, 30, 0.48);
   --hero-image-filter: brightness(0.85) saturate(0.65);
   --hero-overlay: var(--color-overlay);
@@ -167,6 +170,8 @@
   --color-success: var(--mint-300);
   --color-success-hover: var(--mint-400);
   --color-success-soft: var(--mint-100);
+  --color-on-success-soft: var(--mint-800);
+  --color-completed-exercise: var(--mint-100);
   --color-success-text: var(--mint-800);
   --color-on-success: var(--mint-1000);
   --color-warning: var(--yellow-300);
@@ -181,44 +186,49 @@
   --color-dummy-muscle-neutral: var(--neutral-300);
   --color-blue-soft: var(--blue-200);
   --color-blue-text: var(--blue-800);
+  --color-blue-border: var(--blue-700);
+  --color-selection-muted: var(--blue-900);
   --color-blue-hover: var(--blue-300);
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-background: #14171F;
-  --color-background-soft: #1C212C;
-  --color-background-deep: #11141B;
-  --color-surface: #1C212C;
-  --color-surface-light: #282F3D;
-  --color-surface-soft: #202632;
-  --color-surface-strong: #28372F;
-  --color-text: var(--cream-100);
-  --color-text-soft: #E9E8E1;
-  --color-text-muted: #C9CBC5;
-  --color-primary: var(--mint-200);
-  --color-primary-hover: var(--mint-100);
-  --color-primary-soft: #20362D;
-  --color-primary-border: var(--mint-500);
-  --color-on-primary: var(--mint-1000);
-  --color-primary-text: var(--mint-200);
-  --color-primary-text-hover: var(--mint-100);
-  --color-accent: var(--mint-200);
-  --color-accent-hover: var(--mint-100);
-  --color-accent-soft: #20362D;
-  --color-accent-border: var(--mint-500);
-  --color-accent-text: var(--mint-200);
-  --color-on-accent: var(--mint-1000);
+  --color-background: var(--nord-polar-0);
+  --color-background-soft: var(--color-background);
+  --color-background-deep: var(--nord-polar-0);
+  --color-surface: var(--nord-polar-1);
+  --color-surface-light: var(--nord-polar-1);
+  --color-surface-soft: var(--nord-polar-1);
+  --color-surface-strong: var(--nord-polar-2);
+  --color-text: var(--nord-snow-2);
+  --color-text-soft: var(--nord-snow-1);
+  --color-text-muted: var(--nord-snow-0);
+  --color-primary: var(--nord-button);
+  --color-primary-hover: var(--nord-button-hover);
+  --color-primary-soft: var(--nord-polar-1);
+  --color-primary-border: var(--nord-button);
+  --color-on-primary: var(--nord-polar-0);
+  --color-primary-text: var(--nord-frost-ice);
+  --color-primary-text-hover: var(--nord-snow-2);
+  --color-accent: var(--nord-button);
+  --color-accent-hover: var(--nord-button-hover);
+  --color-accent-soft: var(--nord-polar-1);
+  --color-accent-border: var(--nord-frost-blue);
+  --color-accent-text: var(--nord-frost-ice);
+  --color-on-accent: var(--nord-polar-0);
   --color-danger: var(--red-300);
   --color-danger-hover: var(--red-200);
   --color-danger-soft: var(--red-1000);
-  --color-danger-text: var(--red-200);
+  --color-danger-text: var(--red-100);
   --color-on-danger: var(--red-1000);
-  --color-border: #485266;
-  --color-border-soft: #30394A;
-  --color-input-border: var(--neutral-400);
-  --color-focus: var(--mint-300);
-  --color-overlay: rgba(12, 17, 13, 0.66);
+  --color-border: var(--nord-polar-3);
+  --color-border-soft: var(--nord-polar-2);
+  --color-input-border: var(--nord-frost-blue);
+  --color-focus: var(--nord-frost-ice);
+  --color-selection: var(--nord-frost-ice);
+  --color-on-selection: var(--nord-polar-0);
+  --color-focus-ring: var(--nord-frost-ice);
+  --color-overlay: rgba(36, 41, 51, 0.72);
   --hero-image-filter: brightness(0.5) saturate(0.65);
   --hero-overlay: var(--color-overlay);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.15);
@@ -226,7 +236,9 @@
   --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.25);
   --color-success: var(--mint-200);
   --color-success-hover: var(--mint-100);
-  --color-success-soft: #20362D;
+  --color-success-soft: var(--nord-frost-blue);
+  --color-on-success-soft: var(--nord-polar-0);
+  --color-completed-exercise: var(--nord-polar-2);
   --color-success-text: var(--mint-200);
   --color-on-success: var(--mint-1000);
   --color-warning: var(--yellow-300);
@@ -239,9 +251,31 @@
   --color-muscle-primary-text: var(--neutral-50);
   --color-muscle-secondary-text: var(--red-1000);
   --color-dummy-muscle-neutral: var(--neutral-600);
-  --color-blue-soft: var(--blue-300);
-  --color-blue-text: var(--blue-1000);
-  --color-blue-hover: var(--blue-200);
+  --color-blue-soft: var(--nord-button);
+  --color-blue-text: var(--nord-polar-0);
+  --color-blue-border: var(--nord-button);
+  --color-selection-muted: var(--nord-polar-0);
+  --color-blue-hover: var(--nord-button-hover);
+  --nord-polar-0: #2E3440;
+  --nord-polar-1: #3B4252;
+  --nord-polar-2: #434C5E;
+  --nord-polar-3: #4C566A;
+  --nord-snow-0: #D8DEE9;
+  --nord-snow-1: #E5E9F0;
+  --nord-snow-2: #ECEFF4;
+  --nord-frost-ice: #88C0D0;
+  --nord-frost-blue: #81A1C1;
+  --nord-frost-teal: #8FBCBB;
+  --color-set-completion-fill: #CDE8D5;
+  --color-set-completion-hover: #DDF0E2;
+  --set-completion-shadow: none;
+  --gradient-background: var(--color-background);
+  --gradient-surface: var(--color-surface);
+  --gradient-primary: var(--color-primary);
+  --gradient-success: var(--color-success);
+  --gradient-danger: var(--color-danger);
+  --nord-button: #A9B9CE;
+  --nord-button-hover: #BECCDD;
 }
 
 :root {
@@ -255,7 +289,7 @@
   --radius-lg: 1rem;
   --radius-xl: 1.25rem;
   --radius-pill: 999px;
-  --shadow-focus: 0 0 0 3px var(--color-accent-soft);
+  --shadow-focus: 0 0 0 3px var(--color-focus-ring);
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -338,8 +372,8 @@ img {
 }
 
 ::selection {
-  background: var(--color-primary-soft);
-  color: var(--color-text);
+  background: var(--color-selection);
+  color: var(--color-on-selection);
 }
 
 
@@ -380,7 +414,7 @@ h1, h2, h3 { text-wrap: balance; letter-spacing: -0.025em; }
 p { line-height: 1.6; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  *, *::before, *::after { animation: none !important; transition: none !important; }
+  *, *::before, *::after { animation: none !important; }
 }
 
 body { font-size: var(--text-base); line-height: var(--line-body); }

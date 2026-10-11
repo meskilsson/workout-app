@@ -17,16 +17,13 @@
 .footer a {
     color: var(--color-text-soft);
     text-decoration: none;
-    transition: color 0.2s ease;
 }
 
 .footer a:hover {
     color: var(--color-primary-text);
 }
 
-.footer button {
-    color: var(--color-text-soft);
-}
+
 
 
 

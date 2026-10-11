@@ -1,3 +1,7 @@
+import { motion } from "motion/react";
+import { useMotionTransition } from "../../components/motion/useMotionTransition";
+import { useFieldMotion } from "../../components/motion/useFieldMotion";
+import { searchRest, searchFocus, pageButtonRest, pageButtonHover } from "../../components/motion/presets";
 import { ArrowLeft, Plus } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useEffect, useState } from "react";
@@ -24,6 +28,8 @@ import { Link } from "../../routes/navigation";
 
 
 export default function LibraryPage() {
+    const transition = useMotionTransition();
+    const fieldMotion = useFieldMotion();
     const { isAuthenticated, user } = useAuth();
     const navigate = useNavigate();
 
@@ -120,7 +126,7 @@ export default function LibraryPage() {
                 <div className={styles.searchControls}>
                 <label className={styles.searchLabel}>
                     Search exercises
-                <input
+                <motion.input {...fieldMotion("search", searchRest, searchFocus)}
                     className={styles.searchInput}
                     aria-label="Search exercises"
                     type="search"
@@ -195,27 +201,31 @@ export default function LibraryPage() {
 
             {totalPages > 1 && (
                 <div className={styles.pagination}>
-                    <button
+                    <motion.button initial={false} transition={transition}
+                        animate={{ ...pageButtonRest, opacity: (page === 1) ? 0.45 : 1 }}
+                        whileHover={(page === 1) ? undefined : pageButtonHover}
                         type="button"
                         className={styles.pageButton}
                         disabled={page === 1}
                         onClick={() => handlePageChange(page - 1)}
                     >
                         Previous
-                    </button>
+                    </motion.button>
 
                     <span className={styles.pageInfo}>
                         Page {page} of {totalPages}
                     </span>
 
-                    <button
+                    <motion.button initial={false} transition={transition}
+                        animate={{ ...pageButtonRest, opacity: (page === totalPages) ? 0.45 : 1 }}
+                        whileHover={(page === totalPages) ? undefined : pageButtonHover}
                         type="button"
                         className={styles.pageButton}
                         disabled={page === totalPages}
                         onClick={() => handlePageChange(page + 1)}
                     >
                         Next
-                    </button>
+                    </motion.button>
                 </div>
             )}
         </Box>
