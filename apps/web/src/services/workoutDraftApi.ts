@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { parseJsonResponse } from "../utils/parseJsonResponse";
 import { workoutRequest } from "../utils/workoutRequest";
 import { clearDraftSnapshots } from "../utils/workoutProgressStorage";
@@ -39,7 +40,7 @@ export async function createWorkoutDraftRequest(
         body: JSON.stringify(draftData),
     });
 
-    return handleResponse(response, "Failed to create workout draft");
+    return handleResponse(response, t("common.failedToCreateWorkoutDraft"));
 }
 
 export async function getCurrentWorkoutDraftRequest() {
@@ -47,7 +48,7 @@ export async function getCurrentWorkoutDraftRequest() {
         credentials: "include",
     });
 
-    return handleResponse(response, "Failed to fetch current workout draft");
+    return handleResponse(response, t("workoutDraftApi.failedToFetchCurrentWorkoutDraft"));
 }
 
 export async function getWorkoutDraftByIdRequest(draftId: string, signal?: AbortSignal) {
@@ -56,7 +57,7 @@ export async function getWorkoutDraftByIdRequest(draftId: string, signal?: Abort
         credentials: "include",
     });
 
-    return handleResponse(response, "Failed to fetch workout draft");
+    return handleResponse(response, t("workoutDraftApi.failedToFetchWorkoutDraft"));
 }
 
 export async function updateWorkoutDraftExercisesRequest(
@@ -75,7 +76,7 @@ export async function updateWorkoutDraftExercisesRequest(
         },
     );
 
-    return handleResponse(response, "Failed to update workout draft exercises");
+    return handleResponse(response, t("workoutDraftApi.failedToUpdateWorkoutDraftExercises"));
 }
 
 export async function activateWorkoutDraftRequest(draftId: string) {
@@ -96,7 +97,7 @@ export async function startWorkoutDraftRequest(draftId: string) {
         },
     );
 
-    return handleResponse(response, "Failed to start workout draft");
+    return handleResponse(response, t("workoutDraftApi.failedToStartWorkoutDraft"));
 }
 
 export async function updateWorkoutDraftSetsRequest(
@@ -115,7 +116,7 @@ export async function updateWorkoutDraftSetsRequest(
         },
     );
 
-    return handleResponse(response, "Failed to update workout draft sets");
+    return handleResponse(response, t("workoutDraftApi.failedToUpdateWorkoutDraftSets"));
 }
 
 export async function addWorkoutDraftExercisesRequest(
@@ -134,7 +135,7 @@ export async function addWorkoutDraftExercisesRequest(
         },
     );
 
-    return handleResponse(response, "Failed to add exercises to workout");
+    return handleResponse(response, t("workoutDraftApi.failedToAddExercisesToWorkout"));
 }
 
 export async function removeWorkoutDraftExerciseRequest(
@@ -149,7 +150,7 @@ export async function removeWorkoutDraftExerciseRequest(
         },
     );
 
-    return handleResponse(response, "Failed to remove exercise from workout");
+    return handleResponse(response, t("workoutDraftApi.failedToRemoveExerciseFromWorkout"));
 }
 
 export async function completeWorkoutDraftRequest(draftId: string) {
@@ -161,7 +162,7 @@ export async function completeWorkoutDraftRequest(draftId: string) {
         },
     );
 
-    const result = await handleResponse(response, "Failed to complete workout draft");
+    const result = await handleResponse(response, t("workoutDraftApi.failedToCompleteWorkoutDraft"));
     clearDraftSnapshots(draftId);
     return result;
 }
@@ -175,7 +176,7 @@ export async function abandonWorkoutDraftRequest(draftId: string) {
         },
     );
 
-    const result = await handleResponse(response, "Failed to abandon workout draft");
+    const result = await handleResponse(response, t("workoutDraftApi.failedToAbandonWorkoutDraft"));
     clearDraftSnapshots(draftId);
     return result;
 }
@@ -196,9 +197,9 @@ export async function reorderWorkoutDraftExercisesRequest(
         },
     );
 
-    return handleResponse(response, "Failed to reorder workout exercises");
+    return handleResponse(response, t("workoutDraftApi.failedToReorderWorkoutExercises"));
 }
 export async function updateWorkoutDraftTrainingRequest(draftId: string, input: { exerciseId: string; training: import("@workout-app/shared").TrainingConfig; cardioCompletion?: import("@workout-app/shared").CardioCompletion }) {
     const response = await workoutRequest(`${API_URL}/api/workout-drafts/${draftId}/training`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
-    return handleResponse(response, "Failed to save training configuration");
+    return handleResponse(response, t("workoutDraftApi.failedToSaveTrainingConfiguration"));
 }

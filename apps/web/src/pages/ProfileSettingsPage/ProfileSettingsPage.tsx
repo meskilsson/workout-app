@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { t } from "../../i18n";
 import { friendlyError } from "../../utils/formValidation";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Trash2 } from "lucide-react";
@@ -16,6 +18,7 @@ import { deleteUserRequest } from "../../services/userApi";
 import LoadingPredator from "../../components/Loading/LoadingPredator";
 
 export default function ProfileSettingsPage() {
+    useTranslation();
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
@@ -32,7 +35,7 @@ export default function ProfileSettingsPage() {
 
     async function handleConfirmDeleteAccount() {
         if (!user?._id) {
-            setDeleteError("Could not find the current user.");
+            setDeleteError(t("ProfileSettingsPage.couldNotFindTheCurrentUser"));
             return;
         }
 
@@ -46,7 +49,7 @@ export default function ProfileSettingsPage() {
             if (error instanceof Error) {
                 setDeleteError(friendlyError(error));
             } else {
-                setDeleteError("Failed to delete account");
+                setDeleteError(t("common.failedToDeleteAccount"));
             }
         }
     }
@@ -55,10 +58,8 @@ export default function ProfileSettingsPage() {
         <div className={styles.page}>
             <div className={styles.header}>
                 <div>
-                    <h1 className={styles.title}>Account settings</h1>
-                    <p className={styles.subtitle}>
-                        Manage your account and training preferences.
-                    </p>
+                    <h1 className={styles.title}>{t("ProfileSettingsPage.accountSettings")}</h1>
+                    <p className={styles.subtitle}> {t("ProfileSettingsPage.manageYourAccountAndTrainingPreferences")} </p>
 
                     <Button
                         type="button"
@@ -66,7 +67,7 @@ export default function ProfileSettingsPage() {
                         style={{ minWidth: "3.25rem", marginTop: "1rem" }}
                         iconOnly
                         className={styles.backButton}
-                    aria-label="Go back"
+                    aria-label={t("common.goBack")}
                         onClick={() => navigate(-1)}
 
                     >
@@ -90,10 +91,8 @@ export default function ProfileSettingsPage() {
             <section className={styles.section}>
                 <Card className={styles.settingsCard}>
                     <div>
-                        <h3 className={styles.settingsTitle}>Muscle preview model</h3>
-                        <p className={styles.sectionText}>
-                            This changes the body model used on exercise cards and workout results.
-                        </p>
+                        <h3 className={styles.settingsTitle}>{t("ProfileSettingsPage.musclePreviewModel")}</h3>
+                        <p className={styles.sectionText}> {t("ProfileSettingsPage.thisChangesTheBodyModelUsedOnExerciseCards")} </p>
                     </div>
 
                     <BodyModelSelect />
@@ -103,23 +102,20 @@ export default function ProfileSettingsPage() {
             <section className={styles.section}>
                 <Card className={styles.settingsCard}>
                     <div>
-                        <h3 className={styles.settingsTitle}>Current session</h3>
-                        <p className={styles.sectionText}>
-                            You are currently signed in as{" "}
-                            {user?.username ? `@${user.username}` : "this user"}.
+                        <h3 className={styles.settingsTitle}>{t("ProfileSettingsPage.currentSession")}</h3>
+                        <p className={styles.sectionText}> {t("ProfileSettingsPage.youAreCurrentlySignedInAs")}{" "}
+                            {user?.username ? `@${user.username}` : t("ProfileSettingsPage.thisUser")}.
                         </p>
                     </div>
 
-                    <Button variant="secondary" onClick={logout}>
-                        Log out
-                    </Button>
+                    <Button variant="secondary" onClick={logout}> {t("common.logOut")} </Button>
                 </Card>
             </section>
 
             <section className={styles.section}>
                 <Card className={`${styles.settingsCard} ${styles.dangerCard}`}>
                     <div>
-                        <h3 className={styles.dangerTitle}>Delete account</h3>
+                        <h3 className={styles.dangerTitle}>{t("common.deleteAccount")}</h3>
 
                     </div>
 
@@ -127,14 +123,12 @@ export default function ProfileSettingsPage() {
                         type="button"
                         variant="danger" icon={Trash2}
                         onClick={() => setIsDeleteModalOpen(true)}
-                    >
-                        Delete account
-                    </Button>
+                    > {t("common.deleteAccount")} </Button>
                 </Card>
             </section>
 
             <Modal
-                title="Delete account?"
+                title={t("ProfileSettingsPage.deleteAccount")}
                 isOpen={isDeleteModalOpen}
                 onClose={() => {
                     if (!isDeletingAccount) {
@@ -148,9 +142,7 @@ export default function ProfileSettingsPage() {
                             variant="secondary"
                             onClick={() => setIsDeleteModalOpen(false)}
                             disabled={isDeletingAccount}
-                        >
-                            Cancel
-                        </Button>
+                        > {t("common.cancel")} </Button>
 
                         <Button
                             type="button"
@@ -162,19 +154,17 @@ export default function ProfileSettingsPage() {
                                 <LoadingPredator
                                     size="small"
                                     color="currentColor"
-                                    label="Deleting..."
+                                    label={t("common.deleting")}
                                     showLabel
                                 />
                             ) : (
-                                "Delete account"
+                                t("common.deleteAccount")
                             )}
                         </Button>
                     </>
                 }
             >
-                <p className={styles.modalText}>
-                    Delete your account permanently? This cannot be undone.
-                </p>
+                <p className={styles.modalText}> {t("ProfileSettingsPage.deleteYourAccountPermanentlyThisCannotBeUndone")} </p>
 
                 {deleteError && (
                     <p className={styles.errorText}>

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { t } from "../i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { draftKeys } from "../query/queryClient";
 import { draftDetailOptions } from "../query/resourceQueries";
@@ -13,12 +15,14 @@ import { restoreSavedWorkout } from "../utils/restoreSavedWorkout";
 import { createWebWorkoutTimerStorage, saveCurrentWorkoutReference, workoutScope } from "../utils/workoutProgressStorage";
 
 export default function WebWorkoutProvider({ children }: { children: ReactNode }) {
+    useTranslation();
     const { user, loading } = useAuth();
-    if (loading) return <AppLoadingSkeleton message="Checking your session..." />;
+    if (loading) return <AppLoadingSkeleton message={t("common.checkingYourSession")} />;
     return <UserWorkoutProvider key={user?._id ?? "signed-out"} userId={user?._id ?? null}>{children}</UserWorkoutProvider>;
 }
 
 function UserWorkoutProvider({ userId, children }: { userId: string | null; children: ReactNode }) {
+    useTranslation();
     const client = useQueryClient();
     const restoration = useQuery({
         queryKey: draftKeys.restoration(userId ?? "signed-out"),
@@ -26,16 +30,17 @@ function UserWorkoutProvider({ userId, children }: { userId: string | null; chil
             : Promise.resolve({ status: "ready" as const, draftId: null }),
         gcTime: 0, staleTime: Infinity, refetchOnMount: "always", refetchOnReconnect: false,
     });
-    if (restoration.isPending || restoration.isFetching) return <AppLoadingSkeleton message="Checking your saved workout..." />;
+    if (restoration.isPending || restoration.isFetching) return <AppLoadingSkeleton message={t("WebWorkoutProvider.checkingYourSavedWorkout")} />;
     if (restoration.isError || restoration.data.status === "unavailable") return <main className={styles.recovery}><section className={styles.recoveryCard} role="alert">
-        <h1>Unable to restore your workout</h1>
-        <p>We couldn't verify your saved workout. Your progress is still saved.</p>
-        <Button icon={RotateCcw} onClick={() => void restoration.refetch()}>Retry</Button>
+        <h1>{t("WebWorkoutProvider.unableToRestoreYourWorkout")}</h1>
+        <p>{t("WebWorkoutProvider.weCouldnTVerifyYourSavedWorkoutYourProgress")}</p>
+        <Button icon={RotateCcw} onClick={() => void restoration.refetch()}>{t("common.retry")}</Button>
     </section></main>;
     return <ReadyWorkoutProvider userId={userId} initialDraftId={restoration.data.draftId}>{children}</ReadyWorkoutProvider>;
 }
 
 function ReadyWorkoutProvider({ userId, initialDraftId, children }: { userId: string | null; initialDraftId: string | null; children: ReactNode }) {
+    useTranslation();
     const [currentWorkoutId, setCurrentWorkoutId] = useState(initialDraftId);
     useEffect(() => {
         if (userId) saveCurrentWorkoutReference(userId, currentWorkoutId);
@@ -47,6 +52,7 @@ function ReadyWorkoutProvider({ userId, initialDraftId, children }: { userId: st
 }
 
 function ScopedWorkoutTimer({ userId, children }: { userId: string | null; children: ReactNode }) {
+    useTranslation();
     const { currentWorkoutId } = useCurrentWorkout();
     const scope = userId && currentWorkoutId ? workoutScope(userId, currentWorkoutId) : null;
     const storage = useMemo(() => createWebWorkoutTimerStorage(scope), [scope]);

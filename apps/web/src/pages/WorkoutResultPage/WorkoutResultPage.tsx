@@ -1,3 +1,5 @@
+import { formatNumber, translateMessage, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
 import { motion } from "motion/react";
 import { useMotionTransition } from "../../components/motion/useMotionTransition";
@@ -20,6 +22,7 @@ import LoadingState from "../../components/Loading/LoadingState";
 import styles from "./WorkoutResultPage.module.css";
 
 export default function WorkoutResultPage() {
+    useTranslation();
     const completionTiming = useMotionTransition(0.45);
     const navigate = useNavigate();
     const { sessionId } = useParams();
@@ -34,8 +37,8 @@ export default function WorkoutResultPage() {
     const exerciseLibrary = useMemo(() => musclesQuery.data?.exercises ?? [], [musclesQuery.data]);
     const isLoadingSession = !!sessionId && sessionQuery.isPending;
     const isLoadingMuscles = musclesQuery.isFetching;
-    const sessionError = (sessionQuery.error ? friendlyError(sessionQuery.error, "Unable to load this content. Please try again.") : "");
-    const muscleError = (musclesQuery.error ? friendlyError(musclesQuery.error, "Unable to load this content. Please try again.") : "");
+    const sessionError = (sessionQuery.error ? friendlyError(sessionQuery.error, t("common.unableToLoadThisContentPleaseTryAgain")) : "");
+    const muscleError = (musclesQuery.error ? friendlyError(musclesQuery.error, t("common.unableToLoadThisContentPleaseTryAgain")) : "");
     useEffect(() => {
         if (!sessionId) navigate("/");
     }, [sessionId, navigate]);
@@ -92,8 +95,8 @@ export default function WorkoutResultPage() {
             <LoadingState
                 layout="result"
                 className={styles.page}
-                title="Workout result"
-                message="Loading your saved workout..."
+                title={t("WorkoutResultPage.workoutResult")}
+                message={t("WorkoutResultPage.loadingYourSavedWorkout")}
                 color="var(--color-success)"
             />
         );
@@ -103,15 +106,13 @@ export default function WorkoutResultPage() {
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>
-                    <h1 className={styles.title}>No workout result found</h1>
+                    <h1 className={styles.title}>{t("WorkoutResultPage.noWorkoutResultFound")}</h1>
                     <p className={styles.stateText}>
-                        {sessionError || "This workout result could not be loaded."}
+                        {sessionError || t("common.resultMissing")}
                     </p>
 
                     <div className={styles.actions}>
-                        <Button onClick={() => navigate("/")}>
-                            Back to home
-                        </Button>
+                        <Button onClick={() => navigate("/")}> {t("common.backToHome")} </Button>
                     </div>
                 </Card>
             </Box>
@@ -132,34 +133,32 @@ export default function WorkoutResultPage() {
         <Box className={styles.page}>
             <div className={styles.header}>
                 <div>
-                    <p className={styles.kicker}>Workout complete</p>
-                    <h1 className={styles.title}><motion.svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-success-text)" strokeWidth="2" style={{ verticalAlign: "middle", marginRight: 8 }}><motion.path d="m5 12 4 4 10-10" initial={{ pathLength: completionTiming.duration === 0 ? 1 : 0 }} animate={{ pathLength: 1 }} transition={completionTiming} /></motion.svg>Workout saved</h1>
-                    <p className={styles.subtitle}>
-                        Your session is in workout history.
-                    </p>
+                    <p className={styles.kicker}>{t("WorkoutResultPage.workoutComplete")}</p>
+                    <h1 className={styles.title}><motion.svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-success-text)" strokeWidth="2" style={{ verticalAlign: "middle", marginRight: 8 }}><motion.path d="m5 12 4 4 10-10" initial={{ pathLength: completionTiming.duration === 0 ? 1 : 0 }} animate={{ pathLength: 1 }} transition={completionTiming} /></motion.svg>{t("WorkoutResultPage.workoutSaved")}</h1>
+                    <p className={styles.subtitle}> {t("WorkoutResultPage.yourSessionIsInWorkoutHistory")} </p>
                 </div>
             </div>
 
             <Card className={styles.summaryCard}>
                 <div className={styles.summaryGrid}>
                     <div className={styles.summaryItem}>
-                        <span className={styles.summaryLabel}>Completed</span>
+                        <span className={styles.summaryLabel}>{t("common.completed")}</span>
                         <span className={styles.summaryValue}>{completedDate}</span>
                     </div>
 
                     <div className={styles.summaryItem}>
-                        <span className={styles.summaryLabel}>End time</span>
+                        <span className={styles.summaryLabel}>{t("common.endTime")}</span>
                         <span className={styles.summaryValue}>{endTime}</span>
                     </div>
 
                     <div className={styles.summaryItem}>
-                        <span className={styles.summaryLabel}>Exercises</span>
-                        <span className={styles.summaryValue}>{totalExercises}</span>
+                        <span className={styles.summaryLabel}>{t("common.exercises")}</span>
+                        <span className={styles.summaryValue}>{formatNumber(totalExercises)}</span>
                     </div>
 
                     <div className={styles.summaryItem}>
-                        <span className={styles.summaryLabel}>Total sets</span>
-                        <span className={styles.summaryValue}>{totalSets}</span>
+                        <span className={styles.summaryLabel}>{t("common.totalSets")}</span>
+                        <span className={styles.summaryValue}>{formatNumber(totalSets)}</span>
                     </div>
                 </div>
             </Card>
@@ -167,23 +166,21 @@ export default function WorkoutResultPage() {
             <Card className={styles.muscleCard}>
                 <div className={styles.muscleCardContent}>
                     <div className={styles.muscleInfo}>
-                        <h2 className={styles.sectionTitle}>Muscles trained</h2>
+                        <h2 className={styles.sectionTitle}>{t("common.musclesTrained")}</h2>
 
-                        <p className={styles.sectionText}>
-                            Primary and secondary muscles targeted by your exercises.
-                        </p>
+                        <p className={styles.sectionText}> {t("common.primaryAndSecondaryMusclesTargetedByYourExercises")} </p>
 
                         {isLoadingMuscles && exerciseLibrary.length === 0 && (
                             <LoadingState
                                 layout="muscles"
                                 variant="inline"
-                                message="Loading muscle profile..."
+                                message={t("common.loadingMuscleProfile")}
                                 color="var(--color-success)"
                             />
                         )}
 
                         {muscleError && (
-                            <p className={styles.errorText} role="alert">{muscleError}</p>
+                            <p className={styles.errorText} role="alert">{translateMessage(muscleError)}</p>
                         )}
 
                     </div>
@@ -201,14 +198,12 @@ export default function WorkoutResultPage() {
             <section className={styles.section}>
                 <div className={styles.sectionHeader}>
                     <div>
-                        <h2 className={styles.sectionTitle}>Recorded sets</h2>
-                        <p className={styles.sectionText}>
-                            Sets, reps, and weight recorded during this workout.
-                        </p>
+                        <h2 className={styles.sectionTitle}>{t("WorkoutResultPage.recordedSets")}</h2>
+                        <p className={styles.sectionText}> {t("common.setsRepsAndWeightRecordedDuringThisWorkout")} </p>
                     </div>
                 </div>
 
-                {workoutSession.exercises.length === 0 && <Card className={styles.stateCard}><p className={styles.stateText}>No sets were recorded for this session.</p></Card>}
+                {workoutSession.exercises.length === 0 && <Card className={styles.stateCard}><p className={styles.stateText}>{t("common.noSetsWereRecordedForThisSession")}</p></Card>}
                 <div className={styles.exerciseList}>
                     {workoutSession.exercises.map((exercise, exerciseIndex) => (
                         <Card
@@ -217,8 +212,7 @@ export default function WorkoutResultPage() {
                         >
                             <div className={styles.exerciseHeader}>
                                 <div>
-                                    <p className={styles.exerciseNumber}>
-                                        Exercise {exerciseIndex + 1}
+                                    <p className={styles.exerciseNumber}> {t("common.exercise")} {exerciseIndex + 1}
                                     </p>
 
                                     <h3 className={styles.exerciseTitle}>
@@ -227,26 +221,22 @@ export default function WorkoutResultPage() {
                                 </div>
 
                                 <span className={styles.setCount}>
-                                    {exercise.sets.length}{" "}
-                                    {exercise.sets.length === 1 ? "set" : "sets"}
+                                    {t("common.setCount", { count: exercise.sets.length })}
                                 </span>
                             </div>
 
                             <div className={styles.setsList}>
-                                {exercise.training && exercise.training.format !== "strength" && <p>Planned: {formatTrainingSeconds(trainingTotalSeconds(exercise.training))} · Actual: {formatTrainingSeconds(exercise.cardioCompletion?.elapsedSeconds ?? 0)}{exercise.training.format === "intervals" ? ` · ${exercise.cardioCompletion?.completedRounds ?? 0} of ${exercise.training.rounds} rounds` : ""}{exercise.cardioCompletion?.manual ? " · Completed manually" : ""}</p>}
+                                {exercise.training && exercise.training.format !== "strength" && <p>{t("common.planned")} {formatTrainingSeconds(trainingTotalSeconds(exercise.training))} {t("common.actual")} {formatTrainingSeconds(exercise.cardioCompletion?.elapsedSeconds ?? 0)}{exercise.training.format === "intervals" ? t("common.valueOfValueRounds", { value0: exercise.cardioCompletion?.completedRounds ?? 0, value1: exercise.training.rounds }) : ""}{exercise.cardioCompletion?.manual ? t("common.completedManually") : ""}</p>}
                                 {exercise.sets.map((set, index) => (
                                     <div key={index} className={styles.setRow}>
-                                        <span className={styles.setIndex}>
-                                            Set {index + 1}
+                                        <span className={styles.setIndex}> {t("common.set")} {index + 1}
                                         </span>
 
                                         <span className={styles.setValue}>
-                                            {set.weight} kg
-                                        </span>
+                                            {formatNumber(set.weight)} {t("common.kg")} </span>
 
                                         <span className={styles.setValue}>
-                                            {set.reps} reps
-                                        </span>
+                                            {formatNumber(set.reps)} {t("common.reps")} </span>
                                     </div>
                                 ))}
                             </div>
@@ -256,13 +246,9 @@ export default function WorkoutResultPage() {
             </section>
 
             <div className={styles.actions}>
-                <Button variant="secondary" onClick={() => navigate("/")}>
-                    Back to home
-                </Button>
+                <Button variant="secondary" onClick={() => navigate("/")}> {t("common.backToHome")} </Button>
 
-                <Button onClick={() => navigate("/workout-select")}>
-                    Start another workout
-                </Button>
+                <Button onClick={() => navigate("/workout-select")}> {t("WorkoutResultPage.startAnotherWorkout")} </Button>
             </div>
         </Box>
     );

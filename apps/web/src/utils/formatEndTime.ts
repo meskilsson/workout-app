@@ -1,9 +1,10 @@
 export function formatEndTime(dateValue: string | Date) {
     const date = new Date(dateValue);
 
-    return new Intl.DateTimeFormat("en-GB", {
+    return new Intl.DateTimeFormat(locale(), {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
     }).format(date);
 }
+import { locale } from "../i18n";

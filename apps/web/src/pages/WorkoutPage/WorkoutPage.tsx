@@ -1,3 +1,6 @@
+import { translateMessage, t } from "../../i18n";
+import { dragAccessibility } from "../../i18n/dragAccessibility";
+import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
 import { useFieldMotion } from "../../components/motion/useFieldMotion";
 import { useMotionTransition } from "../../components/motion/useMotionTransition";
@@ -165,6 +168,7 @@ function SortableWorkoutExerciseCard({
     canMoveDown,
     onMove,
 }: SortableWorkoutExerciseCardProps) {
+    useTranslation();
     const {
         attributes,
         listeners,
@@ -174,6 +178,7 @@ function SortableWorkoutExerciseCard({
         transition,
         isDragging,
     } = useSortable({
+        attributes: { roleDescription: t("drag.role") },
         id: exercise._id,
     });
 
@@ -210,7 +215,7 @@ function SortableWorkoutExerciseCard({
                         type="button"
                         ref={setActivatorNodeRef}
                         className={styles.dragHandle}
-                        aria-label={`Reorder ${exercise.name}`}
+                        aria-label={t("common.reorderValue", { value0: exercise.name })}
                         {...attributes}
                         {...listeners}
                     >
@@ -219,7 +224,7 @@ function SortableWorkoutExerciseCard({
 
                     <div>
                         <h2 className={styles.exerciseName}><button type="button" className={styles.exerciseToggle} aria-expanded={expanded} aria-controls={`sets-${exercise._id}`} onClick={() => setExpanded(value => !value)}>{exercise.name}<span aria-hidden="true">{expanded ? "\u2212" : "+"}</span></button></h2>
-                        {(!exercise.training || exercise.training.format === "strength") && <p className={styles.exerciseProgress}>{exerciseSets.filter(set => set.isCompleted).length} of {exerciseSets.length} sets completed</p>}
+                        {(!exercise.training || exercise.training.format === "strength") && <p className={styles.exerciseProgress}>{exerciseSets.filter(set => set.isCompleted).length} {t("common.of")} {exerciseSets.length} {t("WorkoutPage.setsCompleted")}</p>}
                     </div>
                 </div>
 
@@ -234,9 +239,7 @@ function SortableWorkoutExerciseCard({
                             setExpanded(true);
                             onAddSet(exercise._id);
                         }}
-                    >
-                        Add set
-                    </Button>}
+                    > {t("common.addSet")} </Button>}
 
                     <details className={styles.exerciseMenu}>
                         <motion.summary initial={false} transition={timing}
@@ -246,7 +249,7 @@ function SortableWorkoutExerciseCard({
                             className={
                                 styles.exerciseMenuButton
                             }
-                            aria-label={`Open menu for ${exercise.name}`}
+                            aria-label={t("WorkoutPage.openMenuForValue", { value0: exercise.name })}
                         >
                             <Icon icon={MoreHorizontal} />
                         </motion.summary>
@@ -256,8 +259,8 @@ function SortableWorkoutExerciseCard({
                                 styles.exerciseMenuDropdown
                             }
                         >
-                            <Button type="button" variant="ghost" disabled={!canMoveUp} icon={ArrowUp} onClick={() => onMove(-1)}>Move up</Button>
-                            <Button type="button" variant="ghost" disabled={!canMoveDown} icon={ArrowDown} onClick={() => onMove(1)}>Move down</Button>
+                            <Button type="button" variant="ghost" disabled={!canMoveUp} icon={ArrowUp} onClick={() => onMove(-1)}>{t("WorkoutPage.moveUp")}</Button>
+                            <Button type="button" variant="ghost" disabled={!canMoveDown} icon={ArrowDown} onClick={() => onMove(1)}>{t("WorkoutPage.moveDown")}</Button>
                             <motion.button initial={false} transition={timing}
                                 animate={{ opacity: canRemoveExercise ? 1 : 0.65, color: canRemoveExercise ? "var(--color-danger-text)" : "var(--color-text-muted)", backgroundColor: "transparent" }}
                                 whileHover={canRemoveExercise ? { backgroundColor: "var(--color-danger-soft)" } : undefined}
@@ -273,12 +276,11 @@ function SortableWorkoutExerciseCard({
                                 disabled={!canRemoveExercise}
                                 title={
                                     canRemoveExercise
-                                        ? `Remove ${exercise.name}`
-                                        : "Add another exercise before removing the final exercise"
+                                        ? t("WorkoutPage.removeValue", { value0: exercise.name })
+                                        : t("WorkoutPage.addAnotherExerciseBeforeRemovingTheFinalExercise")
                                 }
                             >
-                                <Icon icon={Trash2} /> Remove exercise
-                            </motion.button>
+                                <Icon icon={Trash2} /> {t("common.removeExercise")} </motion.button>
                         </div>
                     </details>
                 </div>
@@ -289,22 +291,20 @@ function SortableWorkoutExerciseCard({
                 <AnimatePresence initial={false}>
                 {exerciseSets.map((set, setIndex) => (
                     <CompletedSetRow key={set.id} completed={set.isCompleted}>
-                        <span className={styles.setCaption}>Set {setIndex + 1}{set.isCompleted ? " - Completed" : ""}</span>
+                        <span className={styles.setCaption}>{t("common.set")} {setIndex + 1}{set.isCompleted ? t("WorkoutPage.completed") : ""}</span>
                         <div className={styles.inputGroup}>
                             {(
                                 <label
                                     className={
                                         styles.inputLabel
                                     }
-                                >
-                                    Weight
-                                </label>
+                                > {t("WorkoutPage.weight")} </label>
                             )}
 
                             <motion.input {...fieldMotion(set.id + "-weight", { borderBottomColor: "var(--color-input-border)" }, { borderBottomColor: "var(--color-focus)" })}
                                 type="number"
                                 min={0}
-                                aria-label={`Weight for ${exercise.name}, set ${setIndex + 1}`}
+                                aria-label={t("WorkoutPage.weightForValueSetValue", { value0: exercise.name, value1: setIndex + 1 })}
                                 value={set.weight}
                                 className={
                                     styles.underlineInput
@@ -326,15 +326,13 @@ function SortableWorkoutExerciseCard({
                                     className={
                                         styles.inputLabel
                                     }
-                                >
-                                    Reps
-                                </label>
+                                > {t("WorkoutPage.reps")} </label>
                             )}
 
                             <motion.input {...fieldMotion(set.id + "-reps", { borderBottomColor: "var(--color-input-border)" }, { borderBottomColor: "var(--color-focus)" })}
                                 type="number"
                                 min={0}
-                                aria-label={`Reps for ${exercise.name}, set ${setIndex + 1}`}
+                                aria-label={t("WorkoutPage.repsForValueSetValue", { value0: exercise.name, value1: setIndex + 1 })}
                                 value={set.reps}
                                 className={
                                     styles.underlineInput
@@ -365,7 +363,7 @@ function SortableWorkoutExerciseCard({
                                     setIndex,
                                 )
                             }
-                            aria-label="Remove set"
+                            aria-label={t("common.removeSet")}
                         >
                             <Icon icon={Trash2} />
                         </Button>
@@ -379,6 +377,7 @@ function SortableWorkoutExerciseCard({
 }
 
 export default function WorkoutPage() {
+    useTranslation();
     const { user } = useAuth();
     const { draftId } = useParams();
     if (!user) return null;
@@ -386,6 +385,7 @@ export default function WorkoutPage() {
 }
 
 function ActiveWorkoutPage({ userId }: { userId: string }) {
+    useTranslation();
     const { draftId } = useParams();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -530,13 +530,13 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                 if (cancelled) return;
 
                 if (!isWorkoutDraftResponse(draft)) {
-                    throw new Error("Could not verify this workout. Your saved progress has been kept.");
+                    throw new Error(t("WorkoutPage.couldNotVerifyThisWorkoutYourSavedProgressHas"));
                 }
 
                 if (draft.userId !== userId || draft._id !== draftId) {
                     hasEnded.current = true;
                     clearWorkoutSnapshot(scope);
-                    setError("This workout is not accessible to your account.");
+                    setError(t("WorkoutPage.thisWorkoutIsNotAccessibleToYourAccount"));
                     return;
                 }
 
@@ -562,7 +562,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                         );
                     } else {
                         setError(
-                            "This workout has already been completed.",
+                            t("WorkoutPage.thisWorkoutHasAlreadyBeenCompleted"),
                         );
                     }
 
@@ -571,7 +571,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
 
                 if (draft.status === "abandoned") {
                     setError(
-                        "This workout draft has been abandoned.",
+                        t("WorkoutPage.thisWorkoutDraftHasBeenAbandoned"),
                     );
 
                     return;
@@ -628,7 +628,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                     clearWorkoutSnapshot(scope);
                 }
                 setError(
-                    friendlyError(err, "Failed to load workout draft."),
+                    friendlyError(err, t("WorkoutPage.failedToLoadWorkoutDraft")),
                 );
             } finally {
                 if (!cancelled) setIsLoadingDraft(false);
@@ -709,7 +709,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                         }
                     } catch (err) {
                         setError(
-                            friendlyError(err, "Failed to save workout progress."),
+                            friendlyError(err, t("WorkoutPage.failedToSaveWorkoutProgress")),
                         );
                     } finally {
                         setIsSavingDraft(false);
@@ -810,7 +810,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             setSelectedExercises(previousOrder);
 
             setError(
-                friendlyError(err, "Failed to reorder exercises"),
+                friendlyError(err, t("common.failedToReorderExercises")),
             );
         } finally {
             setIsReorderingExercises(false);
@@ -932,7 +932,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             set.reps === ""
         ) {
             setError(
-                "Add weight and reps before completing the set.",
+                t("WorkoutPage.addWeightAndRepsBeforeCompletingTheSet"),
             );
 
             return;
@@ -972,7 +972,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             startRestTimer();
         } catch (err) {
             setError(
-                friendlyError(err, "Failed to save completed set."),
+                friendlyError(err, t("WorkoutPage.failedToSaveCompletedSet")),
             );
         }
     }
@@ -998,7 +998,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             );
         } catch (err) {
             setError(
-                friendlyError(err, "Failed to save the workout before adding an exercise."),
+                friendlyError(err, t("WorkoutPage.failedToSaveTheWorkoutBeforeAddingAnExercise")),
             );
 
             setIsOpeningExerciseSelect(false);
@@ -1062,7 +1062,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             setExerciseToRemove(null);
         } catch (err) {
             setError(
-                friendlyError(err, "Failed to remove exercise from workout."),
+                friendlyError(err, t("WorkoutPage.failedToRemoveExerciseFromWorkout")),
             );
         } finally {
             setIsRemovingExercise(false);
@@ -1094,7 +1094,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             setIsAbandonModalOpen(false);
             navigate("/workout-select", { replace: true });
         } catch (err) {
-            setError(friendlyError(err, "Failed to abandon workout. Please try again."));
+            setError(friendlyError(err, t("WorkoutPage.failedToAbandonWorkoutPleaseTryAgain")));
         } finally {
             actionRequestPending.current = false;
             setIsAbandoning(false);
@@ -1137,7 +1137,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
 
             if (incompleteExercise) {
                 setError(
-                    `Complete ${incompleteExercise.name} before ending the workout.`,
+                    t("WorkoutPage.completeValueBeforeEndingTheWorkout", { value0: incompleteExercise.name }),
                 );
 
                 setIsSaving(false);
@@ -1166,7 +1166,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             );
         } catch (err) {
             setError(
-                friendlyError(err, "Failed to save workout session."),
+                friendlyError(err, t("WorkoutPage.failedToSaveWorkoutSession")),
             );
         } finally {
             actionRequestPending.current = false;
@@ -1179,8 +1179,8 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             <LoadingState
                 layout="workout"
                 className={styles.page}
-                title="Active workout"
-                message="Loading workout..."
+                title={t("WorkoutPage.activeWorkout")}
+                message={t("WorkoutPage.loadingWorkout")}
                 color="var(--color-success)"
             />
         );
@@ -1211,16 +1211,16 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                             <LoadingPredator
                                 size="small"
                                 color="currentColor"
-                                label="Saving..."
+                                label={t("common.saving")}
                                 showLabel
                             />
                         ) : (
-                            <><Icon icon={Plus} /> Add exercise</>
+                            <><Icon icon={Plus} /> {t("common.addExercise")}</>
                         )}
                     </Button>
                 </div>
 
-                <DndContext
+                <DndContext accessibility={dragAccessibility(selectedExercises.map(exercise => ({ id: exercise._id, name: exercise.name })))}
                     sensors={sensors}
                     collisionDetection={
                         closestCenter
@@ -1247,7 +1247,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                                         scope={scope}
                                         actionsDisabled={isActionPending}
                                         onTrainingChange={async training => {
-                                            if (actionRequestPending.current || hasEnded.current) throw new Error("The workout is ending. Please wait.");
+                                            if (actionRequestPending.current || hasEnded.current) throw new Error(t("WorkoutPage.theWorkoutIsEndingPleaseWait"));
                                             await saveTraining({ exerciseId: exercise._id, training });
                                             if (hasEnded.current) return;
                                             cardioResults.current[exercise._id] = undefined;
@@ -1307,7 +1307,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                                 styles.errorText
                             }
                         >
-                            {error}
+                            {translateMessage(error)}
                         </p>
                     </div>
                 )}
@@ -1325,9 +1325,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                         className={styles.endSessionButton}
                         onClick={handleRequestAbandonWorkout}
                         disabled={isActionPending || isRemovingExercise || isOpeningExerciseSelect || selectedExercises.length === 0}
-                    >
-                        Abandon Workout
-                    </Button>
+                    > {t("common.abandonWorkout")} </Button>
                     <Button
                         icon={Flag}
                         type="button"
@@ -1344,15 +1342,12 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                             isRemovingExercise ||
                             isOpeningExerciseSelect
                         }
-                    >
-                        End Workout
-                    </Button>
+                    > {t("common.endWorkout")} </Button>
                 </div>
 
                 <Modal
-                    title={`Remove ${exerciseToRemove?.name ??
-                        "exercise"
-                        }?`}
+                    title={t("WorkoutPage.removeValue2", { value0: exerciseToRemove?.name ??
+                        "exercise" })}
                     isOpen={
                         exerciseToRemove !== null
                     }
@@ -1383,11 +1378,11 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                                     <LoadingPredator
                                         size="small"
                                         color="currentColor"
-                                        label="Removing..."
+                                        label={t("WorkoutPage.removing")}
                                         showLabel
                                     />
                                 ) : (
-                                    "Remove exercise"
+                                    t("common.removeExercise")
                                 )}
                             </Button>
 
@@ -1404,22 +1399,16 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                                 disabled={
                                     isRemovingExercise
                                 }
-                            >
-                                Cancel
-                            </Button>
+                            > {t("common.cancel")} </Button>
                         </div>
                     }
                 >
-                    <p className={styles.modalText}>
-                        All sets entered for this
-                        exercise will be permanently
-                        removed from the active workout.
-                    </p>
-                    {error && <p className={styles.errorText} role="alert">{error}</p>}
+                    <p className={styles.modalText}> {t("WorkoutPage.allSetsEnteredForThisExerciseWillBePermanently")} </p>
+                    {error && <p className={styles.errorText} role="alert">{translateMessage(error)}</p>}
                 </Modal>
 
                 <Modal
-                    title="Abandon workout?"
+                    title={t("WorkoutPage.abandonWorkout")}
                     isOpen={isAbandonModalOpen}
                     onClose={handleCloseAbandonModal}
                     actions={
@@ -1433,8 +1422,8 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                                 disabled={isActionPending}
                             >
                                 {isAbandoning ? (
-                                    <LoadingPredator size="small" color="currentColor" label="Abandoning..." showLabel />
-                                ) : "Abandon Workout"}
+                                    <LoadingPredator size="small" color="currentColor" label={t("WorkoutPage.abandoning")} showLabel />
+                                ) : t("common.abandonWorkout")}
                             </Button>
                             <Button
                                 type="button"
@@ -1443,21 +1432,16 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                                 className={styles.modalSecondaryButton}
                                 onClick={handleCloseAbandonModal}
                                 disabled={isActionPending}
-                            >
-                                Cancel
-                            </Button>
+                            > {t("common.cancel")} </Button>
                         </div>
                     }
                 >
-                    <p className={styles.modalText}>
-                        This workout will be discarded without saving it as a completed session.
-                        Are you sure you want to abandon it?
-                    </p>
-                    {error && <p className={styles.errorText} role="alert">{error}</p>}
+                    <p className={styles.modalText}> {t("WorkoutPage.thisWorkoutWillBeDiscardedWithoutSavingItAs")} </p>
+                    {error && <p className={styles.errorText} role="alert">{translateMessage(error)}</p>}
                 </Modal>
 
                 <Modal
-                    title="End session?"
+                    title={t("WorkoutPage.endSession")}
                     isOpen={openModal}
                     onClose={handleCloseModal}
                     actions={
@@ -1482,11 +1466,11 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                                     <LoadingPredator
                                         size="small"
                                         color="currentColor"
-                                        label="Saving..."
+                                        label={t("common.saving")}
                                         showLabel
                                     />
                                 ) : (
-                                    "End Workout"
+                                    t("common.endWorkout")
                                 )}
                             </Button>
 
@@ -1501,17 +1485,12 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                                     handleCloseModal
                                 }
                                 disabled={isActionPending}
-                            >
-                                Close
-                            </Button>
+                            > {t("common.close")} </Button>
                         </div>
                     }
                 >
-                    <p className={styles.modalText}>
-                        Are you sure you want to end
-                        this workout session?
-                    </p>
-                    {error && <p className={styles.errorText} role="alert">{error}</p>}
+                    <p className={styles.modalText}> {t("WorkoutPage.areYouSureYouWantToEndThisWorkout")} </p>
+                    {error && <p className={styles.errorText} role="alert">{translateMessage(error)}</p>}
                 </Modal>
             </div>
         </div>

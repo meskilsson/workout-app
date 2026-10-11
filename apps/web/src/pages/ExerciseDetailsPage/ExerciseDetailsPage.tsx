@@ -1,3 +1,5 @@
+import { displayValue, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
 import { ArrowLeft } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
@@ -17,13 +19,14 @@ import MuscleDummy from "../../components/muscleDummy/MuscleDummy";
 import { useAuth } from "../../context/AuthContext";
 
 export default function ExerciseDetailsPage() {
+    useTranslation();
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
 
     const exerciseQuery = useQuery(exerciseDetailOptions(user?._id, id ?? ""));
     const exercise = exerciseQuery.data;
-    const error = !id ? "Exercise details id is missing." : (exerciseQuery.error ? friendlyError(exerciseQuery.error, "Unable to load this content. Please try again.") : "");
+    const error = !id ? t("ExerciseDetailsPage.exerciseDetailsIdIsMissing") : (exerciseQuery.error ? friendlyError(exerciseQuery.error, t("common.unableToLoadThisContentPleaseTryAgain")) : "");
     const isLoading = !!id && exerciseQuery.isPending;
 
     if (isLoading && !exercise) {
@@ -31,8 +34,8 @@ export default function ExerciseDetailsPage() {
             <LoadingState
                 layout="exerciseDetails"
                 className={styles.page}
-                title="Exercise details"
-                message="Loading exercise details..."
+                title={t("common.exerciseDetails")}
+                message={t("ExerciseDetailsPage.loadingExerciseDetails")}
             />
         );
     }
@@ -41,10 +44,10 @@ export default function ExerciseDetailsPage() {
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>
-                    <p className={styles.stateTitle}>Exercise details</p>
+                    <p className={styles.stateTitle}>{t("common.exerciseDetails")}</p>
 
                     <p className={styles.errorText}>
-                        {error || "Exercise details not found."}
+                        {error || t("common.exerciseDetailsMissing")}
                     </p>
 
                     <Button
@@ -53,7 +56,7 @@ export default function ExerciseDetailsPage() {
                         style={{ minWidth: "3.25rem", marginTop: "1rem" }}
                         iconOnly
                         className={styles.backButton}
-                    aria-label="Go back"
+                    aria-label={t("common.goBack")}
                         onClick={() => navigate(-1)}
 
                     >
@@ -76,16 +79,14 @@ export default function ExerciseDetailsPage() {
 
                     <h1 className={styles.title}>{exercise.name}</h1>
 
-                    <p className={styles.subtitle}>
-                        Equipment, technique, and target muscles.
-                    </p>
+                    <p className={styles.subtitle}> {t("ExerciseDetailsPage.equipmentTechniqueAndTargetMuscles")} </p>
                     <Button
                         type="button"
                         variant="secondary"
                         style={{ minWidth: "3.25rem", marginTop: "1rem" }}
                         iconOnly
                         className={styles.backButton}
-                    aria-label="Go back"
+                    aria-label={t("common.goBack")}
                         onClick={() => navigate(-1)}
 
                     >
@@ -103,37 +104,37 @@ export default function ExerciseDetailsPage() {
                 >
                     <section className={styles.infoColumn}>
                         <p className={styles.description}>
-                            {exercise.description || "No description provided."}
+                            {exercise.description || t("common.noDescription")}
                         </p>
 
                         <div className={styles.quickInfo}>
                             <div className={styles.quickInfoItem}>
-                                <span className={styles.quickInfoLabel}>Type</span>
+                                <span className={styles.quickInfoLabel}>{t("common.type")}</span>
                                 <span className={styles.quickInfoValue}>
-                                    {exercise.exerciseType}
+                                    {displayValue(exercise.exerciseType)}
                                 </span>
                             </div>
 
                             <div className={styles.quickInfoItem}>
-                                <span className={styles.quickInfoLabel}>Equipment</span>
+                                <span className={styles.quickInfoLabel}>{t("common.equipment")}</span>
                                 <span className={styles.quickInfoValue}>
-                                    {exercise.equipment}
+                                    {displayValue(exercise.equipment)}
                                 </span>
                             </div>
 
                             <div className={styles.quickInfoItem}>
-                                <span className={styles.quickInfoLabel}>Difficulty</span>
+                                <span className={styles.quickInfoLabel}>{t("common.difficulty")}</span>
                                 <span className={styles.quickInfoValue}>
-                                    {exercise.difficulty}
+                                    {displayValue(exercise.difficulty)}
                                 </span>
                             </div>
                         </div>
 
                         <div className={styles.instructionsBlock}>
-                            <h3 className={styles.sectionTitle}>Instructions</h3>
+                            <h3 className={styles.sectionTitle}>{t("common.instructions")}</h3>
 
                             <p className={styles.instructions}>
-                                {exercise.instructions || "No instructions provided."}
+                                {exercise.instructions || t("common.noInstructions")}
                             </p>
                         </div>
                     </section>

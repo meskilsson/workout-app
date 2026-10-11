@@ -1,3 +1,5 @@
+import { translateMessage, displayValue, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
 import { ArrowLeft } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
@@ -25,6 +27,7 @@ import type { WorkoutTemplate } from "@workout-app/shared";
 import styles from "./TemplatesPage.module.css";
 
 export default function TemplatesPage() {
+    useTranslation();
     const navigate = useNavigate();
     const { isAuthenticated } = useAuth();
 
@@ -33,7 +36,7 @@ export default function TemplatesPage() {
         queryFn: ({ signal }) => getPublicWorkoutTemplatesRequest(signal),
     });
     const publicTemplates = templatesQuery.data ?? [];
-    const error = (templatesQuery.error ? friendlyError(templatesQuery.error, "Unable to load this content. Please try again.") : "");
+    const error = (templatesQuery.error ? friendlyError(templatesQuery.error, t("common.unableToLoadThisContentPleaseTryAgain")) : "");
     const isLoading = templatesQuery.isFetching;
     const hasLoadedOnce = !templatesQuery.isPending;
     const [actionError, setActionError] = useState("");
@@ -41,7 +44,7 @@ export default function TemplatesPage() {
     const startingTemplateId = startMutation.isPending ? startMutation.variables : null;
     async function handleStartTemplate(templateId: string) {
         if (!isAuthenticated) {
-            setActionError("You need to log in before starting a workout.");
+            setActionError(t("TemplatesPage.youNeedToLogInBeforeStartingAWorkout"));
             return;
         }
 
@@ -55,7 +58,7 @@ export default function TemplatesPage() {
             if (error instanceof Error) {
                 setActionError(friendlyError(error));
             } else {
-                setActionError("Failed to start workout from template");
+                setActionError(t("common.failedToStartWorkoutFromTemplate"));
             }
         }
     }
@@ -73,12 +76,12 @@ export default function TemplatesPage() {
                         </h2>
 
                         <p className={styles.templateDescription}>
-                            {template.description || "No description."}
+                            {template.description || t("common.noDescriptionShort")}
                         </p>
                     </div>
 
                     <span className={styles.categoryBadge}>
-                        {template.category}
+                        {displayValue(template.category)}
                     </span>
                 </div>
 
@@ -92,12 +95,12 @@ export default function TemplatesPage() {
                                 <span>{exercise.order + 1}.</span>
 
                                 <span>
-                                    {exercise.exerciseName || "Missing exercise"}
+                                    {exercise.exerciseName || t("common.missingExercise")}
                                 </span>
                             </div>
                         ))
                     ) : (
-                        <p className={styles.emptyText}>No exercises added.</p>
+                        <p className={styles.emptyText}>{t("common.noExercisesAdded")}</p>
                     )}
                 </div>
 
@@ -111,11 +114,11 @@ export default function TemplatesPage() {
                             <LoadingPredator
                                 size="small"
                                 color="currentColor"
-                                label="Starting..."
+                                label={t("common.starting")}
                                 showLabel
                             />
                         ) : (
-                            "Start workout"
+                            t("common.startWorkout")
                         )}
                     </Button>
 
@@ -127,9 +130,7 @@ export default function TemplatesPage() {
                                 `/templates/pre-made/templates-details/${template._id}`,
                             )
                         }
-                    >
-                        View details
-                    </Button>
+                    > {t("common.viewDetails")} </Button>
                 </div>
             </Card>
         );
@@ -140,8 +141,8 @@ export default function TemplatesPage() {
             <LoadingState
                 layout="cards"
                 className={styles.page}
-                title="Workout templates"
-                message="Loading workout templates..."
+                title={t("common.workoutTemplates")}
+                message={t("TemplatesPage.loadingWorkoutTemplates")}
             />
         );
     }
@@ -150,7 +151,7 @@ export default function TemplatesPage() {
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>
-                    <p className={styles.errorText} role="alert">{error}</p>
+                    <p className={styles.errorText} role="alert">{translateMessage(error)}</p>
                 </Card>
             </Box>
         );
@@ -158,28 +159,23 @@ export default function TemplatesPage() {
 
     return (
         <Box className={styles.page}>
-            {error && <p className={styles.errorText} role="alert">{error}</p>}
-            {isLoading && <LoadingAnnouncement message="Updating content..." />}
+            {error && <p className={styles.errorText} role="alert">{translateMessage(error)}</p>}
+            {isLoading && <LoadingAnnouncement message={t("common.updatingContent")} />}
             <header className={styles.header}>
-                <p className={styles.kicker}>Workout templates</p>
+                <p className={styles.kicker}>{t("common.workoutTemplates")}</p>
 
-                <h1 className={styles.title}>Browse templates</h1>
+                <h1 className={styles.title}>{t("TemplatesPage.browseTemplates")}</h1>
 
-                <p className={styles.subtitle}>
-                    Choose a routine for your next session.
-                </p>
+                <p className={styles.subtitle}> {t("TemplatesPage.chooseARoutineForYourNextSession")} </p>
 
                 {!isAuthenticated && (
-                    <p className={styles.loginHint}>
-                        You can browse workouts while logged out, but you need to
-                        log in to start a workout.
-                    </p>
+                    <p className={styles.loginHint}> {t("TemplatesPage.youCanBrowseWorkoutsWhileLoggedOutButYou")} </p>
                 )}
             </header>
 
             {actionError && (
                 <Card className={styles.actionErrorCard}>
-                    <p className={styles.errorText} role="alert">{actionError}</p>
+                    <p className={styles.errorText} role="alert">{translateMessage(actionError)}</p>
                 </Card>
             )}
 
@@ -193,7 +189,7 @@ export default function TemplatesPage() {
                             style={{ minWidth: "3.25rem", marginTop: "1rem" }}
                             iconOnly
                             className={styles.backButton}
-                    aria-label="Go back"
+                    aria-label={t("common.goBack")}
                             onClick={() => navigate(-1)}
                         >
                             <Icon icon={ArrowLeft} />
@@ -209,7 +205,7 @@ export default function TemplatesPage() {
                     </div>
                 ) : (
                     <Card className={styles.stateCard}>
-                        <p>No templates available yet.</p>
+                        <p>{t("TemplatesPage.noTemplatesAvailableYet")}</p>
                     </Card>
                 )}
             </section>

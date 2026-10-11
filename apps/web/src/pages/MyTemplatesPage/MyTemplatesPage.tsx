@@ -1,3 +1,5 @@
+import { translateMessage, displayValue, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
 import { Plus, ArrowLeft, Trash2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
@@ -26,6 +28,7 @@ import type { WorkoutTemplate } from "@workout-app/shared";
 import styles from "../TemplatesPage/TemplatesPage.module.css";
 
 export default function MyTemplatesPage() {
+    useTranslation();
     const navigate = useNavigate();
 
     const { user } = useAuth();
@@ -38,7 +41,7 @@ export default function MyTemplatesPage() {
     });
     const templates = templatesQuery.data ?? [];
     const [actionError, setError] = useState("");
-    const error = actionError || (templatesQuery.error ? friendlyError(templatesQuery.error, "Unable to load this content. Please try again.") : "");
+    const error = actionError || (templatesQuery.error ? friendlyError(templatesQuery.error, t("common.unableToLoadThisContentPleaseTryAgain")) : "");
     const isLoading = templatesQuery.isFetching;
     const hasLoadedOnce = !templatesQuery.isPending;
     const startMutation = useMutation({ mutationFn: startWorkoutFromTemplateRequest });
@@ -68,7 +71,7 @@ export default function MyTemplatesPage() {
             if (error instanceof Error) {
                 setError(friendlyError(error));
             } else {
-                setError("Failed to start workout from template");
+                setError(t("common.failedToStartWorkoutFromTemplate"));
             }
         }
     }
@@ -83,7 +86,7 @@ export default function MyTemplatesPage() {
             if (error instanceof Error) {
                 setError(friendlyError(error));
             } else {
-                setError("Failed to prepare workout for editing");
+                setError(t("MyTemplatesPage.failedToPrepareWorkoutForEditing"));
             }
         }
     }
@@ -100,7 +103,7 @@ export default function MyTemplatesPage() {
             if (error instanceof Error) {
                 setError(friendlyError(error));
             } else {
-                setError("Failed to delete workout template");
+                setError(t("common.failedToDeleteWorkoutTemplate"));
             }
         }
     }
@@ -111,22 +114,20 @@ export default function MyTemplatesPage() {
                 layout="cards"
                 className={styles.section}
                 variant="card"
-                title="Your templates"
-                message="Loading your workout templates..."
+                title={t("MyTemplatesPage.yourTemplates")}
+                message={t("MyTemplatesPage.loadingYourWorkoutTemplates")}
             />
         );
     }
 
     return (
         <section className={styles.section}>
-            {isLoading && <LoadingAnnouncement message="Updating content..." />}
+            {isLoading && <LoadingAnnouncement message={t("common.updatingContent")} />}
             <div className={styles.sectionHeader}>
                 <div>
-                    <h1 className={styles.sectionTitle}>My templates</h1>
+                    <h1 className={styles.sectionTitle}>{t("common.myTemplates")}</h1>
 
-                    <p className={styles.sectionText}>
-                        Your reusable training routines.
-                    </p>
+                    <p className={styles.sectionText}> {t("MyTemplatesPage.yourReusableTrainingRoutines")} </p>
 
                     <Button
                         type="button"
@@ -134,7 +135,7 @@ export default function MyTemplatesPage() {
                         style={{ minWidth: "3.25rem", marginTop: "1rem" }}
                         iconOnly
                         className={styles.backButton}
-                    aria-label="Go back"
+                    aria-label={t("common.goBack")}
                         onClick={() => navigate(-1)}
                     >
                         <Icon icon={ArrowLeft} />
@@ -145,14 +146,12 @@ export default function MyTemplatesPage() {
                     type="button"
                     variant="secondary"
                     onClick={() => navigate("/templates/create")}
-                >
-                    Create template
-                </Button>
+                > {t("common.createTemplate")} </Button>
             </div>
 
             {error && (
                 <Card className={styles.stateCard}>
-                    <p className={styles.errorText} role="alert">{error}</p>
+                    <p className={styles.errorText} role="alert">{translateMessage(error)}</p>
                 </Card>
             )}
 
@@ -184,12 +183,12 @@ export default function MyTemplatesPage() {
 
                                         <p className={styles.templateDescription}>
                                             {template.description ||
-                                                "No description."}
+                                                t("common.noDescriptionShort")}
                                         </p>
                                     </div>
 
                                     <span className={styles.categoryBadge}>
-                                        {template.category}
+                                        {displayValue(template.category)}
                                     </span>
                                 </div>
 
@@ -207,14 +206,12 @@ export default function MyTemplatesPage() {
 
                                                 <span>
                                                     {exercise.exerciseName ||
-                                                        "Missing exercise"}
+                                                        t("common.missingExercise")}
                                                 </span>
                                             </div>
                                         ))
                                     ) : (
-                                        <p className={styles.emptyText}>
-                                            No exercises added.
-                                        </p>
+                                        <p className={styles.emptyText}> {t("common.noExercisesAdded")} </p>
                                     )}
                                 </div>
 
@@ -230,11 +227,11 @@ export default function MyTemplatesPage() {
                                                 <LoadingPredator
                                                     size="small"
                                                     color="currentColor"
-                                                    label="Starting..."
+                                                    label={t("common.starting")}
                                                     showLabel
                                                 />
                                             ) : (
-                                                "Start workout"
+                                                t("common.startWorkout")
                                             )}
                                         </Button>
 
@@ -245,9 +242,7 @@ export default function MyTemplatesPage() {
                                             onClick={() =>
                                                 navigate(`/templates/my/templates-details/${template._id}`)
                                             }
-                                        >
-                                            View details
-                                        </Button>
+                                        > {t("common.viewDetails")} </Button>
                                     </div>
 
                                     <div className={styles.templateActionStack}>
@@ -261,11 +256,11 @@ export default function MyTemplatesPage() {
                                                 <LoadingPredator
                                                     size="small"
                                                     color="currentColor"
-                                                    label="Preparing..."
+                                                    label={t("common.preparing")}
                                                     showLabel
                                                 />
                                             ) : (
-                                                "Edit"
+                                                t("common.edit")
                                             )}
                                         </Button>
 
@@ -274,9 +269,7 @@ export default function MyTemplatesPage() {
                                             variant="danger" icon={Trash2}
                                             disabled={isBusy}
                                             onClick={() => setTemplateToDelete(template)}
-                                        >
-                                            Delete
-                                        </Button>
+                                        > {t("common.delete")} </Button>
                                     </div>
                                 </div>
                             </Card>
@@ -285,12 +278,12 @@ export default function MyTemplatesPage() {
                 </div>
             ) : (
                 <Card className={styles.stateCard}>
-                    <p>No templates yet. Create one to save a routine.</p>
+                    <p>{t("MyTemplatesPage.noTemplatesYetCreateOneToSaveARoutine")}</p>
                 </Card>
             )}
 
             <Modal
-                title="Delete workout template?"
+                title={t("MyTemplatesPage.deleteWorkoutTemplate")}
                 isOpen={Boolean(templateToDelete)}
                 onClose={() => {
                     if (!isDeleting) {
@@ -309,11 +302,11 @@ export default function MyTemplatesPage() {
                                 <LoadingPredator
                                     size="small"
                                     color="currentColor"
-                                    label="Deleting..."
+                                    label={t("common.deleting")}
                                     showLabel
                                 />
                             ) : (
-                                "Delete"
+                                t("common.delete")
                             )}
                         </Button>
 
@@ -322,18 +315,13 @@ export default function MyTemplatesPage() {
                             variant="secondary"
                             onClick={() => setTemplateToDelete(null)}
                             disabled={isDeleting}
-                        >
-                            Cancel
-                        </Button>
+                        > {t("common.cancel")} </Button>
                     </div>
                 }
             >
-                <p>
-                    Are you sure you want to delete{" "}
-                    <strong>{templateToDelete?.name}</strong>? This cannot be
-                    undone.
-                </p>
-                {error && <p className={styles.errorText} role="alert">{error}</p>}
+                <p> {t("common.areYouSureYouWantToDelete")}{" "}
+                    <strong>{templateToDelete?.name}</strong>{t("MyTemplatesPage.thisCannotBeUndone")} </p>
+                {error && <p className={styles.errorText} role="alert">{translateMessage(error)}</p>}
             </Modal>
         </section>
     );

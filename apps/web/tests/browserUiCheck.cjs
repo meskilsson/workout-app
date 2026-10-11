@@ -53,8 +53,9 @@ let browser, ws;
    requestCounts.set(requestKey,(requestCounts.get(requestKey)||0)+1);
    const isAuth=url.pathname.includes('/auth/');
    const delay=item.request.method==='OPTIONS' ? 0 : (scenario==='loading' && !isAuth || scenario==='auth-loading') ? 2200 : item.request.method!=='GET' ? mutationDelay : 150;
-   if(url.pathname.includes('/auth/me'))payload={user:guest?null:{_id:userId,name:'Alex',email:'alex@example.com',username:'alex',role:['animation-additions','form-errors'].includes(process.env.UI_CHECK_PHASE)?'admin':'user'}};
-   else if(url.pathname.includes('/auth/')) {responseCode=400;payload={message:'Check your details and try again.'};}
+   if(url.pathname.includes('/auth/me'))payload={user:guest?null:{_id:userId,name:'Alex',email:'alex@example.com',username:'alex',role:['animation-additions','form-errors','localization'].includes(process.env.UI_CHECK_PHASE)?'admin':'user'}};
+   else if(url.pathname.includes('/auth/')) {responseCode=400;payload=process.env.UI_CHECK_PHASE==='localization-states'?{code:'INVALID_CREDENTIALS',message:'Invalid email or password'}:{message:'Check your details and try again.'};}
+   else if(process.env.UI_CHECK_PHASE==='localization' && url.pathname.endsWith('/api/admin/dashboard')) payload={users:5,admins:2,workouts:68,exercises:201,sharedExercises:183,templates:13,sharedTemplates:6,drafts:5};
    else if(url.pathname.includes('/api/admin/')) { const resource=url.pathname.split('/')[3];const items=resource==='templates'?templates:resource==='sessions'?sessions:exercises;payload=items.find(x=>url.pathname.endsWith(x._id)) ?? {items,total:items.length,page:1,limit:20}; }
    else if(url.pathname.includes('/workout-sessions')){payload=sessions.find(x=>url.pathname.endsWith(x._id)) ?? (scenario==='empty'?[]:sessions); if(scenario==='empty' && !Array.isArray(payload))payload={...payload,exercises:[]};}
    else if(url.pathname.includes('/workout-drafts'))payload={...draft,purpose:routePath.includes('template')?'template':'workout',status:routePath.startsWith('/workout/')?'active':'building',exercises:scenario==='empty'?[]:draft.exercises};
@@ -133,9 +134,9 @@ let browser, ws;
   assert(info.scroll<=info.width+1,route[0]+' '+state+' horizontal overflow');
   if(width<1000)assert(info.fonts.every(x=>x>=16),route[0]+' input font size');
   assert.equal(await evalValue("document.documentElement.dataset.theme"),mode);
-  if(state==='populated') {assert(info.text.toLowerCase().includes(route[3].toLowerCase()),route[0]+' missing populated content: '+info.text);assert(info.heading);}
+  if(state==='populated') {const en=require('../src/i18n/locales/en.json'),sv=require('../src/i18n/locales/sv.json');const language=await evalValue('document.documentElement.lang');const key=Object.keys(en).find(key=>en[key]===route[3]);const expected=language==='sv' && key ? sv[key] : route[3];assert(info.text.toLowerCase().includes(expected.toLowerCase()),route[0]+' missing populated content: '+info.text);assert(info.heading);}
   if(state.endsWith('loading'))assert(info.busy && info.shapes>0,route[0]+' missing skeleton');
-  if(state==='error')assert(info.text.includes('The server could not complete your request') || route[0]==='workout' && info.text.includes('Unable to restore your workout'),route[0]+' missing friendly error');
+  if(state==='error')assert(info.text.includes('Servern kunde inte slutf') || info.text.includes('The server could not complete your request') || route[0]==='workout' && info.text.includes('Unable to restore your workout'),route[0]+' missing friendly error');
   if(state==='populated' && route[0].includes('library'))assert(await evalValue("[...document.querySelectorAll('article')].every(card=>{const figure=card.querySelector('figure'),text=card.querySelector('[class*=exerciseText]');return figure && figure.getBoundingClientRect().top>=text.getBoundingClientRect().bottom && figure.getBoundingClientRect().bottom<=card.getBoundingClientRect().bottom+1})"),'Library figure overlaps or is clipped');
   const shot=await send('Page.captureScreenshot' ,{format:'png'});fs.writeFileSync(path.join(process.env.TEMP,'complete-'+route[0]+'-'+mode+'-'+width+'-'+state+'.png'),Buffer.from(shot.data,'base64'));
   console.log('PASS',route[0],mode,width,state);
@@ -154,6 +155,112 @@ let browser, ws;
   assert(await evalValue("!!document.querySelector('[aria-pressed=true]')"));
   console.log('PASS recovery retains progress and retry restores checked set',mode,width);
  }
+
+
+
+ if(process.env.UI_CHECK_PHASE==='language-motion') {
+  for(const mode of ['light','dark'])for(const width of [375,1440]) {
+   await evalValue("localStorage.setItem('workout-language','en')");await visit(routes.find(route=>route[0]==='login'),mode,width);
+   await evalValue(`(()=>{const input=document.getElementById('email');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'alex@example.com');input.dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('button[aria-haspopup=menu]').click()})()`);await wait(80);
+   await evalValue(`document.querySelectorAll('[role=menuitemradio]')[1].click()`);await wait(70);
+   const shadow=await evalValue(`getComputedStyle(document.querySelector('[class*=appLayout]')).textShadow`);assert(!shadow.endsWith(' 0px 0px 0px'));
+   assert.equal(await evalValue(`!!document.querySelector('[class*=languageWave]')`),false);
+   assert.notEqual(await evalValue(`getComputedStyle(document.querySelector('button[aria-haspopup=menu] > span')).transform`),'none');
+   assert.equal(await evalValue('document.documentElement.lang'),'sv');await wait(420);
+   assert.equal(await evalValue('!!document.querySelector("[role=menu]")'),false);
+   assert.equal(await evalValue(`Number(getComputedStyle(document.querySelector('[class*=appLayout]')).textShadow.endsWith(' 0px 0px 0px'))`),1);
+   assert.equal(await evalValue(`document.getElementById('email').value`),'alex@example.com');
+   await evalValue(`document.querySelector('button[aria-haspopup=menu]').click()`);await wait(50);
+   await evalValue(`document.querySelectorAll('[role=menuitemradio]')[0].click()`);await wait(50);
+   await evalValue(`document.querySelectorAll('[role=menuitemradio]')[1].click()`);await wait(450);
+   assert.equal(await evalValue('document.documentElement.lang'),'sv');assert.equal(await evalValue(`Number(getComputedStyle(document.querySelector('[class*=appLayout]')).textShadow.endsWith(' 0px 0px 0px'))`),1);
+   await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await wait(50);
+   await evalValue(`document.querySelector('button[aria-haspopup=menu]').click()`);await wait(50);await evalValue(`document.querySelectorAll('[role=menuitemradio]')[0].click()`);await wait(30);
+   assert.equal(await evalValue('!!document.querySelector("[role=menu]")'),false);assert.equal(await evalValue(`Number(getComputedStyle(document.querySelector('[class*=appLayout]')).textShadow.endsWith(' 0px 0px 0px'))`),1);
+   await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});
+   console.log('PASS language icon flip and text shadow, delayed checkmark dismissal, rapid changes, retained inputs and reduced motion',mode,width);
+  }
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));await send('Page.navigate',{url:'about:blank'});await wait(200);await send('Browser.close');return;
+ }
+ if(process.env.UI_CHECK_PHASE==='localization-states') {
+  for(const language of (process.env.UI_CHECK_LANGUAGES?.split(',') ?? ['en','sv']))for(const mode of ['light','dark'])for(const width of [375,1440]) {
+   await evalValue('localStorage.setItem("workout-language",'+JSON.stringify(language)+')');
+   for(const name of ['library','history','public-templates','exercise-select']) {
+    const route=routes.find(route=>route[0]===name);
+    for(const state of ['loading','empty','error']) {
+     await visit(route,mode,width,state);
+     assert.equal(await evalValue('document.documentElement.lang'),language);
+    }
+   }
+   await visit(routes.find(route=>route[0]==='login'),mode,width);
+   await evalValue('document.querySelector("form").requestSubmit()');await wait(80);
+   assert.equal(await evalValue('document.activeElement.id'),'email');
+   assert(await evalValue('document.activeElement.getBoundingClientRect().top>=document.querySelector("nav").getBoundingClientRect().bottom'));
+   assert(await evalValue('document.querySelector("[role=alert]").textContent.includes('+JSON.stringify(language==='sv'?'obligatoriskt':'is required')+')'));
+   await evalValue('document.querySelector("button[aria-haspopup=menu]").click()');await wait(80);
+   await evalValue('document.querySelector("h1").dispatchEvent(new PointerEvent("pointerdown",{bubbles:true}))');
+   assert.equal(await evalValue('!!document.querySelector("[role=menu]")'),false);
+
+   await evalValue(`(()=>{for(const [id,value] of [['email','alex@example.com'],['password','wrongpassword']]){const input=document.getElementById(id);Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,value);input.dispatchEvent(new Event('input',{bubbles:true}));} document.querySelector('form').requestSubmit()})()`);await wait(350);
+   assert(await evalValue('document.querySelector("[role=alert]").textContent.includes('+JSON.stringify(language==='sv'?'Fel e-postadress':'Invalid email or password')+')'));
+   assert.equal(await evalValue('document.querySelector("button[type=submit]").disabled'),false);
+   assert.equal(await evalValue('document.getElementById("email").value'),'alex@example.com');
+   console.log('PASS translated loading/empty/error states, mobile focus scrolling, and outside-click dismissal',language,mode,width);
+  }
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
+  await send('Page.navigate',{url:'about:blank'});await wait(200);await send('Browser.close');return;
+ }
+
+ if(process.env.UI_CHECK_PHASE==='localization') {
+  const english=require('../src/i18n/locales/en.json'),swedish=require('../src/i18n/locales/sv.json');
+  const clickLanguage=async label=>{await evalValue(`document.querySelector('button[aria-haspopup="menu"]').click()`);await wait(80);await evalValue(`[...document.querySelectorAll('[role=menuitemradio]')].find(b=>b.textContent===${JSON.stringify(label)}).click()`);await wait(240);};
+  guest=true;routePath='/login';await evalValue('localStorage.clear()');await send('Page.navigate',{url:base+'/login'});await wait(900);
+  assert.equal(await evalValue('document.documentElement.lang'),'en');
+  await evalValue('document.querySelector("form").requestSubmit()');await wait(100);
+  assert.equal(await evalValue('document.activeElement.id'),'email');
+  assert(await evalValue(`document.querySelector('[aria-invalid=true]').getAttribute('aria-describedby')`));
+  await clickLanguage('Svenska');
+  assert.equal(await evalValue('document.documentElement.lang'),'sv');
+  assert(await evalValue(`document.querySelector('[role=alert]').textContent.includes('obligatoriskt')`));
+  await evalValue(`(()=>{const input=document.getElementById('email');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'alex@example.com');input.dispatchEvent(new Event('input',{bubbles:true}));})()`);await wait(100);
+  assert.equal(await evalValue(`document.getElementById('email').getAttribute('aria-invalid')`),null);
+  await clickLanguage('English');assert.equal(await evalValue(`document.getElementById('email').value`),'alex@example.com');
+  await evalValue(`document.querySelector('button[aria-haspopup=menu]').focus()`);
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowDown',code:'ArrowDown'});await wait(80);
+  assert.equal(await evalValue('document.activeElement.getAttribute("role")'),'menuitemradio');
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowDown',code:'ArrowDown'});
+  assert.equal(await evalValue('document.activeElement.textContent'),'Svenska');
+  await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape'});
+  assert.equal(await evalValue('document.activeElement.getAttribute("aria-haspopup")'),'menu');
+  assert.equal(await evalValue('!!document.querySelector("[role=menu]")'),false);
+  await clickLanguage('Svenska');await send('Page.reload');await wait(900);assert.equal(await evalValue('document.documentElement.lang'),'sv');
+  await evalValue(`localStorage.setItem('workout-language','unsupported')`);await send('Page.reload');await wait(900);assert.equal(await evalValue('document.documentElement.lang'),'en');
+  const adminRoutes=['overview','users','exercises','templates','sessions'].map(section=>['admin-'+section,section==='overview'?'/admin':'/admin/'+section,false,'Admin dashboard']);
+  for(const language of (process.env.UI_CHECK_LANGUAGES?.split(',') ?? ['en','sv'])) for(const mode of ['light','dark']) for(const width of [375,1440]) {
+   await evalValue('localStorage.setItem("workout-language",'+JSON.stringify(language)+')');
+   for(const route of [...routes,...adminRoutes]) {
+    await visit(route,mode,width);
+    assert.equal(await evalValue('document.documentElement.lang'),language);
+    const text=await evalValue('document.body.innerText');
+    assert(!/\b(?:common|Navbar|WorkoutPage|AdminPage)\.[a-zA-Z]/.test(text),'exposed translation key');
+    if(language==='sv') assert(!/\b(?:Log in|Choose muscle groups|Create shared exercise|Search exercises|Account settings|No description\.)\b/.test(text),'English UI left on '+route[0]+': '+text);
+   }
+   console.log('PASS all routes translated',language,mode,width);
+  }
+  await evalValue(`localStorage.setItem('workout-language','en')`);await visit(routes.find(r=>r[0]==='workout'),'dark',375);
+  await evalValue(`document.querySelector('button[aria-label="Complete set and start rest timer"]').click()`);await wait(400);
+  await evalValue(`document.querySelector('button[aria-label="Pause workout timer"]').click();document.querySelector('button[aria-label="Pause rest timer"]').click()`);await wait(150);
+  const before=await evalValue(`JSON.stringify([...document.querySelectorAll('input')].map(input=>input.value))`);
+  await clickLanguage('Svenska');
+  assert.equal(await evalValue('document.querySelectorAll("button[aria-pressed=true]").length'),1);
+  assert.equal(await evalValue(`JSON.stringify([...document.querySelectorAll('input')].map(input=>input.value))`),before);
+  assert(await evalValue(`!!document.querySelector('button[aria-label="Starta tr\u00e4ningstimern"]')`));
+  assert(await evalValue(`!!document.querySelector('button[aria-label="Starta vilotimern"]')`));
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
+  console.log('PASS language persistence, keyboard, inline validation updates, retained inputs, checked sets and paused timers');
+  await send('Page.navigate',{url:'about:blank'});await wait(200);await send('Browser.close');return;
+ }
+
  if(process.env.UI_CHECK_PHASE==='exercise-ux') {
   for(const mode of ['light','dark'])for(const width of [320,390,844,1440]) {
    await visit(routes.find(r=>r[0]==='exercise-select'),mode,width);

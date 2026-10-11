@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { t } from "../../../i18n";
 import { AnimatePresence, motion, useIsPresent, type HTMLMotionProps } from "motion/react";
 import { useMotionTransition } from "../../motion/useMotionTransition";
 import { useEffect, useId, useRef, type ReactNode } from "react";
@@ -15,6 +17,7 @@ type ModalProps = {
 };
 
 function DialogOverlay(props: HTMLMotionProps<"div">) {
+    useTranslation();
     const present = useIsPresent();
     return <motion.div {...props} inert={!present} aria-hidden={!present || undefined} />;
 }
@@ -26,6 +29,7 @@ export default function Modal({
     children,
     actions,
 }: ModalProps) {
+    useTranslation();
     const transition = useMotionTransition(0.15);
     const titleId = useId();
     const panelRef = useRef<HTMLDivElement>(null);
@@ -82,14 +86,14 @@ export default function Modal({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={title ? titleId : undefined}
-                aria-label={title ? undefined : "Workout dialog"}
+                aria-label={title ? undefined : t("Modal.workoutDialog")}
                 tabIndex={-1}
                 onClick={(event) => event.stopPropagation()}
             >
                 <Box className="modal-panel">
                     <div className="modal-header">
                         {title && <h2 id={titleId} className="modal-title">{title}</h2>}
-                        <button type="button" className="modal-close" aria-label="Close dialog" onClick={onClose}><X aria-hidden="true" size={20} /></button>
+                        <button type="button" className="modal-close" aria-label={t("Modal.closeDialog")} onClick={onClose}><X aria-hidden="true" size={20} /></button>
                     </div>
 
                     <div className="modal-content">{children}</div>

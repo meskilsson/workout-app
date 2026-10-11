@@ -1,3 +1,5 @@
+import { translateMessage, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { reportFormError, friendlyError } from "../../utils/formValidation";
 import ValidatedForm from "./ValidatedForm";
 import { useMutation } from "@tanstack/react-query";
@@ -10,6 +12,7 @@ import LoadingPredator from "../Loading/LoadingPredator";
 
 
 export default function ChangePasswordForm() {
+    useTranslation();
     const { user: authUser } = useAuth();
 
     const [currentPassword, setCurrentPassword] = useState("");
@@ -44,9 +47,9 @@ export default function ChangePasswordForm() {
             setNewPassword("");
             setConfirmPassword("");
 
-            setSuccess("Password updated successfully.");
+            setSuccess(t("ChangePasswordForm.passwordUpdatedSuccessfully"));
         } catch (error) {
-            if (!reportFormError(submittedForm, error)) setError(friendlyError(error, "Unable to update your account. Please try again."));
+            if (!reportFormError(submittedForm, error)) setError(friendlyError(error, t("common.unableToUpdateYourAccountPleaseTryAgain")));
         } finally {
             passwordMutation.reset();
         }
@@ -54,10 +57,10 @@ export default function ChangePasswordForm() {
 
     return (
         <section className={styles.section}>
-            <h2>Change password</h2>
+            <h2>{t("ChangePasswordForm.changePassword")}</h2>
 
             <ValidatedForm onSubmit={handleSubmit}>
-                <label htmlFor="currentPassword">Current password</label>
+                <label htmlFor="currentPassword">{t("ChangePasswordForm.currentPassword")}</label>
                 <input
                     id="currentPassword" name="currentPassword"
                     autoComplete="current-password"
@@ -67,7 +70,7 @@ export default function ChangePasswordForm() {
                     required
                 />
 
-                <label htmlFor="newPassword">New password</label>
+                <label htmlFor="newPassword">{t("ChangePasswordForm.newPassword")}</label>
                 <input
                     id="newPassword" name="newPassword" minLength={8} maxLength={100}
                     autoComplete="new-password"
@@ -77,7 +80,7 @@ export default function ChangePasswordForm() {
                     required
                 />
 
-                <label htmlFor="confirmPassword">Confirm new password</label>
+                <label htmlFor="confirmPassword">{t("ChangePasswordForm.confirmNewPassword")}</label>
                 <input
                     id="confirmPassword" name="confirmPassword" minLength={8} maxLength={100}
                     autoComplete="new-password"
@@ -87,19 +90,19 @@ export default function ChangePasswordForm() {
                     required
                 />
 
-                {error && <p id="password-change-error" className={styles.error} role="alert">{error}</p>}
-                {success && <p className={styles.success} role="status">{success}</p>}
+                {error && <p id="password-change-error" className={styles.error} role="alert">{translateMessage(error)}</p>}
+                {success && <p className={styles.success} role="status">{translateMessage(success)}</p>}
 
                 <Button variant="primary" type="submit" disabled={isLoading}>
                     {isLoading ? (
                         <LoadingPredator
                             size="small"
                             color="currentColor"
-                            label="Updating..."
+                            label={t("ChangePasswordForm.updating")}
                             showLabel
                         />
                     ) : (
-                        "Update password"
+                        t("ChangePasswordForm.updatePassword")
                     )}
                 </Button>
             </ValidatedForm>

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { activateWorkoutDraftRequest } from "./workoutDraftApi";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 import type {
@@ -17,7 +18,7 @@ export async function getPublicWorkoutTemplatesRequest(signal?: AbortSignal): Pr
 
     return parseJsonResponse<WorkoutTemplate[]>(
         response,
-        "Failed to fetch public workout templates",
+        t("workoutTemplateApi.failedToFetchPublicWorkoutTemplates"),
     );
 }
 
@@ -32,7 +33,7 @@ export async function getPublicWorkoutTemplateByIdRequest(
 
     return parseJsonResponse<WorkoutTemplate>(
         response,
-        "Failed to fetch public workout template",
+        t("workoutTemplateApi.failedToFetchPublicWorkoutTemplate"),
     );
 }
 
@@ -44,7 +45,7 @@ export async function getMyWorkoutTemplatesRequest(signal?: AbortSignal): Promis
 
     return parseJsonResponse<WorkoutTemplate[]>(
         response,
-        "Failed to fetch your workout templates",
+        t("workoutTemplateApi.failedToFetchYourWorkoutTemplates"),
     );
 }
 
@@ -62,7 +63,7 @@ export async function getMyWorkoutTemplateByIdRequest(
 
     return parseJsonResponse<WorkoutTemplate>(
         response,
-        "Failed to fetch your workout template",
+        t("workoutTemplateApi.failedToFetchYourWorkoutTemplate"),
     );
 }
 
@@ -80,7 +81,7 @@ export async function createWorkoutTemplateRequest(
 
     return parseJsonResponse<WorkoutTemplate>(
         response,
-        "Failed to create workout template",
+        t("workoutTemplateApi.failedToCreateWorkoutTemplate"),
     );
 }
 
@@ -102,7 +103,7 @@ export async function updateWorkoutTemplateRequest(
 
     return parseJsonResponse<WorkoutTemplate>(
         response,
-        "Failed to update workout template",
+        t("workoutTemplateApi.failedToUpdateWorkoutTemplate"),
     );
 }
 
@@ -123,7 +124,7 @@ export async function deleteWorkoutTemplateRequest(
     return parseJsonResponse<{
         message: string;
         deletedTemplateId: string;
-    }>(response, "Failed to delete workout template");
+    }>(response, t("common.failedToDeleteWorkoutTemplate"));
 }
 
 export async function startWorkoutFromTemplateRequest(
@@ -139,7 +140,7 @@ export async function startWorkoutFromTemplateRequest(
 
     const draft = await parseJsonResponse<StartedWorkoutDraft>(
         response,
-        "Failed to start workout from template",
+        t("common.failedToStartWorkoutFromTemplate"),
     );
     return activateWorkoutDraftRequest(draft._id);
 }
@@ -162,7 +163,7 @@ export async function createWorkoutTemplateFromDraftRequest(
 
     return parseJsonResponse<WorkoutTemplate>(
         response,
-        "Failed to save workout template",
+        t("workoutTemplateApi.failedToSaveWorkoutTemplate"),
     );
 }
 
@@ -179,6 +180,6 @@ export async function createTemplateEditDraftRequest(
 
     return parseJsonResponse<StartedWorkoutDraft>(
         response,
-        "Failed to prepare template for editing",
+        t("workoutTemplateApi.failedToPrepareTemplateForEditing"),
     );
 }

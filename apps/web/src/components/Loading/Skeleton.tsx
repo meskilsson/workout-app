@@ -1,4 +1,6 @@
-﻿import { useReducedMotion } from "../motion/useReducedMotion";
+import { translateMessage } from "../../i18n";
+import { useTranslation } from "react-i18next";
+import { useReducedMotion } from "../motion/useReducedMotion";
 import { motion } from "motion/react";
 import type { CSSProperties } from "react";
 import styles from "./LoadingState.module.css";
@@ -8,15 +10,18 @@ export type SkeletonLayout = "result" | "sessionDetails" | "login" | "signup" | 
 
 type SkeletonProps = { width?: string; height?: string; className?: string };
 export function Skeleton({ width = "100%", height = "1rem", className = "" }: SkeletonProps) {
+    useTranslation();
     const reduced = useReducedMotion();
     return <div aria-hidden="true" className={`${styles.shape} ${className}`} style={{ width, height } as CSSProperties}>
         <motion.span className={styles.pulse} initial={{ opacity: 0 }} animate={{ opacity: reduced ? 0 : [0, 1, 0] }} transition={{ duration: reduced ? 0 : 1.8, ease: "easeInOut", repeat: reduced ? 0 : Infinity }} />
     </div>;
 }
 export function LoadingAnnouncement({ message }: { message: string }) {
-    return <span className={styles.srOnly} role="status" aria-live="polite">{message}</span>;
+    useTranslation();
+    return <span className={styles.srOnly} role="status" aria-live="polite">{translateMessage(message)}</span>;
 }
 export function SkeletonContent({ layout }: { layout: SkeletonLayout }) {
+    useTranslation();
     if (layout === "login" || layout === "signup") return <div className={`${styles.content} ${styles.auth}`}>
         <div className={authStyles.authWrap}>
             <div className={styles.authHeading}><Skeleton width="10rem" height="2rem" /></div>

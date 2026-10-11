@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { t } from "../../i18n";
 import { motion } from "motion/react";
 import { useMotionTransition } from "../../components/motion/useMotionTransition";
 import { useNavigate } from "../../routes/navigationHooks";
@@ -10,37 +12,38 @@ import { useAuth } from "../../context/AuthContext";
 import styles from "./Homepage.module.css";
 
 export default function Homepage() {
+    useTranslation();
     const transition = useMotionTransition(0.15);
     const navigate = useNavigate();
     const { user, isAuthenticated } = useAuth();
     const { currentWorkoutId } = useCurrentWorkout();
     const { state } = useWorkoutTimer();
     const destinations = [
-        { title: "Workout templates", description: "Choose a routine or manage your own.", icon: Dumbbell, path: "/templates" },
-        { title: "Exercise library", description: "Find movements and the muscles they target.", icon: BookOpen, path: "/library" },
-        ...(isAuthenticated ? [{ title: "Workout history", description: "Review completed sessions or train them again.", icon: History, path: "/profile/workouts" }] : []),
+        { title: t("common.workoutTemplates"), description: t("Homepage.chooseARoutineOrManageYourOwn"), icon: Dumbbell, path: "/templates" },
+        { title: t("common.exerciseLibrary"), description: t("Homepage.findMovementsAndTheMusclesTheyTarget"), icon: BookOpen, path: "/library" },
+        ...(isAuthenticated ? [{ title: t("common.workoutHistory"), description: t("Homepage.reviewCompletedSessionsOrTrainThemAgain"), icon: History, path: "/profile/workouts" }] : []),
     ];
     return (
         <div className={styles.page}>
             <header className={styles.intro}>
-                <p className={styles.kicker}>{user?.name ? `Welcome back, ${user.name}.` : "Your training, in one place."}</p>
-                <h1 className={styles.title}>Ready for your next session?</h1>
-                <p className={styles.subtitle}>Plan your workout. Log your sets. Keep moving forward.</p>
+                <p className={styles.kicker}>{user?.name ? t("Homepage.welcomeBackValue", { value0: user.name }) : t("Homepage.yourTrainingInOnePlace")}</p>
+                <h1 className={styles.title}>{t("Homepage.readyForYourNextSession")}</h1>
+                <p className={styles.subtitle}>{t("Homepage.planYourWorkoutLogYourSetsKeepMovingForward")}</p>
             </header>
-            <section className={styles.sessionSection} aria-label="Start or resume training">
+            <section className={styles.sessionSection} aria-label={t("Homepage.startOrResumeTraining")}>
                 {isAuthenticated && currentWorkoutId && <div className={styles.activeSession}>
-                    <div><p className={styles.kicker}>Active session</p><h2>Your workout is ready to continue.</h2>
-                        <p className={styles.sessionTime}>{formatElapsedMilliseconds(state.elapsedTime)} <span>{state.isRunning ? "elapsed" : "paused"}</span></p>
+                    <div><p className={styles.kicker}>{t("Homepage.activeSession")}</p><h2>{t("Homepage.yourWorkoutIsReadyToContinue")}</h2>
+                        <p className={styles.sessionTime}>{formatElapsedMilliseconds(state.elapsedTime)} <span>{state.isRunning ? t("common.elapsed") : t("common.paused")}</span></p>
                     </div>
-                    <Button variant="secondary" className={styles.resumeButton} onClick={() => navigate(`/workout/${currentWorkoutId}`)} icon={ArrowRight}>Resume workout</Button>
+                    <Button variant="secondary" className={styles.resumeButton} onClick={() => navigate(`/workout/${currentWorkoutId}`)} icon={ArrowRight}>{t("common.resumeWorkout")}</Button>
                 </div>}
                 <div className={styles.newSession}>
-                    <div><h2>Start a workout</h2><p>Choose your exercises and build a session.</p></div>
-                    <Button variant="secondary" onClick={() => navigate("/workout-select")} icon={Plus}>New workout</Button>
+                    <div><h2>{t("Homepage.startAWorkout")}</h2><p>{t("Homepage.chooseYourExercisesAndBuildASession")}</p></div>
+                    <Button variant="secondary" onClick={() => navigate("/workout-select")} icon={Plus}>{t("Homepage.newWorkout")}</Button>
                 </div>
             </section>
             <section className={styles.section} aria-labelledby="training-heading">
-                <h2 id="training-heading">Your training</h2>
+                <h2 id="training-heading">{t("Homepage.yourTraining")}</h2>
                 <div className={styles.destinations}>
                     {destinations.map(item => <motion.button initial={false} animate={{ backgroundColor: "transparent" }} whileHover={{ backgroundColor: "var(--color-primary-soft)" }} transition={transition} key={item.path} type="button" className={styles.destination} onClick={() => navigate(item.path)}>
                         <Icon icon={item.icon} /><span><strong>{item.title}</strong><span>{item.description}</span></span><Icon icon={ArrowRight} />

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { t } from "../../i18n";
 import { Play, Pause, Timer } from "lucide-react";
 import Icon from "../ui/icon/Icon";
 import {
@@ -11,6 +13,7 @@ import Button from "../ui/button/Button";
 import styles from "./WorkoutDurationTimer.module.css";
 
 export default function WorkoutDurationTimer() {
+    useTranslation();
     const { state, start, pause } = useWorkoutTimer();
     const isPaused = !state.isRunning;
 
@@ -25,7 +28,7 @@ export default function WorkoutDurationTimer() {
 
     return (
         <section className={styles.timerCard}>
-            <p className={styles.kicker}><Icon icon={Timer} /> Workout duration</p>
+            <p className={styles.kicker}><Icon icon={Timer} /> {t("WorkoutDurationTimer.workoutDuration")}</p>
 
             <div className={styles.timeActions}>
                 <strong className={styles.time}>
@@ -37,7 +40,7 @@ export default function WorkoutDurationTimer() {
                     variant="secondary"
                     onClick={handleToggleTimer}
                     className={styles.iconButton}
-                    aria-label={isPaused ? "Start workout timer" : "Pause workout timer"}
+                    aria-label={isPaused ? t("WorkoutDurationTimer.startWorkoutTimer") : t("WorkoutDurationTimer.pauseWorkoutTimer")}
                 >
                     {isPaused ? (
                         <Icon icon={Play} className={styles.timerIcon} />

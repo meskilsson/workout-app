@@ -1,3 +1,5 @@
+import { translateMessage, displayValue, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
 import { cardRest, cardHover } from "../../components/motion/presets";
 import { Plus, ArrowLeft, Trash2 } from "lucide-react";
@@ -32,6 +34,7 @@ type Exercise = {
 };
 
 export default function ProfileExercisesPage() {
+    useTranslation();
     const navigate = useNavigate();
 
     const { user } = useAuth();
@@ -43,7 +46,7 @@ export default function ProfileExercisesPage() {
     const isLoading = exercisesQuery.isFetching;
     const hasLoadedOnce = !exercisesQuery.isPending;
     const [actionError, setError] = useState("");
-    const error = actionError || (exercisesQuery.error ? friendlyError(exercisesQuery.error, "Unable to load this content. Please try again.") : "");
+    const error = actionError || (exercisesQuery.error ? friendlyError(exercisesQuery.error, t("common.unableToLoadThisContentPleaseTryAgain")) : "");
     const [exerciseToDelete, setExerciseToDelete] = useState<Exercise | null>(null);
     const deleteMutation = useDeleteExerciseMutation();
     const isDeleting = deleteMutation.isPending;
@@ -61,7 +64,7 @@ export default function ProfileExercisesPage() {
             if (err instanceof Error) {
                 setError(friendlyError(err));
             } else {
-                setError("Failed to delete exercise");
+                setError(t("common.failedToDeleteExercise"));
             }
         }
     }
@@ -72,21 +75,19 @@ export default function ProfileExercisesPage() {
                 layout="list"
                 className={styles.page}
                 variant="card"
-                title="Your exercises"
-                message="Loading custom exercises..."
+                title={t("ProfileExercisesPage.yourExercises")}
+                message={t("ProfileExercisesPage.loadingCustomExercises")}
             />
         );
     }
 
     return (
         <div className={styles.page}>
-            {isLoading && <LoadingAnnouncement message="Updating content..." />}
+            {isLoading && <LoadingAnnouncement message={t("common.updatingContent")} />}
             <div className={styles.header}>
                 <div>
-                    <h1 className={styles.title}>My exercises</h1>
-                    <p className={styles.subtitle}>
-                        Edit or remove your custom movements.
-                    </p>
+                    <h1 className={styles.title}>{t("common.myExercises")}</h1>
+                    <p className={styles.subtitle}> {t("ProfileExercisesPage.editOrRemoveYourCustomMovements")} </p>
 
                     <Button
                         type="button"
@@ -94,7 +95,7 @@ export default function ProfileExercisesPage() {
                         style={{ minWidth: "3.25rem", marginTop: "1rem" }}
                         iconOnly
                         className={styles.backButton}
-                    aria-label="Go back"
+                    aria-label={t("common.goBack")}
                         onClick={() => navigate(-1)}
 
                     >
@@ -102,22 +103,18 @@ export default function ProfileExercisesPage() {
                     </Button>
                 </div>
 
-                <Button icon={Plus} onClick={() => navigate("/create-exercise")}>
-                    Create exercise
-                </Button>
+                <Button icon={Plus} onClick={() => navigate("/create-exercise")}> {t("common.createExercise")} </Button>
             </div>
 
             {error && (
                 <Card className={styles.stateCard}>
-                    <p className={styles.errorText} role="alert">{error}</p>
+                    <p className={styles.errorText} role="alert">{translateMessage(error)}</p>
                 </Card>
             )}
 
             {exercises.length === 0 && !error ? (
                 <Card className={styles.stateCard}>
-                    <p className={styles.stateText}>
-                        No custom exercises yet. Create one to add a movement.
-                    </p>
+                    <p className={styles.stateText}> {t("ProfileExercisesPage.noCustomExercisesYetCreateOneToAddA")} </p>
                 </Card>
             ) : (
                 <div className={styles.exerciseList} aria-busy={isLoading}>
@@ -132,19 +129,19 @@ export default function ProfileExercisesPage() {
                                     <div className={styles.exerciseMeta}>
                                         {exercise.exerciseType && (
                                             <span className={styles.exerciseMetaItem}>
-                                                {exercise.exerciseType}
+                                                {displayValue(exercise.exerciseType)}
                                             </span>
                                         )}
 
                                         {exercise.difficulty && (
                                             <span className={styles.exerciseMetaItem}>
-                                                {exercise.difficulty}
+                                                {displayValue(exercise.difficulty)}
                                             </span>
                                         )}
 
                                         {exercise.equipment && (
                                             <span className={styles.exerciseMetaItem}>
-                                                {exercise.equipment}
+                                                {displayValue(exercise.equipment)}
                                             </span>
                                         )}
                                     </div>
@@ -156,16 +153,12 @@ export default function ProfileExercisesPage() {
                                         onClick={() =>
                                             navigate(`/edit-exercise/${exercise._id}`)
                                         }
-                                    >
-                                        Edit
-                                    </Button>
+                                    > {t("common.edit")} </Button>
 
                                     <Button
                                         variant="danger" icon={Trash2}
                                         onClick={() => setExerciseToDelete(exercise)}
-                                    >
-                                        Delete
-                                    </Button>
+                                    > {t("common.delete")} </Button>
                                 </div>
                             </div>
 
@@ -174,10 +167,10 @@ export default function ProfileExercisesPage() {
                                     <div className={styles.muscleTags}>
                                         {exercise.primaryMuscles.map((muscle) => (
                                             <span
-                                                key={`${exercise._id}-${muscle}`}
+                                                key={`${exercise._id}-${displayValue(muscle)}`}
                                                 className={styles.exerciseTag}
                                             >
-                                                {muscle}
+                                                {displayValue(muscle)}
                                             </span>
                                         ))}
                                     </div>
@@ -194,7 +187,7 @@ export default function ProfileExercisesPage() {
             )}
 
             <Modal
-                title="Delete exercise?"
+                title={t("ProfileExercisesPage.deleteExercise")}
                 isOpen={!!exerciseToDelete}
                 onClose={() => {
                     if (!isDeleting) {
@@ -207,9 +200,7 @@ export default function ProfileExercisesPage() {
                             variant="secondary"
                             onClick={() => setExerciseToDelete(null)}
                             disabled={isDeleting}
-                        >
-                            Cancel
-                        </Button>
+                        > {t("common.cancel")} </Button>
 
                         <Button
                             variant="danger" icon={Trash2}
@@ -220,21 +211,20 @@ export default function ProfileExercisesPage() {
                                 <LoadingPredator
                                     size="small"
                                     color="currentColor"
-                                    label="Deleting..."
+                                    label={t("common.deleting")}
                                     showLabel
                                 />
                             ) : (
-                                "Delete"
+                                t("common.delete")
                             )}
                         </Button>
                     </>
                 }
             >
-                <p className={styles.modalText}>
-                    Are you sure you want to delete{" "}
+                <p className={styles.modalText}> {t("common.areYouSureYouWantToDelete")}{" "}
                     <strong>{exerciseToDelete?.name}</strong>?
                 </p>
-                {error && <p className={styles.errorText} role="alert">{error}</p>}
+                {error && <p className={styles.errorText} role="alert">{translateMessage(error)}</p>}
             </Modal>
         </div>
     );

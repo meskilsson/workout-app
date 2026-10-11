@@ -1,3 +1,5 @@
+import { translateMessage, displayValue, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { reportFormError, friendlyError } from "../../utils/formValidation";
 import ValidatedForm from "../../components/forms/ValidatedForm";
 import { motion } from "motion/react";
@@ -25,6 +27,7 @@ import {
 import styles from "./CreateExercisePage.module.css";
 
 export default function CreateExercisePage() {
+    useTranslation();
     const fieldMotion = useFieldMotion(0.2);
     const navigate = useNavigate();
 
@@ -72,7 +75,7 @@ export default function CreateExercisePage() {
 
             navigate("/library");
         } catch (err) {
-            if (!reportFormError(submittedForm, err)) setError(friendlyError(err, "Unable to save. Please try again."));
+            if (!reportFormError(submittedForm, err)) setError(friendlyError(err, t("common.unableToSavePleaseTryAgain")));
         }
     }
 
@@ -87,47 +90,45 @@ export default function CreateExercisePage() {
                     style={{ minWidth: "3.25rem", marginBottom: "1rem" }}
                     iconOnly
                         className={styles.backButton}
-                    aria-label="Go back"
+                    aria-label={t("common.goBack")}
                     onClick={() => navigate(-1)}
 
                 >
                     <Icon icon={ArrowLeft} />
                 </Button>
                 <div className={styles.header}>
-                    <h1 className={styles.title}>Create exercise</h1>
-                    <p className={styles.subtitle}>
-                        Add your own movement to your exercise library.
-                    </p>
+                    <h1 className={styles.title}>{t("common.createExercise")}</h1>
+                    <p className={styles.subtitle}> {t("CreateExercisePage.addYourOwnMovementToYourExerciseLibrary")} </p>
                 </div>
 
                 <ValidatedForm onSubmit={handleSubmit} className={styles.form}>
                     <div className={styles.field}>
-                        <label htmlFor="name">Name *</label>
+                        <label htmlFor="name">{t("common.name2")}</label>
                         <motion.input {...fieldMotion("name", selectRest, selectFocus)}
                             id="name" required minLength={2} maxLength={50}
                             type="text"
-                            placeholder="e.g. Cable Chest Fly"
+                            placeholder={t("common.eGCableChestFly")}
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                         />
                     </div>
 
                     <div className={styles.field}>
-                        <label htmlFor="description">Description</label>
+                        <label htmlFor="description">{t("common.description")}</label>
                         <motion.input {...fieldMotion("description", selectRest, selectFocus)}
                             id="description"
                             type="text"
-                            placeholder="Short description"
+                            placeholder={t("common.shortDescription")}
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                         />
                     </div>
 
                     <div className={styles.field}>
-                        <label htmlFor="instructions">Instructions</label>
+                        <label htmlFor="instructions">{t("common.instructions")}</label>
                         <motion.textarea {...fieldMotion("instructions", selectRest, selectFocus)}
                             id="instructions"
-                            placeholder="How to perform the exercise"
+                            placeholder={t("common.howToPerformTheExercise")}
                             value={instructions}
                             onChange={(e) => setInstructions(e.target.value)}
                             className={styles.textarea}
@@ -136,7 +137,7 @@ export default function CreateExercisePage() {
 
                     <div className={styles.row}>
                         <div className={styles.field}>
-                            <label htmlFor="exerciseType">Exercise type</label>
+                            <label htmlFor="exerciseType">{t("common.exerciseType")}</label>
                             <motion.select {...fieldMotion("exerciseType", selectRest, selectFocus)}
                                 id="exerciseType"
                                 value={exerciseType}
@@ -144,17 +145,17 @@ export default function CreateExercisePage() {
                                     setExerciseType((e.target.value as ExerciseType | "") || "")
                                 }
                             >
-                                <option value="">Select type</option>
+                                <option value="">{t("common.selectType")}</option>
                                 {EXERCISE_TYPE_OPTIONS.map((type) => (
                                     <option key={type} value={type}>
-                                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                                        {displayValue(type)}
                                     </option>
                                 ))}
                             </motion.select>
                         </div>
 
                         <div className={styles.field}>
-                            <label htmlFor="difficulty">Difficulty</label>
+                            <label htmlFor="difficulty">{t("common.difficulty")}</label>
                             <motion.select {...fieldMotion("difficulty", selectRest, selectFocus)}
                                 id="difficulty"
                                 value={difficulty}
@@ -162,10 +163,10 @@ export default function CreateExercisePage() {
                                     setDifficulty((e.target.value as Difficulty | "") || "")
                                 }
                             >
-                                <option value="">Select difficulty</option>
+                                <option value="">{t("common.selectDifficulty")}</option>
                                 {DIFFICULTY_OPTIONS.map((level) => (
                                     <option key={level} value={level}>
-                                        {level.charAt(0).toUpperCase() + level.slice(1)}
+                                        {displayValue(level)}
                                     </option>
                                 ))}
                             </motion.select>
@@ -173,7 +174,7 @@ export default function CreateExercisePage() {
                     </div>
 
                     <div className={styles.field}>
-                        <label htmlFor="equipment">Equipment</label>
+                        <label htmlFor="equipment">{t("common.equipment")}</label>
                         <motion.select {...fieldMotion("equipment", selectRest, selectFocus)}
                             id="equipment"
                             value={equipment}
@@ -181,20 +182,20 @@ export default function CreateExercisePage() {
                                 setEquipment((e.target.value as Equipment | "") || "")
                             }
                         >
-                            <option value="">Select equipment</option>
+                            <option value="">{t("common.selectEquipment")}</option>
                             {EQUIPMENT_OPTIONS.map((item) => (
                                 <option key={item} value={item}>
-                                    {item.charAt(0).toUpperCase() + item.slice(1)}
+                                    {displayValue(item)}
                                 </option>
                             ))}
                         </motion.select>
                     </div>
 
                     <div className={styles.field}>
-                        <span id="primary-muscles-label">Primary muscles</span>
+                        <span id="primary-muscles-label">{t("common.primaryMuscles")}</span>
                         <div className={styles.checkboxGrid} role="group" aria-labelledby="primary-muscles-label">
                             {MUSCLE_OPTIONS.map((muscle) => (
-                                <motion.label key={muscle} className={styles.checkboxOption} initial={false}
+                                <motion.label key={displayValue(muscle)} className={styles.checkboxOption} initial={false}
                                     animate={{ backgroundColor: "var(--color-surface-light)", borderColor: "var(--color-border)" }}
                                     whileHover={{ backgroundColor: "var(--color-surface-soft)", borderColor: "var(--color-primary-border)" }} transition={fieldMotion("checkbox", {}, {}).transition}>
                                     <input
@@ -202,17 +203,17 @@ export default function CreateExercisePage() {
                                         checked={primaryMuscles.includes(muscle)}
                                         onChange={() => toggleMuscle(muscle, setPrimaryMuscles)}
                                     />
-                                    <span>{muscle}</span>
+                                    <span>{displayValue(muscle)}</span>
                                 </motion.label>
                             ))}
                         </div>
                     </div>
 
                     <div className={styles.field}>
-                        <span id="secondary-muscles-label">Secondary muscles</span>
+                        <span id="secondary-muscles-label">{t("common.secondaryMuscles")}</span>
                         <div className={styles.checkboxGrid} role="group" aria-labelledby="secondary-muscles-label">
                             {MUSCLE_OPTIONS.map((muscle) => (
-                                <motion.label key={muscle} className={styles.checkboxOption} initial={false}
+                                <motion.label key={displayValue(muscle)} className={styles.checkboxOption} initial={false}
                                     animate={{ backgroundColor: "var(--color-surface-light)", borderColor: "var(--color-border)" }}
                                     whileHover={{ backgroundColor: "var(--color-surface-soft)", borderColor: "var(--color-primary-border)" }} transition={fieldMotion("checkbox", {}, {}).transition}>
                                     <input
@@ -220,33 +221,31 @@ export default function CreateExercisePage() {
                                         checked={secondaryMuscles.includes(muscle)}
                                         onChange={() => toggleMuscle(muscle, setSecondaryMuscles)}
                                     />
-                                    <span>{muscle}</span>
+                                    <span>{displayValue(muscle)}</span>
                                 </motion.label>
                             ))}
                         </div>
                     </div>
 
-                    {error && <p className={styles.error} role="alert">{error}</p>}
+                    {error && <p className={styles.error} role="alert">{translateMessage(error)}</p>}
 
                     <div className={styles.actions}>
                         <Button
                             type="button"
                             variant="ghost"
                             onClick={() => navigate("/")}
-                        >
-                            Cancel
-                        </Button>
+                        > {t("common.cancel")} </Button>
 
                         <Button icon={Plus} type="submit" disabled={isLoading}>
                             {isLoading ? (
                                 <LoadingPredator
                                     size="small"
                                     color="currentColor"
-                                    label="Creating..."
+                                    label={t("CreateExercisePage.creating")}
                                     showLabel
                                 />
                             ) : (
-                                "Create exercise"
+                                t("common.createExercise")
                             )}
                         </Button>
                     </div>

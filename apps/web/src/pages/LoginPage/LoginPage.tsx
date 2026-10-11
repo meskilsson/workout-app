@@ -1,3 +1,5 @@
+import { translateMessage, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { reportFormError, friendlyError } from "../../utils/formValidation";
 import ValidatedForm from "../../components/forms/ValidatedForm";
 import { motion } from "motion/react";
@@ -22,6 +24,7 @@ const authRest = { backgroundColor: "var(--auth-input)", borderColor: "transpare
 const authFocus = { ...authRest, borderBottomColor: "var(--color-focus)" };
 
 export default function LoginPage() {
+    useTranslation();
     const fieldMotion = useFieldMotion(0.18);
     const reducedMotion = useReducedMotion();
     const navigate = useNavigate();
@@ -48,7 +51,7 @@ export default function LoginPage() {
             login(user);
             navigate("/");
         } catch (err) {
-            if (!reportFormError(submittedForm, err)) setError(friendlyError(err, "Unable to log in. Please try again."));
+            if (!reportFormError(submittedForm, err)) setError(friendlyError(err, t("LoginPage.unableToLogInPleaseTryAgain")));
         }
     }
 
@@ -57,17 +60,17 @@ export default function LoginPage() {
             <div className={styles.authWrap} aria-busy={isLoading}>
                 <div className={styles.topText}>
 
-                    <h1>Log in</h1>
+                    <h1>{t("common.logIn")}</h1>
                 </div>
 
                     <ValidatedForm className={styles.form} onSubmit={handleSubmit}>
                         <div className={styles.field}>
-                            <label htmlFor="email">Email</label>
+                            <label htmlFor="email">{t("common.email")}</label>
 
                             <motion.input {...fieldMotion("email", authRest, authFocus)}
                                 id="email"
                                 type="email"
-                                placeholder="you@example.com"
+                                placeholder={t("common.youExampleCom")}
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 autoComplete="email" autoCapitalize="none" spellCheck={false}
@@ -76,12 +79,12 @@ export default function LoginPage() {
                         </div>
 
                         <div className={styles.field}>
-                            <label htmlFor="password">Password</label>
+                            <label htmlFor="password">{t("common.password")}</label>
 
                             <motion.input {...fieldMotion("password", authRest, authFocus)}
                                 id="password"
                                 type="password"
-                                placeholder="Your password"
+                                placeholder={t("LoginPage.yourPassword")}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 autoComplete="current-password"
@@ -91,7 +94,7 @@ export default function LoginPage() {
 
                         {error && (
                             <p className={styles.error} role="alert">
-                                {error}
+                                {translateMessage(error)}
                             </p>
                         )}
 
@@ -102,16 +105,13 @@ export default function LoginPage() {
                         transition={{ duration: 1.15, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.2 }} />
                 </span>}
                             <span className={styles.submitLabel}>
-                            {isLoading ? <span role="status">Logging in...</span> : "Log in"}
+                            {isLoading ? <span role="status">{t("LoginPage.loggingIn")}</span> : t("common.logIn")}
                             </span><span className={styles.submitArrow}><Icon icon={ArrowRight} /></span>
                         </Button>
                     </ValidatedForm>
 
-                <p className={styles.bottomText}>
-                    No account?{" "}
-                    <button type="button" onClick={() => navigate("/signup")}>
-                        Register
-                    </button>
+                <p className={styles.bottomText}> {t("LoginPage.noAccount")}{" "}
+                    <button type="button" onClick={() => navigate("/signup")}> {t("common.register")} </button>
                 </p>
             </div>
         </Box>

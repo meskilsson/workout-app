@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { t } from "../../i18n";
 import Modal from "../ui/modal/Modal";
 import RestDurationForm from "./RestDurationForm";
 import { useAuth } from "../../context/AuthContext";
@@ -17,6 +19,7 @@ import {
 
 
 export default function RestTimer() {
+    useTranslation();
     const reduced = useReducedMotion();
     const [scope, animate] = useAnimate<HTMLElement>();
     useEffect(() => {
@@ -36,11 +39,11 @@ export default function RestTimer() {
     }, []);
     const [alertsEnabled, setAlertsEnabled] = useState(restAlertsEnabled);
 
-    if (cardioActive) return <p role="status">Cardio session controls its work and rest phases. Pause cardio to use the manual rest timer.</p>;
+    if (cardioActive) return <p role="status">{t("RestTimer.cardioSessionControlsItsWorkAndRestPhasesPause")}</p>;
     return (
         <section className={styles.timer}>
             <div className={styles.info}>
-                <span className={styles.label}><Icon icon={Timer} /> Rest</span>
+                <span className={styles.label}><Icon icon={Timer} /> {t("RestTimer.rest")}</span>
 
                 <motion.strong ref={scope} className={styles.time}>
                     {formatCountdownMilliseconds(state.timeLeft)}
@@ -51,9 +54,7 @@ export default function RestTimer() {
                         const value = event.target.checked;
                         setRestAlertsEnabled(value);
                         setAlertsEnabled(value);
-                    }} />
-                    Rest alerts
-                </label>
+                    }} /> {t("RestTimer.restAlerts")} </label>
 
             <div className={styles.controls}>
                 <div className={styles.actions}>
@@ -62,7 +63,7 @@ export default function RestTimer() {
                         variant="secondary"
                         onClick={state.isRunning ? pause : start}
                         className={styles.iconButton}
-                        aria-label={state.isRunning ? "Pause rest timer" : "Start rest timer"}
+                        aria-label={state.isRunning ? t("RestTimer.pauseRestTimer") : t("RestTimer.startRestTimer")}
                     >
                         <Icon icon={state.isRunning ? Pause : Play} className={styles.timerIcon} />
                     </Button>
@@ -72,19 +73,19 @@ export default function RestTimer() {
                         variant="ghost"
                         onClick={reset}
                         className={styles.iconButton}
-                        aria-label="Reset rest timer"
+                        aria-label={t("RestTimer.resetRestTimer")}
                     >
                         <Icon icon={RotateCcw} className={styles.timerIcon} />
                     </Button>
                     <Button type="button" variant="secondary" className={styles.iconButton}
-                        aria-label="Set rest duration" onClick={() => {
+                        aria-label={t("RestTimer.setRestDuration")} onClick={() => {
                             setDurationOpen(true);
                         }}>
                         <Icon icon={SlidersHorizontal} className={styles.timerIcon} />
                     </Button>
                 </div>
             </div>
-            <Modal title="Rest duration" isOpen={durationOpen} onClose={() => setDurationOpen(false)}>
+            <Modal title={t("RestTimer.restDuration")} isOpen={durationOpen} onClose={() => setDurationOpen(false)}>
                 {durationOpen && <RestDurationForm duration={state.duration} disabled={!user}
                     onCancel={() => setDurationOpen(false)} onSave={durationMs => {
                         if (!user) return;

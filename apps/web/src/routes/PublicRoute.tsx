@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { t } from "../i18n";
 import { Navigate } from "./navigation";
 
 import { useAuth } from "../context/AuthContext";
@@ -9,11 +11,12 @@ export default function PublicRoute({
 }: {
     children: React.ReactNode;
 }) {
+    useTranslation();
     const { isAuthenticated, loading } = useAuth();
 
     if (loading) {
         return (
-            <AppLoadingSkeleton message="Checking your session..." />
+            <AppLoadingSkeleton message={t("common.checkingYourSession")} />
         );
     }
 

@@ -1,3 +1,5 @@
+import { displayValue, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import BodyHighlighter from "@mjcdev/react-body-highlighter";
 import { useId } from "react";
 import { mapMusclesToBodyHighlighterData } from "../../utils/muscleProfile";
@@ -20,6 +22,7 @@ export default function MuscleDummy({
     variant = "full",
     gender,
 }: MuscleDummyProps) {
+    useTranslation();
     const descriptionId = useId();
     const { gender: selectedGender } = useBodyModel();
 
@@ -44,7 +47,7 @@ export default function MuscleDummy({
         >
             <div className={styles.bodyViews} aria-hidden="true">
                 <div className={styles.bodyView}>
-                    <span className={styles.bodyLabel}>Front</span>
+                    <span className={styles.bodyLabel}>{t("MuscleDummy.front")}</span>
 
                     <BodyHighlighter
                         data={data}
@@ -55,7 +58,7 @@ export default function MuscleDummy({
                 </div>
 
                 <div className={styles.bodyView}>
-                    <span className={styles.bodyLabel}>Back</span>
+                    <span className={styles.bodyLabel}>{t("common.back")}</span>
 
                     <BodyHighlighter
                         data={data}
@@ -66,14 +69,14 @@ export default function MuscleDummy({
                 </div>
             </div>
             <figcaption id={descriptionId} className={styles.caption}>
-                <span className={styles.legendTitle}>Muscle profile</span>
+                <span className={styles.legendTitle}>{t("MuscleDummy.muscleProfile")}</span>
                 <div className={styles.legend}>
-                    <span><i className={styles.primarySwatch} aria-hidden="true" />Primary</span>
-                    <span><i className={styles.secondarySwatch} aria-hidden="true" />Secondary</span>
-                    <span><i className={styles.neutralSwatch} aria-hidden="true" />Untargeted</span>
+                    <span><i className={styles.primarySwatch} aria-hidden="true" />{t("common.primary")}</span>
+                    <span><i className={styles.secondarySwatch} aria-hidden="true" />{t("common.secondary")}</span>
+                    <span><i className={styles.neutralSwatch} aria-hidden="true" />{t("MuscleDummy.untargeted")}</span>
                 </div>
-                <p><strong>Primary:</strong> {primaryMuscles.join(", ") || "None"}</p>
-                <p><strong>Secondary:</strong> {secondaryMuscles.filter(muscle => !primaryMuscles.some(primary => primary.trim().toLowerCase() === muscle.trim().toLowerCase())).join(", ") || "None"}</p>
+                <p><strong>{t("MuscleDummy.primary")}</strong> {primaryMuscles.map(displayValue).join(", ") || t("common.none")}</p>
+                <p><strong>{t("MuscleDummy.secondary")}</strong> {secondaryMuscles.filter(muscle => !primaryMuscles.some(primary => primary.trim().toLowerCase() === muscle.trim().toLowerCase())).map(displayValue).join(", ") || t("common.none")}</p>
             </figcaption>
         </figure>
     );

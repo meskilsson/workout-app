@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { UserFacingError } from "./UserFacingError";
 
 type DraftStatus = { status: string; completedSessionId?: string | null };
@@ -9,16 +10,16 @@ export async function finishWorkout({ readDraft, save, complete }: {
 }): Promise<string> {
     const draft = await readDraft();
     if (draft.status === "completed") {
-        if (!draft.completedSessionId) throw new UserFacingError("The completed workout could not be found. Please try again.");
+        if (!draft.completedSessionId) throw new UserFacingError(t("finishWorkout.theCompletedWorkoutCouldNotBeFoundPleaseTry"));
         return draft.completedSessionId;
     }
-    if (draft.status !== "active") throw new UserFacingError("This workout is no longer active.");
+    if (draft.status !== "active") throw new UserFacingError(t("finishWorkout.thisWorkoutIsNoLongerActive"));
     await save();
     try {
         return (await complete())._id;
     } catch (completionError) {
         const verified = await readDraft().catch(() => {
-            throw new UserFacingError("Could not confirm whether the workout finished. Your progress has been kept. Please try again to check its status.");
+            throw new UserFacingError(t("finishWorkout.couldNotConfirmWhetherTheWorkoutFinishedYourProgress"));
         });
         if (verified.status !== "completed" || !verified.completedSessionId) throw completionError;
         return verified.completedSessionId;

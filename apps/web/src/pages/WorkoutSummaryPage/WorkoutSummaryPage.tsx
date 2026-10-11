@@ -1,3 +1,6 @@
+import { formatNumber, displayValue, translateMessage, t } from "../../i18n";
+import { dragAccessibility } from "../../i18n/dragAccessibility";
+import { useTranslation } from "react-i18next";
 import { reportFormError, friendlyError } from "../../utils/formValidation";
 import ValidatedForm from "../../components/forms/ValidatedForm";
 import { cardRest, cardHover } from "../../components/motion/presets";
@@ -93,11 +96,11 @@ const categoryOptions: WorkoutTemplateCategory[] = [
 ];
 
 function formatCategory(category: string) {
-  return category
+  return displayValue(category
     .replace(/_/g, " ")
     .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+    .join(" "));
 }
 
 function SortableSummaryExerciseCard({
@@ -108,6 +111,7 @@ function SortableSummaryExerciseCard({
   onMove,
   onSave, onDirty,
 }: SortableSummaryExerciseCardProps) {
+    useTranslation();
   const {
     attributes,
     listeners,
@@ -116,6 +120,7 @@ function SortableSummaryExerciseCard({
     transition,
     isDragging,
   } = useSortable({
+        attributes: { roleDescription: t("drag.role") },
     id: exercise.exerciseId,
   });
 
@@ -136,8 +141,7 @@ function SortableSummaryExerciseCard({
       <Card animate={cardRest} whileHover={cardHover} className={styles.exerciseCard}>
         <div className={styles.exerciseHeader}>
           <div>
-            <p className={styles.exerciseNumber}>
-              Exercise {index + 1}
+            <p className={styles.exerciseNumber}> {t("common.exercise")} {index + 1}
             </p>
 
             <h3 className={styles.exerciseTitle}>
@@ -146,28 +150,30 @@ function SortableSummaryExerciseCard({
           </div>
 
           <div className={styles.reorderControls}>
-          <Button type="button" variant="ghost" iconOnly aria-label={`Move ${exercise.exerciseName} up`} disabled={index === 0 || isReordering} onClick={() => onMove(index, index - 1)}><Icon icon={ArrowUp} /></Button>
-          <Button type="button" variant="ghost" iconOnly aria-label={`Move ${exercise.exerciseName} down`} disabled={index === total - 1 || isReordering} onClick={() => onMove(index, index + 1)}><Icon icon={ArrowDown} /></Button>
+          <Button type="button" variant="ghost" iconOnly aria-label={t("WorkoutSummaryPage.moveValueUp", { value0: exercise.exerciseName })} disabled={index === 0 || isReordering} onClick={() => onMove(index, index - 1)}><Icon icon={ArrowUp} /></Button>
+          <Button type="button" variant="ghost" iconOnly aria-label={t("WorkoutSummaryPage.moveValueDown", { value0: exercise.exerciseName })} disabled={index === total - 1 || isReordering} onClick={() => onMove(index, index + 1)}><Icon icon={ArrowDown} /></Button>
           <button type="button" className={styles.dragHandle} {...attributes} {...listeners} disabled={isReordering}
-            aria-label={`Reorder ${exercise.exerciseName}`}><Icon icon={GripVertical} /></button>
+            aria-label={t("common.reorderValue", { value0: exercise.exerciseName })}><Icon icon={GripVertical} /></button>
           </div>
         </div>
-      {exercise.training && exercise.training.format !== "strength" && <details><summary>Duration &amp; intervals</summary><TrainingConfigForm cardioOnly initial={exercise.training} onSave={onSave} onDirty={onDirty} /></details>}
+      {exercise.training && exercise.training.format !== "strength" && <details><summary>{t("WorkoutSummaryPage.durationAmpIntervals")}</summary><TrainingConfigForm cardioOnly initial={exercise.training} onSave={onSave} onDirty={onDirty} /></details>}
       </Card>
     </motion.div>
   );
 }
 
 export default function WorkoutSummaryPage() {
+    useTranslation();
   const { draftId } = useParams();
   const { user } = useAuth();
   const query = useQuery(draftDetailOptions(user?._id ?? "", draftId ?? ""));
   const navigate = useNavigate();
-  if (query.isPending && draftId) return <LoadingState layout="summary" className={styles.page} title="Workout builder" message="Loading workout summary..." />;
-  if (!query.data) return <Box className={styles.page}><Card className={styles.stateCard}><h1>Workout summary</h1><p role="alert">{(query.error ? friendlyError(query.error, "Unable to load your workout. Please try again.") : "Missing workout draft")}</p><Button onClick={() => navigate("/workout-select")}>Go back</Button></Card></Box>;
+  if (query.isPending && draftId) return <LoadingState layout="summary" className={styles.page} title={t("common.workoutBuilder")} message={t("WorkoutSummaryPage.loadingWorkoutSummary")} />;
+  if (!query.data) return <Box className={styles.page}><Card className={styles.stateCard}><h1>{t("common.workoutSummary")}</h1><p role="alert">{(query.error ? friendlyError(query.error, t("common.unableToLoadYourWorkoutPleaseTryAgain")) : t("common.missingWorkoutDraft"))}</p><Button onClick={() => navigate("/workout-select")}>{t("common.goBack")}</Button></Card></Box>;
   return <WorkoutSummaryForm key={(user?._id ?? "") + ":" + draftId} draft={query.data} />;
 }
 function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
+    useTranslation();
   const draftId = draft._id;
   const navigate = useNavigate();
   const [dirtyConfigs, setDirtyConfigs] = useState<Record<string, boolean>>({});
@@ -233,7 +239,7 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
     } catch (err) {
       setOrderedExercises(previousOrder);
       setActionError(
-        friendlyError(err, "Failed to reorder exercises"),
+        friendlyError(err, t("common.failedToReorderExercises")),
       );
     }
   }
@@ -283,7 +289,7 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
       navigate(`/workout/${draftId}`);
     } catch (err) {
       setActionError(
-        friendlyError(err, "Failed to start workout"),
+        friendlyError(err, t("WorkoutSummaryPage.failedToStartWorkout")),
       );
     }
   }
@@ -330,7 +336,7 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
       setIsTemplateModalOpen(false);
       navigate("/templates/my");
     } catch (err) {
-      if (!reportFormError(submittedForm, err)) setActionError(friendlyError(err, "Unable to save template. Please try again."));
+      if (!reportFormError(submittedForm, err)) setActionError(friendlyError(err, t("WorkoutSummaryPage.unableToSaveTemplatePleaseTryAgain")));
     }
   }
 
@@ -339,17 +345,17 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
       <div className={styles.header}>
         <div>
           <p className={styles.kicker}>
-            {isTemplateDraft ? "Template builder" : "Workout builder"}
+            {isTemplateDraft ? t("WorkoutSummaryPage.templateBuilder") : t("common.workoutBuilder")}
           </p>
 
           <h1 className={styles.title}>
-            {isTemplateDraft ? "Template review" : "Workout summary"}
+            {isTemplateDraft ? t("WorkoutSummaryPage.templateReview") : t("common.workoutSummary")}
           </h1>
 
           <p className={styles.subtitle}>
             {isTemplateDraft
-              ? "Review the exercise order, then save your template."
-              : "Review the exercise order, then start training."}
+              ? t("WorkoutSummaryPage.reviewTheExerciseOrderThenSaveYourTemplate")
+              : t("WorkoutSummaryPage.reviewTheExerciseOrderThenStartTraining")}
           </p>
 
           <Button
@@ -358,7 +364,7 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
             style={{ minWidth: "3.25rem", marginTop: "1rem" }}
             iconOnly
                         className={styles.backButton}
-                    aria-label="Go back"
+                    aria-label={t("common.goBack")}
             onClick={() => navigate(-1)}
           >
             <Icon icon={ArrowLeft} />
@@ -369,28 +375,28 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
 
       {actionError && (
         <Card className={styles.errorCard}>
-          <p>{actionError}</p>
+          <p>{translateMessage(actionError)}</p>
         </Card>
       )}
 
       <Card className={styles.summaryCard}>
         <div className={styles.summaryGrid}>
           <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Exercises</span>
-            <span className={styles.summaryValue}>{totalExercises}</span>
+            <span className={styles.summaryLabel}>{t("common.exercises")}</span>
+            <span className={styles.summaryValue}>{formatNumber(totalExercises)}</span>
           </div>
 
           <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Type</span>
+            <span className={styles.summaryLabel}>{t("common.type")}</span>
             <span className={styles.summaryValue}>
-              {isTemplateDraft ? "Template" : "Workout"}
+              {isTemplateDraft ? t("WorkoutSummaryPage.template") : t("common.workout")}
             </span>
           </div>
 
           <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Status</span>
+            <span className={styles.summaryLabel}>{t("WorkoutSummaryPage.status")}</span>
             <span className={styles.summaryValue}>
-              {totalExercises > 0 ? "Ready" : "Incomplete"}
+              {totalExercises > 0 ? t("WorkoutSummaryPage.ready") : t("WorkoutSummaryPage.incomplete")}
             </span>
           </div>
         </div>
@@ -399,22 +405,18 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
-            <h2 className={styles.sectionTitle}>
-              Selected exercises
-            </h2>
+            <h2 className={styles.sectionTitle}> {t("WorkoutSummaryPage.selectedExercises")} </h2>
 
             <p className={styles.sectionText}>
               {isTemplateDraft
-                ? "These exercises will be saved into your reusable template."
-                : "These exercises will be included in your workout session."}
-              <br />
-              Use the drag handle to reorder. Keyboard: Space, arrow keys, then Space.
-            </p>
+                ? t("WorkoutSummaryPage.theseExercisesWillBeSavedIntoYourReusableTemplate")
+                : t("WorkoutSummaryPage.theseExercisesWillBeIncludedInYourWorkoutSession")}
+              <br /> {t("WorkoutSummaryPage.useTheDragHandleToReorderKeyboardSpaceArrow")} </p>
           </div>
         </div>
 
         {selectedExercises.length > 0 ? (
-          <DndContext
+          <DndContext accessibility={dragAccessibility(selectedExercises.map(exercise => ({ id: exercise.exerciseId, name: exercise.exerciseName })))}
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
@@ -446,21 +448,17 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
           </DndContext>
         ) : (
           <Card className={styles.stateCard}>
-            <p className={styles.stateText}>
-              No exercises selected yet. Go back and choose at least
-              one exercise.
-            </p>
+            <p className={styles.stateText}> {t("WorkoutSummaryPage.noExercisesSelectedYetGoBackAndChooseAt")} </p>
           </Card>
         )}
       </section>
 
-      {hasUnsavedConfigs && <p role="status">Save each changed training configuration before continuing.</p>}
+      {hasUnsavedConfigs && <p role="status">{t("WorkoutSummaryPage.saveEachChangedTrainingConfigurationBeforeContinuing")}</p>}
       <div className={styles.footer}>
         <p className={styles.footerText}>
           {selectedExercises.length === 0
-            ? "Choose exercises before continuing."
-            : `${selectedExercises.length} exercise${selectedExercises.length === 1 ? "" : "s"
-            } ready.`}
+            ? t("WorkoutSummaryPage.chooseExercisesBeforeContinuing")
+            : t("common.exercisesReady", { count: selectedExercises.length })}
         </p>
 
         <div className={styles.actions}>
@@ -478,11 +476,11 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
                 <LoadingPredator
                   size="small"
                   color="currentColor"
-                  label="Saving..."
+                  label={t("common.saving")}
                   showLabel
                 />
               ) : (
-                "Save template"
+                t("common.saveTemplate")
               )}
             </Button>
           ) : (
@@ -499,11 +497,11 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
                 <LoadingPredator
                   size="small"
                   color="currentColor"
-                  label="Starting..."
+                  label={t("common.starting")}
                   showLabel
                 />
               ) : (
-                "Start workout"
+                t("common.startWorkout")
               )}
             </Button>
           )}
@@ -511,7 +509,7 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
       </div>
 
       <Modal
-        title="Save as template"
+        title={t("WorkoutSummaryPage.saveAsTemplate")}
         isOpen={isTemplateModalOpen}
         onClose={handleCloseTemplateModal}
         actions={
@@ -521,9 +519,7 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
               variant="secondary"
               onClick={handleCloseTemplateModal}
               disabled={isSavingTemplate}
-            >
-              Cancel
-            </Button>
+            > {t("common.cancel")} </Button>
 
             <Button
               type="submit"
@@ -534,28 +530,28 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
                 <LoadingPredator
                   size="small"
                   color="currentColor"
-                  label="Saving..."
+                  label={t("common.saving")}
                   showLabel
                 />
               ) : (
-                "Save template"
+                t("common.saveTemplate")
               )}
             </Button>
           </>
         }
       >
-        {actionError && <p className={styles.errorCard} role="alert">{actionError}</p>}
+        {actionError && <p className={styles.errorCard} role="alert">{translateMessage(actionError)}</p>}
         <ValidatedForm
           id="save-template-form"
           className={styles.templateForm}
           onSubmit={handleSaveTemplate}
         >
           <label className={styles.templateField}>
-            <span>Name *</span>
+            <span>{t("common.name2")}</span>
             <input
               type="text"
               name="name" required minLength={2} maxLength={80} value={templateName}
-              placeholder="Example: My Push Day"
+              placeholder={t("WorkoutSummaryPage.exampleMyPushDay")}
               onChange={(event) =>
                 setTemplateName(event.target.value)
               }
@@ -563,7 +559,7 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
           </label>
 
           <label className={styles.templateField}>
-            <span>Category</span>
+            <span>{t("common.category")}</span>
             <select
               name="category" value={templateCategory}
               onChange={(event) =>
@@ -581,10 +577,10 @@ function WorkoutSummaryForm({ draft }: { draft: WorkoutDraft }) {
           </label>
 
           <label className={styles.templateField}>
-            <span>Description</span>
+            <span>{t("common.description")}</span>
             <textarea
               name="description" maxLength={500} value={templateDescription}
-              placeholder="Short description for this template"
+              placeholder={t("WorkoutSummaryPage.shortDescriptionForThisTemplate")}
               onChange={(event) =>
                 setTemplateDescription(event.target.value)
               }

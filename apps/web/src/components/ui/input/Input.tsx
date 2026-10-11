@@ -1,3 +1,5 @@
+import { translateMessage } from "../../../i18n";
+import { useTranslation } from "react-i18next";
 import { useId, type InputHTMLAttributes } from "react";
 import "./input.css";
 
@@ -21,6 +23,7 @@ export default function Input({
     "aria-describedby": describedBy,
     ...rest
 }: InputProps) {
+    useTranslation();
     const generatedId = useId();
     const inputId = id || name || generatedId;
     const errorId = `${inputId}-error`;
@@ -45,7 +48,7 @@ export default function Input({
                 {...rest}
             />
 
-            {error && <p id={errorId} role="alert" className={errorClassName ?? "input-error"}>{error}</p>}
+            {error && <p id={errorId} role="alert" className={errorClassName ?? "input-error"}>{translateMessage(error)}</p>}
         </div>
     );
 }
