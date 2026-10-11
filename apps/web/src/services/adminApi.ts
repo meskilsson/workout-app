@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { TrainingConfig, CardioCompletion } from "@workout-app/shared";
 import { parseJsonResponse } from "../utils/parseJsonResponse";
 export type Resource = "users" | "exercises" | "templates" | "sessions";
@@ -17,5 +18,5 @@ export async function adminRequest<T>(path: string, method = "GET", body?: unkno
     signal, method, credentials: "include", headers: body ? { "Content-Type": "application/json" } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
-  return parseJsonResponse<T>(response, "Admin request failed");
+  return parseJsonResponse<T>(response, t("adminApi.adminRequestFailed"));
 }

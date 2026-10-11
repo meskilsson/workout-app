@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { parseJsonResponse } from "../utils/parseJsonResponse";
 
 type SignupInput = {
@@ -41,7 +42,7 @@ export async function signupRequest(signupData: SignupInput): Promise<User> {
         body: JSON.stringify(signupData),
     });
 
-    return parseJsonResponse<User>(response, "Signup failed");
+    return parseJsonResponse<User>(response, t("authApi.signupFailed"));
 }
 
 export async function loginRequest(loginData: LoginInput): Promise<User> {
@@ -56,7 +57,7 @@ export async function loginRequest(loginData: LoginInput): Promise<User> {
 
     const data = await parseJsonResponse<AuthResponse>(
         response,
-        "Login failed",
+        t("authApi.loginFailed"),
     );
 
     return data.user;
@@ -75,7 +76,7 @@ export async function getMeRequest(signal?: AbortSignal): Promise<User | null> {
 
     const data = await parseJsonResponse<AuthResponse>(
         response,
-        "Failed to fetch current user",
+        t("authApi.failedToFetchCurrentUser"),
     );
 
     return data.user;
@@ -89,6 +90,6 @@ export async function logoutRequest(): Promise<MessageResponse> {
 
     return parseJsonResponse<MessageResponse>(
         response,
-        "Logout failed",
+        t("authApi.logoutFailed"),
     );
 }

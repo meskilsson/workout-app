@@ -1,3 +1,5 @@
+import { translateMessage, displayValue, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
 import { cardRest, cardHover, selectedCard } from "../../components/motion/presets";
 import { ArrowLeft, CheckCircle2, Circle } from "lucide-react";
@@ -17,16 +19,6 @@ import "../../components/ui/button/button.css";
 import styles from "./WorkoutSelectPage.module.css";
 
 
-const muscleGroupCards = [
-  { id: "cardio", title: "Cardio" },
-  { id: "back", title: "Back" },
-  { id: "shoulders", title: "Shoulders" },
-  { id: "biceps", title: "Biceps" },
-  { id: "legs", title: "Legs" },
-  { id: "chest", title: "Chest" },
-  { id: "triceps", title: "Triceps" },
-  { id: "core", title: "Abs" },
-];
 
 const backendMuscleGroupMap: Record<string, string[]> = {
   cardio: [],
@@ -40,6 +32,18 @@ const backendMuscleGroupMap: Record<string, string[]> = {
 };
 
 export default function WorkoutSelectPage() {
+    useTranslation();
+    const muscleGroupCards = [
+  { id: "cardio", title: t("common.cardio") },
+  { id: "back", title: displayValue("Back") },
+  { id: "shoulders", title: displayValue("shoulders") },
+  { id: "biceps", title: displayValue("biceps") },
+  { id: "legs", title: displayValue("legs") },
+  { id: "chest", title: displayValue("chest") },
+  { id: "triceps", title: displayValue("triceps") },
+  { id: "core", title: t("common.abs") },
+];
+
 
   const [searchParams] = useSearchParams();
 
@@ -90,7 +94,7 @@ export default function WorkoutSelectPage() {
       navigate(`/exercise-select/${draft._id}`);
     } catch (err) {
       setError(
-        friendlyError(err, "Failed to create workout draft"),
+        friendlyError(err, t("common.failedToCreateWorkoutDraft")),
       );
     }
   }
@@ -99,17 +103,17 @@ export default function WorkoutSelectPage() {
     <Box className={styles.page}>
       <div className={styles.header}>
         <p className={styles.kicker}>
-          {isTemplatePurpose ? "Workout builder" : "Workout builder"}
+          {isTemplatePurpose ? t("common.workoutBuilder") : t("common.workoutBuilder")}
         </p>
 
         <h1 className={styles.title}>
-          {isTemplatePurpose ? "Choose workout muscles" : "Choose muscle groups"}
+          {isTemplatePurpose ? t("WorkoutSelectPage.chooseWorkoutMuscles") : t("WorkoutSelectPage.chooseMuscleGroups")}
         </h1>
 
         <p className={styles.subtitle}>
           {isTemplatePurpose
-            ? "Pick the muscle groups this reusable workout should include."
-            : "Pick one or more muscle groups to build your workout session."}
+            ? t("WorkoutSelectPage.pickTheMuscleGroupsThisReusableWorkoutShouldInclude")
+            : t("WorkoutSelectPage.pickOneOrMoreMuscleGroupsToBuildYour")}
         </p>
         <Button
           type="button"
@@ -117,7 +121,7 @@ export default function WorkoutSelectPage() {
           style={{ minWidth: "3.25rem", marginTop: "1rem" }}
           iconOnly
                         className={styles.backButton}
-                    aria-label="Go back"
+                    aria-label={t("common.goBack")}
           onClick={() => navigate(-1)}
 
         >
@@ -151,11 +155,11 @@ export default function WorkoutSelectPage() {
         <div>
           <p className={styles.selectedCount}>
             {selectedGroups.length === 0
-              ? "Select at least one muscle group"
-              : `${selectedGroups.length} selected`}
+              ? t("WorkoutSelectPage.selectAtLeastOneMuscleGroup")
+              : t("WorkoutSelectPage.valueSelected", { value0: selectedGroups.length })}
           </p>
 
-          {error && <p className={styles.errorText} role="alert">{error}</p>}
+          {error && <p className={styles.errorText} role="alert">{translateMessage(error)}</p>}
         </div>
 
         <Button
@@ -167,11 +171,11 @@ export default function WorkoutSelectPage() {
             <LoadingPredator
               size="small"
               color="currentColor"
-              label="Creating draft..."
+              label={t("WorkoutSelectPage.creatingDraft")}
               showLabel
             />
           ) : (
-            "Continue"
+            t("WorkoutSelectPage.continue")
           )}
         </Button>
       </div>

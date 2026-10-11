@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { t } from "./i18n";
 import "./App.css";
 
 import Layout from "./components/layouts/Layout";
@@ -46,8 +48,12 @@ const rootRoute = createRootRoute({ component: () =>
     <ThemeProvider><BodyModelProvider><AuthProvider><WebWorkoutProvider>
         <Layout />
     </WebWorkoutProvider></AuthProvider></BodyModelProvider></ThemeProvider>,
-    notFoundComponent: () => <main><h1>Page not found</h1><a href="/">Return home</a></main>,
+    notFoundComponent: NotFound,
 });
+function NotFound() {
+    useTranslation();
+    return <main><h1>{t("App.pageNotFound")}</h1><a href="/">{t("App.returnHome")}</a></main>;
+}
 const page = (path: string, element: ReactNode) => createRoute({ getParentRoute: () => rootRoute, path, component: () => element });
 const protectedPage = (path: string, element: ReactNode) => page(path, <ProtectedRoute>{element}</ProtectedRoute>);
 const templates = createRoute({ getParentRoute: () => rootRoute, path: "templates", component: TemplatesLayout });
@@ -85,4 +91,5 @@ const routeTree = rootRoute.addChildren([
     ]),
 ]);
 const router = createRouter({ routeTree, defaultPreload: false });
-export default function App() { return <RouterProvider router={router} />; }
+export default function App() {
+    useTranslation(); return <RouterProvider router={router} />; }

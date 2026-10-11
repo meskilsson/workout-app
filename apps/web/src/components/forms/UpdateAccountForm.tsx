@@ -1,3 +1,5 @@
+import { translateMessage, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { reportFormError, friendlyError } from "../../utils/formValidation";
 import ValidatedForm from "./ValidatedForm";
 import { useState } from "react";
@@ -12,11 +14,13 @@ import Button from "../ui/button/Button";
 import LoadingPredator from "../Loading/LoadingPredator";
 
 export default function UpdateAccountForm() {
+    useTranslation();
     const { user } = useAuth();
     return user ? <AccountDetailsForm key={user._id} initialUser={user} /> : null;
 }
 
 function AccountDetailsForm({ initialUser }: { initialUser: User }) {
+    useTranslation();
     const { user: authUser, updateAuthUser } = useAuth();
     const client = useQueryClient();
 
@@ -53,21 +57,19 @@ function AccountDetailsForm({ initialUser }: { initialUser: User }) {
 
             await updateMutation.mutateAsync(userData);
 
-            setSuccess("Account updated successfully.");
+            setSuccess(t("UpdateAccountForm.accountUpdatedSuccessfully"));
         } catch (error) {
-            if (!reportFormError(submittedForm, error)) setError(friendlyError(error, "Unable to update your account. Please try again."));
+            if (!reportFormError(submittedForm, error)) setError(friendlyError(error, t("common.unableToUpdateYourAccountPleaseTryAgain")));
         }
     }
 
     return (
         <section className={styles.section}>
-            <h2>Update account</h2>
-            <p>Change your name, username, or email address.</p>
+            <h2>{t("UpdateAccountForm.updateAccount")}</h2>
+            <p>{t("UpdateAccountForm.changeYourNameUsernameOrEmailAddress")}</p>
 
             <ValidatedForm onSubmit={handleSubmit}>
-                <label>
-                    Name
-                    <input
+                <label> {t("common.name")} <input
                         type="text"
                         autoComplete="name"
                         name="name" required minLength={2} maxLength={50} value={name}
@@ -75,11 +77,9 @@ function AccountDetailsForm({ initialUser }: { initialUser: User }) {
                     />
                 </label>
 
-                <label>
-                    Username
-                    <input
+                <label> {t("common.username")} <input
                         type="text"
-                        name="username" required minLength={3} maxLength={20} pattern="[a-zA-Z0-9_]+" data-validation-hint="Use letters, numbers, and underscores only." value={username}
+                        name="username" required minLength={3} maxLength={20} pattern="[a-zA-Z0-9_]+" data-validation-hint={t("common.useLettersNumbersAndUnderscoresOnly")} value={username}
                         autoComplete="username"
                         autoCapitalize="none"
                         spellCheck={false}
@@ -87,9 +87,7 @@ function AccountDetailsForm({ initialUser }: { initialUser: User }) {
                     />
                 </label>
 
-                <label>
-                    Email
-                    <input
+                <label> {t("common.email")} <input
                         type="email"
                         autoComplete="email"
                         autoCapitalize="none"
@@ -98,19 +96,19 @@ function AccountDetailsForm({ initialUser }: { initialUser: User }) {
                     />
                 </label>
 
-                {error && <p className={styles.error} role="alert">{error}</p>}
-                {success && <p className={styles.success} role="status">{success}</p>}
+                {error && <p className={styles.error} role="alert">{translateMessage(error)}</p>}
+                {success && <p className={styles.success} role="status">{translateMessage(success)}</p>}
 
                 <Button variant="primary" type="submit" disabled={isLoading}>
                     {isLoading ? (
                         <LoadingPredator
                             size="small"
                             color="currentColor"
-                            label="Saving..."
+                            label={t("common.saving")}
                             showLabel
                         />
                     ) : (
-                        "Save changes"
+                        t("common.saveChanges")
                     )}
                 </Button>
             </ValidatedForm>

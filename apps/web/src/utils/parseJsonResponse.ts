@@ -1,3 +1,5 @@
+import { t } from "../i18n";
+import { apiErrorMessage } from "../i18n/apiErrors";
 type ApiValidationError = {
     field?: string | string[];
     path?: string | string[];
@@ -101,7 +103,7 @@ export async function parseJsonResponse<T>(
 
     if (!response.ok) {
         throw new ApiRequestError(
-            response.status >= 500 ? "The server could not complete your request. Please try again." : getErrorMessage(data, fallbackMessage),
+            response.status >= 500 ? t("parseJsonResponse.theServerCouldNotCompleteYourRequestPleaseTry") : apiErrorMessage(data, getErrorMessage(data, fallbackMessage), fallbackMessage),
             response.status,
             data,
         );

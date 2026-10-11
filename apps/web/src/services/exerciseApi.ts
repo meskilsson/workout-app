@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type {
     PaginatedExercisesResponse,
     GetExercisesParams,
@@ -51,7 +52,7 @@ export async function getPublicExercisesRequest(
 
     return parseJsonResponse<PaginatedExercisesResponse>(
         response,
-        "Failed to fetch public exercises",
+        t("exerciseApi.failedToFetchPublicExercises"),
     );
 }
 
@@ -71,7 +72,7 @@ export async function getExerciseLibraryRequest(
 
     return parseJsonResponse<PaginatedExercisesResponse>(
         response,
-        "Failed to fetch exercise library",
+        t("exerciseApi.failedToFetchExerciseLibrary"),
     );
 }
 
@@ -83,7 +84,7 @@ export async function getPublicExerciseByIdRequest(
 
     return parseJsonResponse<Exercise>(
         response,
-        "Failed to fetch exercise",
+        t("common.failedToFetchExercise"),
     );
 }
 
@@ -98,7 +99,7 @@ export async function getLibraryExerciseByIdRequest(
 
     return parseJsonResponse<Exercise>(
         response,
-        "Failed to fetch exercise",
+        t("common.failedToFetchExercise"),
     );
 }
 
@@ -128,7 +129,7 @@ export async function createExerciseRequest(
 
     return parseJsonResponse(
         response,
-        "Failed to create exercise",
+        t("exerciseApi.failedToCreateExercise"),
     );
 }
 
@@ -147,7 +148,7 @@ export async function updateExerciseRequest(
 
     return parseJsonResponse(
         response,
-        "Failed to update exercise",
+        t("exerciseApi.failedToUpdateExercise"),
     );
 }
 
@@ -159,6 +160,6 @@ export async function deleteExerciseRequest(exerciseId: string) {
 
     return parseJsonResponse<{ message: string; deletedExerciseId?: string }>(
         response,
-        "Failed to delete exercise",
+        t("common.failedToDeleteExercise"),
     );
 }

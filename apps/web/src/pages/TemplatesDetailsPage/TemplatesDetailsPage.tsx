@@ -1,3 +1,5 @@
+import { formatNumber, displayValue, translateMessage, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
 import { ArrowLeft } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
@@ -22,16 +24,17 @@ type TemplatesDetailsPageProps = {
 };
 
 function formatCategory(category: string) {
-    return category
+    return displayValue(category
         .replace(/_/g, " ")
         .split(" ")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
+        .join(" "));
 }
 
 export default function TemplatesDetailsPage({
     templateSource,
 }: TemplatesDetailsPageProps) {
+    useTranslation();
     const navigate = useNavigate();
     const { user } = useAuth();
     const { id } = useParams();
@@ -50,7 +53,7 @@ export default function TemplatesDetailsPage({
         (exercise): exercise is Exercise => !!exercise,
     );
     const isLoading = !!id && templateQuery.isPending;
-    const error = !id ? "Missing template id" : !template && templateQuery.error
+    const error = !id ? t("TemplatesDetailsPage.missingTemplateId") : !template && templateQuery.error
         ? friendlyError(templateQuery.error) : "";
 
     if (isLoading && !template) {
@@ -58,8 +61,8 @@ export default function TemplatesDetailsPage({
             <LoadingState
                 layout="templateDetails"
                 className={styles.page}
-                title="Workout template"
-                message="Loading workout details..."
+                title={t("common.workoutTemplate")}
+                message={t("common.loadingWorkoutDetails")}
             />
         );
     }
@@ -68,7 +71,7 @@ export default function TemplatesDetailsPage({
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>
-                    <p className={styles.errorText} role="alert">{error}</p>
+                    <p className={styles.errorText} role="alert">{translateMessage(error)}</p>
                 </Card>
             </Box>
         );
@@ -78,7 +81,7 @@ export default function TemplatesDetailsPage({
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>
-                    <p>No workout template found.</p>
+                    <p>{t("TemplatesDetailsPage.noWorkoutTemplateFound")}</p>
                 </Card>
             </Box>
         );
@@ -87,14 +90,14 @@ export default function TemplatesDetailsPage({
     return (
         <Box className={styles.page}>
             <header className={styles.header}>
-                <p className={styles.kicker}>Workout template</p>
+                <p className={styles.kicker}>{t("common.workoutTemplate")}</p>
 
                 <div className={styles.headerTop}>
                     <div>
                         <h1 className={styles.title}>{template.name}</h1>
 
                         <p className={styles.subtitle}>
-                            {template.description || "Overview of this workout."}
+                            {template.description || t("common.workoutOverview")}
                         </p>
                     </div>
                 </div>
@@ -103,11 +106,9 @@ export default function TemplatesDetailsPage({
             <section className={styles.section}>
                 <div className={styles.sectionHeader}>
                     <div>
-                        <h2 className={styles.sectionTitle}>Exercises</h2>
+                        <h2 className={styles.sectionTitle}>{t("common.exercises")}</h2>
 
-                        <p className={styles.sectionText}>
-                            Exercise order, technique, and planned sets.
-                        </p>
+                        <p className={styles.sectionText}> {t("TemplatesDetailsPage.exerciseOrderTechniqueAndPlannedSets")} </p>
 
                         <Button
                             type="button"
@@ -115,7 +116,7 @@ export default function TemplatesDetailsPage({
                             style={{ minWidth: "3.25rem", marginTop: "1rem" }}
                             iconOnly
                         className={styles.backButton}
-                    aria-label="Go back"
+                    aria-label={t("common.goBack")}
                             onClick={() => navigate(-1)}
                         >
                             <Icon icon={ArrowLeft} />
@@ -127,7 +128,7 @@ export default function TemplatesDetailsPage({
                     </span>
                 </div>
 
-                {template.exercises.length === 0 && <Card className={styles.stateCard}><p>This template has no exercises.</p></Card>}
+                {template.exercises.length === 0 && <Card className={styles.stateCard}><p>{t("TemplatesDetailsPage.thisTemplateHasNoExercises")}</p></Card>}
                 <div className={styles.exerciseCardGrid}>
                     {template.exercises.map((templateExercise, index) => {
                         const exercise = templateExercise.exercise;
@@ -141,19 +142,15 @@ export default function TemplatesDetailsPage({
                                     <div className={styles.exerciseContent}>
                                         <div className={styles.exerciseInfo}>
                                             <div>
-                                                <p className={styles.exerciseKicker}>
-                                                    Missing exercise
-                                                </p>
+                                                <p className={styles.exerciseKicker}> {t("TemplatesDetailsPage.missingExercise")} </p>
 
                                                 <h3 className={styles.exerciseName}>
                                                     {templateExercise.exerciseName ||
-                                                        "Exercise unavailable"}
+                                                        t("common.exerciseUnavailable")}
                                                 </h3>
                                             </div>
 
-                                            <p className={styles.emptyText}>
-                                                This exercise is unavailable. Update the template to replace it.
-                                            </p>
+                                            <p className={styles.emptyText}> {t("TemplatesDetailsPage.thisExerciseIsUnavailableUpdateTheTemplateToReplace")} </p>
                                         </div>
                                     </div>
                                 </Card>
@@ -193,7 +190,7 @@ export default function TemplatesDetailsPage({
                                             <p className={styles.exerciseKicker}>
                                                 {fullExercise?.exerciseType ||
                                                     exercise.exerciseType ||
-                                                    "Exercise"}
+                                                    t("common.exercise")}
                                             </p>
 
                                             <h3 className={styles.exerciseName}>
@@ -203,27 +200,27 @@ export default function TemplatesDetailsPage({
 
                                         <div className={styles.metaGrid}>
                                             <div className={styles.metaItem}>
-                                                <span>Equipment</span>
+                                                <span>{t("common.equipment")}</span>
 
                                                 <strong>
                                                     {fullExercise?.equipment ||
                                                         exercise.equipment ||
-                                                        "Not specified"}
+                                                        t("common.notSpecified")}
                                                 </strong>
                                             </div>
 
                                             <div className={styles.metaItem}>
-                                                <span>Difficulty</span>
+                                                <span>{t("common.difficulty")}</span>
 
                                                 <strong>
                                                     {fullExercise?.difficulty ||
                                                         exercise.difficulty ||
-                                                        "Not specified"}
+                                                        t("common.notSpecified")}
                                                 </strong>
                                             </div>
 
                                             <div className={styles.metaItem}>
-                                                <span>Sets</span>
+                                                <span>{t("TemplatesDetailsPage.sets")}</span>
 
                                                 <strong>
                                                     {plannedSets.length || "—"}
@@ -233,9 +230,7 @@ export default function TemplatesDetailsPage({
 
                                         {fullExercise?.description && (
                                             <div className={styles.descriptionBlock}>
-                                                <p className={styles.blockTitle}>
-                                                    Description
-                                                </p>
+                                                <p className={styles.blockTitle}> {t("common.description")} </p>
 
                                                 <p className={styles.descriptionText}>
                                                     {fullExercise.description}
@@ -244,20 +239,18 @@ export default function TemplatesDetailsPage({
                                         )}
 
                                         <details className={styles.instructionsBlock}>
-                                            <summary className={styles.blockTitle}>Technique</summary>
+                                            <summary className={styles.blockTitle}>{t("TemplatesDetailsPage.technique")}</summary>
 
                                             <p className={styles.instructions}>
                                                 {fullExercise?.instructions ||
-                                                    "No instructions available."}
+                                                    t("common.noInstructionsAvailable")}
                                             </p>
                                         </details>
 
                                         <div className={styles.setsBlock}>
-                                            <p className={styles.blockTitle}>
-                                                Planned sets
-                                            </p>
+                                            <p className={styles.blockTitle}> {t("TemplatesDetailsPage.plannedSets")} </p>
 
-                                            {templateExercise.training && templateExercise.training.format !== "strength" && <p>{templateExercise.training.format === "intervals" ? `${templateExercise.training.rounds} rounds · ${formatTrainingSeconds(templateExercise.training.workSeconds)} work · ${formatTrainingSeconds(templateExercise.training.restSeconds)} rest · ` : "Continuous cardio · "}Total: {formatTrainingSeconds(trainingTotalSeconds(templateExercise.training))}</p>}
+                                            {templateExercise.training && templateExercise.training.format !== "strength" && <p>{templateExercise.training.format === "intervals" ? t("TemplatesDetailsPage.valueRoundsValueWorkValueRest", { value0: templateExercise.training.rounds, value1: formatTrainingSeconds(templateExercise.training.workSeconds), value2: formatTrainingSeconds(templateExercise.training.restSeconds) }) : t("TemplatesDetailsPage.continuousCardio")}{t("common.total")} {formatTrainingSeconds(trainingTotalSeconds(templateExercise.training))}</p>}
                                             {plannedSets.length > 0 ? (
                                                 <div className={styles.setList}>
                                                     {plannedSets.map((plannedSet, index) => (
@@ -265,26 +258,24 @@ export default function TemplatesDetailsPage({
                                                             key={index}
                                                             className={styles.setRow}
                                                         >
-                                                            <span>Set {index + 1}</span>
+                                                            <span>{t("common.set")} {index + 1}</span>
 
                                                             <strong>
                                                                 {plannedSet.weight
-                                                                    ? `${plannedSet.weight} kg`
-                                                                    : "No weight"}
+                                                                    ? t("TemplatesDetailsPage.valueKg", { value0: formatNumber(plannedSet.weight) })
+                                                                    : t("TemplatesDetailsPage.noWeight")}
                                                             </strong>
 
                                                             <strong>
                                                                 {plannedSet.reps
-                                                                    ? `${plannedSet.reps} reps`
-                                                                    : "No reps"}
+                                                                    ? t("TemplatesDetailsPage.valueReps", { value0: formatNumber(plannedSet.reps) })
+                                                                    : t("TemplatesDetailsPage.noReps")}
                                                             </strong>
                                                         </div>
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <p className={styles.emptyText}>
-                                                    No planned sets added.
-                                                </p>
+                                                <p className={styles.emptyText}> {t("TemplatesDetailsPage.noPlannedSetsAdded")} </p>
                                             )}
                                         </div>
                                     </div>
@@ -314,9 +305,7 @@ export default function TemplatesDetailsPage({
                                                 href={fullExercise.videoUrl}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                            >
-                                                Watch exercise video
-                                            </a>
+                                            > {t("TemplatesDetailsPage.watchExerciseVideo")} </a>
                                         )}
                                     </aside>
                                 </div>

@@ -1,3 +1,5 @@
+import { formatNumber, translateMessage, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
 import { cardRest, cardHover } from "../../components/motion/presets";
 import { ArrowLeft, Trash2 } from "lucide-react";
@@ -22,6 +24,7 @@ import { formatEndTime } from "../../utils/formatEndTime";
 import styles from "./ProfileWorkoutsPage.module.css";
 
 export default function ProfileWorkoutsPage() {
+    useTranslation();
     const navigate = useNavigate();
 
     const { user } = useAuth();
@@ -29,7 +32,7 @@ export default function ProfileWorkoutsPage() {
     const sessions = sessionsQuery.data ?? [];
     const isLoading = sessionsQuery.isFetching;
     const hasLoadedOnce = !sessionsQuery.isPending;
-    const error = (sessionsQuery.error ? friendlyError(sessionsQuery.error, "Unable to load this content. Please try again.") : "");
+    const error = (sessionsQuery.error ? friendlyError(sessionsQuery.error, t("common.unableToLoadThisContentPleaseTryAgain")) : "");
     const [actionError, setActionError] = useState("");
     const [deleteAction, setDeleteAction] = useState("");
     const repeatMutation = useRepeatSessionMutation();
@@ -48,7 +51,7 @@ export default function ProfileWorkoutsPage() {
             if (error instanceof Error) {
                 setActionError(friendlyError(error));
             } else {
-                setActionError("Failed to prepare workout.");
+                setActionError(t("common.failedToPrepareWorkout"));
             }
         }
     }
@@ -63,7 +66,7 @@ export default function ProfileWorkoutsPage() {
             if (error instanceof Error) {
                 setDeleteAction(friendlyError(error));
             } else {
-                setDeleteAction("Unable to complete this request. Please try again.");
+                setDeleteAction(t("ProfileWorkoutsPage.unableToCompleteThisRequestPleaseTryAgain"));
             }
         }
     }
@@ -74,24 +77,22 @@ export default function ProfileWorkoutsPage() {
                 layout="list"
                 className={styles.page}
                 variant="card"
-                title="Workout history"
-                message="Loading your workouts..."
+                title={t("common.workoutHistory")}
+                message={t("ProfileWorkoutsPage.loadingYourWorkouts")}
             />
         );
     }
 
     return (
         <div className={styles.page}>
-            {isLoading && <LoadingAnnouncement message="Updating content..." />}
+            {isLoading && <LoadingAnnouncement message={t("common.updatingContent")} />}
             <div className={styles.header}>
                 <div>
 
 
-                    <h1 className={styles.title}>Workout history</h1>
+                    <h1 className={styles.title}>{t("common.workoutHistory")}</h1>
 
-                    <p className={styles.subtitle}>
-                        Review your saved workout sessions.
-                    </p>
+                    <p className={styles.subtitle}> {t("ProfileWorkoutsPage.reviewYourSavedWorkoutSessions")} </p>
 
                     <Button
                         type="button"
@@ -99,7 +100,7 @@ export default function ProfileWorkoutsPage() {
                         style={{ minWidth: "3.25rem", marginTop: "1rem" }}
                         iconOnly
                         className={styles.backButton}
-                    aria-label="Go back"
+                    aria-label={t("common.goBack")}
                         onClick={() => navigate(-1)}
                     >
                         <Icon icon={ArrowLeft} />
@@ -110,20 +111,18 @@ export default function ProfileWorkoutsPage() {
                     type="button"
                     variant="secondary"
                     onClick={() => navigate("/workout-select")}
-                >
-                    Start workout
-                </Button>
+                > {t("common.startWorkout")} </Button>
             </div>
 
             {error && (
                 <Card className={styles.stateCard}>
-                    <p className={styles.errorText} role="alert">{error}</p>
+                    <p className={styles.errorText} role="alert">{translateMessage(error)}</p>
                 </Card>
             )}
 
             {actionError && (
                 <Card className={styles.stateCard}>
-                    <p className={styles.errorText} role="alert">{actionError}</p>
+                    <p className={styles.errorText} role="alert">{translateMessage(actionError)}</p>
                 </Card>
             )}
 
@@ -135,7 +134,7 @@ export default function ProfileWorkoutsPage() {
 
             {sessions.length === 0 && !error ? (
                 <Card className={styles.stateCard}>
-                    <p className={styles.stateText}>No workouts saved yet.</p>
+                    <p className={styles.stateText}>{t("ProfileWorkoutsPage.noWorkoutsSavedYet")}</p>
                 </Card>
             ) : (
                 <div className={styles.sessionList} aria-busy={isLoading}>
@@ -160,8 +159,7 @@ export default function ProfileWorkoutsPage() {
                                             {completedDate}
                                         </h3>
 
-                                        <p className={styles.sessionDate}>
-                                            Completed at {endTime}
+                                        <p className={styles.sessionDate}> {t("ProfileWorkoutsPage.completedAt")} {endTime}
                                         </p>
                                     </div>
 
@@ -178,11 +176,11 @@ export default function ProfileWorkoutsPage() {
                                                 <LoadingPredator
                                                     size="small"
                                                     color="currentColor"
-                                                    label="Preparing..."
+                                                    label={t("common.preparing")}
                                                     showLabel
                                                 />
                                             ) : (
-                                                "Train again"
+                                                t("common.trainAgain")
                                             )}
                                         </Button>
 
@@ -199,15 +197,12 @@ export default function ProfileWorkoutsPage() {
                                                     },
                                                 )
                                             }
-                                        >
-                                            View details
-                                        </Button>
+                                        > {t("common.viewDetails")} </Button>
                                     </div>
                                 </div>
 
                                 <p className={styles.sessionSummary}>
-                                    {session.exercises.length} exercises / {totalSets} sets
-                                </p>
+                                    {session.exercises.length} {t("ProfileWorkoutsPage.exercises")} {formatNumber(totalSets)} {t("ProfileWorkoutsPage.sets")} </p>
 
                                 <div className={styles.exercisePreview}>
                                     {session.exercises.slice(0, 3).map((exercise) => (
@@ -221,8 +216,7 @@ export default function ProfileWorkoutsPage() {
 
                                     {session.exercises.length > 3 && (
                                         <span className={styles.moreText}>
-                                            +{session.exercises.length - 3} more
-                                        </span>
+                                            +{session.exercises.length - 3} {t("ProfileWorkoutsPage.more")} </span>
                                     )}
                                 </div>
                                 <div className={styles.deleteButton}>
@@ -236,11 +230,11 @@ export default function ProfileWorkoutsPage() {
                                             <LoadingPredator
                                                 size="small"
                                                 color="currentColor"
-                                                label="Deleting..."
+                                                label={t("common.deleting")}
                                                 showLabel
                                             />
                                         ) : (
-                                            "Delete"
+                                            t("common.delete")
                                         )}
                                     </Button>
                                 </div>

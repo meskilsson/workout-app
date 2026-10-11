@@ -1,3 +1,5 @@
+import { formatNumber, translateMessage, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
 import { cardRest, cardHover } from "../../components/motion/presets";
 import { useMemo, useState } from "react";
@@ -28,6 +30,7 @@ type LocationState = {
 };
 
 export default function WorkoutHistoryDetailPage() {
+    useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const { id } = useParams();
@@ -48,15 +51,15 @@ export default function WorkoutHistoryDetailPage() {
     const exerciseLibrary = useMemo(() => musclesQuery.data?.exercises ?? [], [musclesQuery.data]);
     const isLoading = !!id && sessionQuery.isPending;
     const isLoadingMuscles = musclesQuery.isFetching;
-    const error = !id ? "Workout session id is missing." : (sessionQuery.error ? friendlyError(sessionQuery.error, "Unable to load this content. Please try again.") : "");
-    const muscleError = (musclesQuery.error ? friendlyError(musclesQuery.error, "Unable to load this content. Please try again.") : "");
+    const error = !id ? t("common.workoutSessionIdIsMissing") : (sessionQuery.error ? friendlyError(sessionQuery.error, t("common.unableToLoadThisContentPleaseTryAgain")) : "");
+    const muscleError = (musclesQuery.error ? friendlyError(musclesQuery.error, t("common.unableToLoadThisContentPleaseTryAgain")) : "");
     const [actionError, setActionError] = useState("");
     const repeatMutation = useRepeatSessionMutation();
     const isRepeatingWorkout = repeatMutation.isPending;
 
     async function handleTrainAgain() {
         if (!session?._id) {
-            setActionError("Workout session id is missing.");
+            setActionError(t("common.workoutSessionIdIsMissing"));
             return;
         }
 
@@ -69,7 +72,7 @@ export default function WorkoutHistoryDetailPage() {
             if (error instanceof Error) {
                 setActionError(friendlyError(error));
             } else {
-                setActionError("Failed to prepare workout.");
+                setActionError(t("common.failedToPrepareWorkout"));
             }
         }
     }
@@ -126,8 +129,8 @@ export default function WorkoutHistoryDetailPage() {
             <LoadingState
                 layout="sessionDetails"
                 className={styles.page}
-                title="Workout history"
-                message="Loading workout details..."
+                title={t("common.workoutHistory")}
+                message={t("common.loadingWorkoutDetails")}
             />
         );
     }
@@ -136,19 +139,17 @@ export default function WorkoutHistoryDetailPage() {
         return (
             <Box className={styles.page}>
                 <Card className={styles.stateCard}>
-                    <h1 className={styles.title}>Workout details</h1>
+                    <h1 className={styles.title}>{t("common.workoutDetails")}</h1>
 
                     <p className={styles.errorText}>
-                        {error || "Workout session not found."}
+                        {error || t("common.sessionMissing")}
                     </p>
 
                     <Button
                         type="button"
                         variant="secondary"
                         onClick={() => navigate("/profile/workouts")}
-                    >
-                        Back to history
-                    </Button>
+                    > {t("common.backToHistory")} </Button>
                 </Card>
             </Box>
         );
@@ -169,11 +170,9 @@ export default function WorkoutHistoryDetailPage() {
             <div className={styles.header}>
                 <div>
 
-                    <h1 className={styles.title}>Workout details</h1>
+                    <h1 className={styles.title}>{t("common.workoutDetails")}</h1>
 
-                    <p className={styles.subtitle}>
-                        Your recorded sets, weight, reps, and duration.
-                    </p>
+                    <p className={styles.subtitle}> {t("WorkoutHistoryDetailPage.yourRecordedSetsWeightRepsAndDuration")} </p>
                 </div>
 
                 <div className={styles.headerActions}>
@@ -187,11 +186,11 @@ export default function WorkoutHistoryDetailPage() {
                             <LoadingPredator
                                 size="small"
                                 color="currentColor"
-                                label="Preparing..."
+                                label={t("common.preparing")}
                                 showLabel
                             />
                         ) : (
-                            "Train again"
+                            t("common.trainAgain")
                         )}
                     </Button>
 
@@ -199,42 +198,40 @@ export default function WorkoutHistoryDetailPage() {
                         type="button"
                         variant="secondary"
                         onClick={() => navigate("/profile/workouts")}
-                    >
-                        Back to history
-                    </Button>
+                    > {t("common.backToHistory")} </Button>
                 </div>
             </div>
 
             {actionError && (
                 <Card className={styles.actionErrorCard}>
-                    <p className={styles.errorText} role="alert">{actionError}</p>
+                    <p className={styles.errorText} role="alert">{translateMessage(actionError)}</p>
                 </Card>
             )}
 
             <Card className={styles.summaryCard}>
                 <div className={styles.summaryGrid}>
                     <div className={styles.summaryItem}>
-                        <span className={styles.summaryLabel}>Completed</span>
+                        <span className={styles.summaryLabel}>{t("common.completed")}</span>
                         <span className={styles.summaryValue}>{completedDate}</span>
                     </div>
 
                     <div className={styles.summaryItem}>
-                        <span className={styles.summaryLabel}>End time</span>
+                        <span className={styles.summaryLabel}>{t("common.endTime")}</span>
                         <span className={styles.summaryValue}>{endTime}</span>
                     </div>
 
                     <div className={styles.summaryItem}>
-                        <span className={styles.summaryLabel}>Exercises</span>
-                        <span className={styles.summaryValue}>{totalExercises}</span>
+                        <span className={styles.summaryLabel}>{t("common.exercises")}</span>
+                        <span className={styles.summaryValue}>{formatNumber(totalExercises)}</span>
                     </div>
 
                     <div className={styles.summaryItem}>
-                        <span className={styles.summaryLabel}>Total sets</span>
-                        <span className={styles.summaryValue}>{totalSets}</span>
+                        <span className={styles.summaryLabel}>{t("common.totalSets")}</span>
+                        <span className={styles.summaryValue}>{formatNumber(totalSets)}</span>
                     </div>
 
                     <div className={styles.summaryItem}>
-                        <span className={styles.summaryLabel}>Duration</span>
+                        <span className={styles.summaryLabel}>{t("WorkoutHistoryDetailPage.duration")}</span>
                         <span className={styles.summaryValue}>{duration}</span>
                     </div>
                 </div>
@@ -244,23 +241,21 @@ export default function WorkoutHistoryDetailPage() {
                 <div className={styles.muscleCardContent}>
                     <div className={styles.muscleInfo}>
 
-                        <h2 className={styles.sectionTitle}>Muscles trained</h2>
+                        <h2 className={styles.sectionTitle}>{t("common.musclesTrained")}</h2>
 
-                        <p className={styles.sectionText}>
-                            Primary and secondary muscles targeted by your exercises.
-                        </p>
+                        <p className={styles.sectionText}> {t("common.primaryAndSecondaryMusclesTargetedByYourExercises")} </p>
 
                         {isLoadingMuscles && exerciseLibrary.length === 0 && (
                             <LoadingState
                                 layout="muscles"
                                 variant="inline"
-                                message="Loading muscle profile..."
+                                message={t("common.loadingMuscleProfile")}
                                 color="var(--color-success)"
                             />
                         )}
 
                         {muscleError && (
-                            <p className={styles.errorText} role="alert">{muscleError}</p>
+                            <p className={styles.errorText} role="alert">{translateMessage(muscleError)}</p>
                         )}
 
                     </div>
@@ -278,15 +273,13 @@ export default function WorkoutHistoryDetailPage() {
             <section className={styles.section}>
                 <div className={styles.sectionHeader}>
                     <div>
-                        <h2 className={styles.sectionTitle}>Exercises</h2>
+                        <h2 className={styles.sectionTitle}>{t("common.exercises")}</h2>
 
-                        <p className={styles.sectionText}>
-                            Sets, reps, and weight recorded during this workout.
-                        </p>
+                        <p className={styles.sectionText}> {t("common.setsRepsAndWeightRecordedDuringThisWorkout")} </p>
                     </div>
                 </div>
 
-                {session.exercises.length === 0 && <Card className={styles.stateCard}><p className={styles.stateText}>No sets were recorded for this session.</p></Card>}
+                {session.exercises.length === 0 && <Card className={styles.stateCard}><p className={styles.stateText}>{t("common.noSetsWereRecordedForThisSession")}</p></Card>}
                 <div className={styles.exerciseList}>
                     {session.exercises.map((exercise, exerciseIndex) => (
                         <Card
@@ -295,8 +288,7 @@ export default function WorkoutHistoryDetailPage() {
                         >
                             <div className={styles.exerciseHeader}>
                                 <div>
-                                    <p className={styles.exerciseNumber}>
-                                        Exercise {exerciseIndex + 1}
+                                    <p className={styles.exerciseNumber}> {t("common.exercise")} {exerciseIndex + 1}
                                     </p>
 
                                     <h3 className={styles.exerciseTitle}>
@@ -305,26 +297,22 @@ export default function WorkoutHistoryDetailPage() {
                                 </div>
 
                                 <span className={styles.setCount}>
-                                    {exercise.sets.length}{" "}
-                                    {exercise.sets.length === 1 ? "set" : "sets"}
+                                    {t("common.setCount", { count: exercise.sets.length })}
                                 </span>
                             </div>
 
                             <div className={styles.setsList}>
-                                {exercise.training && exercise.training.format !== "strength" && <p>Planned: {formatTrainingSeconds(trainingTotalSeconds(exercise.training))} · Actual: {formatTrainingSeconds(exercise.cardioCompletion?.elapsedSeconds ?? 0)}{exercise.training.format === "intervals" ? ` · ${exercise.cardioCompletion?.completedRounds ?? 0} of ${exercise.training.rounds} rounds` : ""}{exercise.cardioCompletion?.manual ? " · Completed manually" : ""}</p>}
+                                {exercise.training && exercise.training.format !== "strength" && <p>{t("common.planned")} {formatTrainingSeconds(trainingTotalSeconds(exercise.training))} {t("common.actual")} {formatTrainingSeconds(exercise.cardioCompletion?.elapsedSeconds ?? 0)}{exercise.training.format === "intervals" ? t("common.valueOfValueRounds", { value0: exercise.cardioCompletion?.completedRounds ?? 0, value1: exercise.training.rounds }) : ""}{exercise.cardioCompletion?.manual ? t("common.completedManually") : ""}</p>}
                                 {exercise.sets.map((set, setIndex) => (
                                     <div key={setIndex} className={styles.setRow}>
-                                        <span className={styles.setIndex}>
-                                            Set {setIndex + 1}
+                                        <span className={styles.setIndex}> {t("common.set")} {setIndex + 1}
                                         </span>
 
                                         <span className={styles.setValue}>
-                                            {set.weight} kg
-                                        </span>
+                                            {formatNumber(set.weight)} {t("common.kg")} </span>
 
                                         <span className={styles.setValue}>
-                                            {set.reps} reps
-                                        </span>
+                                            {formatNumber(set.reps)} {t("common.reps")} </span>
                                     </div>
                                 ))}
                             </div>

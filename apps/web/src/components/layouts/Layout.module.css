@@ -6,6 +6,9 @@
     padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
 }
 
+.appLayout { --language-change-shadow: rgba(45, 82, 111, 0.16); }
+:global([data-theme="dark"]) .appLayout { --language-change-shadow: rgba(216, 222, 233, 0.12); }
+
 .main {
     flex: 1;
     min-width: 0;

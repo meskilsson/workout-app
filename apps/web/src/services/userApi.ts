@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { UpdateUserBody } from "@workout-app/shared";
 import { parseJsonResponse } from "../utils/parseJsonResponse";
 
@@ -23,7 +24,7 @@ export async function getAllUsersRequest(): Promise<UserResponse[]> {
 
     return parseJsonResponse<UserResponse[]>(
         response,
-        "Failed to get users",
+        t("userApi.failedToGetUsers"),
     );
 }
 
@@ -34,7 +35,7 @@ export async function getUserByIdRequest(id: string): Promise<UserResponse> {
 
     return parseJsonResponse<UserResponse>(
         response,
-        "Failed to get user",
+        t("userApi.failedToGetUser"),
     );
 }
 
@@ -53,7 +54,7 @@ export async function updateUserRequest(
 
     return parseJsonResponse<UserResponse>(
         response,
-        "Failed to update user",
+        t("userApi.failedToUpdateUser"),
     );
 }
 
@@ -75,7 +76,7 @@ export async function changePasswordRequest(
 
     return parseJsonResponse<MessageResponse>(
         response,
-        "Failed to update password",
+        t("userApi.failedToUpdatePassword"),
     );
 }
 
@@ -87,6 +88,6 @@ export async function deleteUserRequest(userId: string): Promise<MessageResponse
 
     return parseJsonResponse<MessageResponse>(
         response,
-        "Failed to delete account",
+        t("common.failedToDeleteAccount"),
     );
 }

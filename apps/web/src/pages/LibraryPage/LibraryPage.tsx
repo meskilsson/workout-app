@@ -1,3 +1,5 @@
+import { translateMessage, displayValue, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
 import { motion } from "motion/react";
 import { useMotionTransition } from "../../components/motion/useMotionTransition";
@@ -29,6 +31,7 @@ import { Link } from "../../routes/navigation";
 
 
 export default function LibraryPage() {
+    useTranslation();
     const transition = useMotionTransition();
     const fieldMotion = useFieldMotion();
     const { isAuthenticated, user } = useAuth();
@@ -51,7 +54,7 @@ export default function LibraryPage() {
     const exercises = exercisesQuery.data?.exercises ?? [];
     const total = exercisesQuery.data?.total ?? 0;
     const totalPages = exercisesQuery.data?.totalPages ?? 1;
-    const error = (exercisesQuery.error ? friendlyError(exercisesQuery.error, "Unable to load this content. Please try again.") : "");
+    const error = (exercisesQuery.error ? friendlyError(exercisesQuery.error, t("common.unableToLoadThisContentPleaseTryAgain")) : "");
     const isLoading = exercisesQuery.isFetching;
     const hasLoadedOnce = !exercisesQuery.isPending;
     const { pageTopRef, handlePageChange } = usePaginationScroll<HTMLDivElement>(totalPages, { page, onPageChange: setPage });
@@ -73,8 +76,8 @@ export default function LibraryPage() {
             <LoadingState
                 layout="library"
                 className={styles.page}
-                title="Exercise library"
-                message="Loading exercises..."
+                title={t("common.exerciseLibrary")}
+                message={t("LibraryPage.loadingExercises")}
             />
         );
     }
@@ -83,9 +86,9 @@ export default function LibraryPage() {
         return (
             <Box className={styles.page}>
                 <div className={styles.stateCard}>
-                    <p className={styles.kicker}>Exercise library</p>
-                    <h1 className={styles.title}>Library</h1>
-                    <p className={styles.errorText} role="alert">{error}</p>
+                    <p className={styles.kicker}>{t("common.exerciseLibrary")}</p>
+                    <h1 className={styles.title}>{t("common.library")}</h1>
+                    <p className={styles.errorText} role="alert">{translateMessage(error)}</p>
                 </div>
             </Box>
         );
@@ -95,18 +98,16 @@ export default function LibraryPage() {
         <Box className={styles.page}>
             <div ref={pageTopRef} className={styles.header}>
                 <div>
-                    <p className={styles.kicker}>Exercise library</p>
-                    <h1 className={styles.title}>Library</h1>
-                    <p className={styles.subtitle}>
-                        Find exercises for your next session.
-                    </p>
+                    <p className={styles.kicker}>{t("common.exerciseLibrary")}</p>
+                    <h1 className={styles.title}>{t("common.library")}</h1>
+                    <p className={styles.subtitle}> {t("LibraryPage.findExercisesForYourNextSession")} </p>
 
                 </div>
 
                 <div className={styles.libraryActions}>
-                    {isAuthenticated && <Button variant="secondary" icon={Plus} onClick={() => navigate("/create-exercise")}>Create exercise</Button>}
+                    {isAuthenticated && <Button variant="secondary" icon={Plus} onClick={() => navigate("/create-exercise")}>{t("common.createExercise")}</Button>}
                     <div className={styles.countBadge}>
-                    {total} exercise{total === 1 ? "" : "s"}
+                    {t("common.exerciseCount", { count: total })}
                     </div>
                 </div>
             </div>
@@ -118,27 +119,23 @@ export default function LibraryPage() {
                     style={{ minWidth: "3.25rem", marginBottom: "1rem" }}
                     iconOnly
                         className={styles.backButton}
-                    aria-label="Go back"
+                    aria-label={t("common.goBack")}
                     onClick={() => navigate(-1)}
 
                 >
                     <Icon icon={ArrowLeft} />
                 </Button>
                 <div className={styles.searchControls}>
-                <label className={styles.searchLabel}>
-                    Search exercises
-                <motion.input {...fieldMotion("search", searchRest, searchFocus)}
+                <label className={styles.searchLabel}> {t("common.searchExercises")} <motion.input {...fieldMotion("search", searchRest, searchFocus)}
                     className={styles.searchInput}
-                    aria-label="Search exercises"
+                    aria-label={t("common.searchExercises")}
                     type="search"
-                    placeholder="Search exercises..."
+                    placeholder={t("LibraryPage.searchExercises")}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 </label>
-                <label className={styles.sortLabel}>
-                    Sort by
-                    <select
+                <label className={styles.sortLabel}> {t("LibraryPage.sortBy")} <select
                         className={styles.sortSelect}
                         value={effectiveSort}
                         onChange={(event) => {
@@ -146,26 +143,26 @@ export default function LibraryPage() {
                             setPage(1);
                         }}
                     >
-                        <option value="name">Name (A–Z)</option>
-                        <option value="popular">Most popular</option>
-                        {isAuthenticated && <option value="mostUsed">My most used</option>}
+                        <option value="name">{t("LibraryPage.nameAZ")}</option>
+                        <option value="popular">{t("common.mostPopular")}</option>
+                        {isAuthenticated && <option value="mostUsed">{t("common.myMostUsed")}</option>}
                     </select>
                 </label>
                 </div>
                 {effectiveSort !== "name" && (
                     <p className={styles.sortHint}>
                         {effectiveSort === "mostUsed"
-                            ? "Ranked by your completed workouts, highest to lowest."
-                            : "Ranked by completed workouts across all users, highest to lowest."}
+                            ? t("LibraryPage.rankedByYourCompletedWorkoutsHighestToLowest")
+                            : t("LibraryPage.rankedByCompletedWorkoutsAcrossAllUsersHighestTo")}
                     </p>
                 )}
             </div>
 
             {isLoading && hasLoadedOnce && (
-                <LoadingAnnouncement message="Updating exercises..." />
+                <LoadingAnnouncement message={t("common.updatingExercises")} />
             )}
 
-            {error && <p className={styles.errorText} role="alert">{error}</p>}
+            {error && <p className={styles.errorText} role="alert">{translateMessage(error)}</p>}
 
             {exercises.length > 0 ? (
                 <div className={styles.exerciseGrid} aria-busy={isLoading}>
@@ -177,7 +174,7 @@ export default function LibraryPage() {
                                     <h2 className={styles.exerciseName}>{exercise.name}</h2>
 
                                     <p className={styles.exerciseMetaText}>
-                                        {exercise.exerciseType} · {exercise.equipment} · {exercise.difficulty}
+                                        {displayValue(exercise.exerciseType)} · {displayValue(exercise.equipment)} · {displayValue(exercise.difficulty)}
                                     </p>
 
                                 </div>
@@ -196,7 +193,7 @@ export default function LibraryPage() {
                 </div>
             ) : (
                 <div className={styles.stateCard}>
-                    <p className={styles.stateText}>No exercises found.</p>
+                    <p className={styles.stateText}>{t("LibraryPage.noExercisesFound")}</p>
                 </div>
             )}
 
@@ -209,12 +206,9 @@ export default function LibraryPage() {
                         className={styles.pageButton}
                         disabled={page === 1}
                         onClick={() => handlePageChange(page - 1)}
-                    >
-                        Previous
-                    </motion.button>
+                    > {t("common.previous")} </motion.button>
 
-                    <span className={styles.pageInfo}>
-                        Page {page} of {totalPages}
+                    <span className={styles.pageInfo}> {t("common.page")} {page} {t("common.of")} {totalPages}
                     </span>
 
                     <motion.button initial={false} transition={transition}
@@ -224,9 +218,7 @@ export default function LibraryPage() {
                         className={styles.pageButton}
                         disabled={page === totalPages}
                         onClick={() => handlePageChange(page + 1)}
-                    >
-                        Next
-                    </motion.button>
+                    > {t("common.next")} </motion.button>
                 </div>
             )}
         </Box>

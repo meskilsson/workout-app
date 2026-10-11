@@ -1,3 +1,5 @@
+import { translateMessage, displayValue, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
 import { motion } from "motion/react";
 import { useMotionTransition } from "../../components/motion/useMotionTransition";
@@ -62,20 +64,22 @@ type ExerciseGroup = {
 };
 
 function formatMuscleTitle(muscle: string) {
-    if (muscle === "core") return "Abs";
-    return muscle.charAt(0).toUpperCase() + muscle.slice(1);
+    if (muscle === "core") return t("common.abs");
+    return displayValue(muscle.charAt(0).toUpperCase() + muscle.slice(1));
 }
 
 export default function ExerciseSelectPage() {
+    useTranslation();
     const { user } = useAuth();
     const { draftId } = useParams();
     const draft = useQuery(draftDetailOptions(user?._id ?? "", draftId ?? ""));
-    if (draft.isPending && draftId) return <LoadingState layout="exercises" className={styles.page} title="Exercise library" message="Loading workout draft and exercises..." />;
-    if (!draft.data) return <Box className={styles.page}><div className={styles.stateCard}><h1>Select exercises</h1><p role="alert">{(draft.error ? friendlyError(draft.error, "Unable to load your workout. Please try again.") : "Missing workout draft")}</p></div></Box>;
+    if (draft.isPending && draftId) return <LoadingState layout="exercises" className={styles.page} title={t("common.exerciseLibrary")} message={t("common.loadingWorkoutDraftAndExercises")} />;
+    if (!draft.data) return <Box className={styles.page}><div className={styles.stateCard}><h1>{t("common.selectExercises")}</h1><p role="alert">{(draft.error ? friendlyError(draft.error, t("common.unableToLoadYourWorkoutPleaseTryAgain")) : t("common.missingWorkoutDraft"))}</p></div></Box>;
     return <ExerciseSelectionForm key={(user?._id ?? "") + ":" + draftId} initialDraft={draft.data} />;
 }
 
 function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft }) {
+    useTranslation();
     const transition = useMotionTransition();
     const fieldMotion = useFieldMotion();
     const { user, isAuthenticated } = useAuth();
@@ -98,9 +102,9 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
     const [sortOpen, setSortOpen] = useState(false);
     const [sort, setSort] = useState<ExerciseSort>("popular");
     const sortOptions: { value: ExerciseSort; label: string; description: string }[] = [
-        { value: "name", label: "Name (A?Z)", description: "Alphabetical order." },
-        { value: "popular", label: "Most popular", description: "Most completed across all users." },
-        ...(isAuthenticated ? [{ value: "mostUsed" as const, label: "My most used", description: "Most completed in your workouts." }] : []),
+        { value: "name", label: t("ExerciseSelectPage.nameAZ"), description: t("ExerciseSelectPage.alphabeticalOrder") },
+        { value: "popular", label: t("common.mostPopular"), description: t("ExerciseSelectPage.mostCompletedAcrossAllUsers") },
+        ...(isAuthenticated ? [{ value: "mostUsed" as const, label: t("common.myMostUsed"), description: t("ExerciseSelectPage.mostCompletedInYourWorkouts") }] : []),
     ];
     const effectiveSort = sort === "mostUsed" && !isAuthenticated ? "popular" : sort;
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -121,7 +125,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
     const isLoading = exercisesQuery.isPending;
     const hasLoadedOnce = !exercisesQuery.isPending;
     const draftError = "";
-    const exerciseError = (exercisesQuery.error ? friendlyError(exercisesQuery.error, "Unable to load this content. Please try again.") : "");
+    const exerciseError = (exercisesQuery.error ? friendlyError(exercisesQuery.error, t("common.unableToLoadThisContentPleaseTryAgain")) : "");
     const error = exerciseError || actionError;
     const isEditingExistingDraft = existingExerciseIds.length > 0;
     useEffect(() => {
@@ -175,9 +179,9 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
         });
     }
 
-    const exerciseGroupTitle = isCardioOnly ? "Cardio" : isActiveWorkout
-        ? "All exercises"
-        : "Matching exercises";
+    const exerciseGroupTitle = isCardioOnly ? t("common.cardio") : isActiveWorkout
+        ? t("ExerciseSelectPage.allExercises")
+        : t("ExerciseSelectPage.matchingExercises");
 
     const currentWorkoutExerciseCards = (() => {
         const exerciseMap = new Map<string, Exercise>();
@@ -216,7 +220,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
         {
             id: "matching-exercises",
             title: debouncedSearchTerm
-                ? `Search results for "${debouncedSearchTerm}"`
+                ? t("ExerciseSelectPage.searchResultsForValue", { value0: debouncedSearchTerm })
                 : exerciseGroupTitle,
             count: availableExercises.length,
             exercises: availableExercises,
@@ -243,7 +247,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
             navigate(isActiveWorkout ? "/workout/" + draftId : "/workout-summary/" + draftId);
         } catch (err) {
             setActionError(
-                friendlyError(err, "Unable to continue. Please try again."),
+                friendlyError(err, t("ExerciseSelectPage.unableToContinuePleaseTryAgain")),
             );
         } finally { submitting.current = false; }
     }
@@ -279,21 +283,19 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                             {isAlreadyInWorkout && (
                                 <span
                                     className={styles.existingBadge}
-                                >
-                                    Already added
-                                </span>
+                                > {t("ExerciseSelectPage.alreadyAdded")} </span>
                             )}
 
                             <div className={styles.exerciseMeta}>
                                 {exercise.equipment && (
                                     <span>
-                                        {exercise.equipment}
+                                        {displayValue(exercise.equipment)}
                                     </span>
                                 )}
 
                                 {exercise.difficulty && (
                                     <span>
-                                        {exercise.difficulty}
+                                        {displayValue(exercise.difficulty)}
                                     </span>
                                 )}
                             </div>
@@ -320,9 +322,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                                         className={
                                             styles.muscleLabel
                                         }
-                                    >
-                                        Primary
-                                    </p>
+                                    > {t("common.primary")} </p>
 
                                     <div
                                         className={
@@ -332,12 +332,12 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                                         {exercise.primaryMuscles.map(
                                             (muscle) => (
                                                 <span
-                                                    key={muscle}
+                                                    key={displayValue(muscle)}
                                                     className={
                                                         styles.primaryTag
                                                     }
                                                 >
-                                                    {muscle}
+                                                    {displayValue(muscle)}
                                                 </span>
                                             ),
                                         )}
@@ -353,9 +353,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                                         className={
                                             styles.muscleLabel
                                         }
-                                    >
-                                        Secondary
-                                    </p>
+                                    > {t("common.secondary")} </p>
 
                                     <div
                                         className={
@@ -365,12 +363,12 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                                         {exercise.secondaryMuscles.map(
                                             (muscle) => (
                                                 <span
-                                                    key={muscle}
+                                                    key={displayValue(muscle)}
                                                     className={
                                                         styles.secondaryTag
                                                     }
                                                 >
-                                                    {muscle}
+                                                    {displayValue(muscle)}
                                                 </span>
                                             ),
                                         )}
@@ -388,11 +386,11 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
             <LoadingState
                 layout="exercises"
                 className={styles.page}
-                title="Exercise library"
+                title={t("common.exerciseLibrary")}
                 message={
                     isActiveWorkout
-                        ? "Loading exercises you can add..."
-                        : "Loading workout draft and exercises..."
+                        ? t("ExerciseSelectPage.loadingExercisesYouCanAdd")
+                        : t("common.loadingWorkoutDraftAndExercises")
                 }
             />
         );
@@ -402,11 +400,9 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
         return (
             <Box className={styles.page}>
                 <div className={styles.stateCard}>
-                    <h1 className={styles.title}>
-                        Select exercises
-                    </h1>
+                    <h1 className={styles.title}> {t("common.selectExercises")} </h1>
 
-                    <p className={styles.errorText} role="alert">{error}</p>
+                    <p className={styles.errorText} role="alert">{translateMessage(error)}</p>
                 </div>
             </Box>
         );
@@ -420,7 +416,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                         variant="secondary"
                         iconOnly
                         className={styles.backButton}
-                    aria-label="Go back"
+                    aria-label={t("common.goBack")}
                         onClick={() =>
                             isActiveWorkout
                                 ? navigate(
@@ -432,22 +428,20 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                         <Icon icon={ArrowLeft} />
                     </Button>
                 <div className={styles.headerIntro}>
-                    <p className={styles.kicker}>
-                        Exercise library
-                    </p>
+                    <p className={styles.kicker}> {t("common.exerciseLibrary")} </p>
 
                     <h1 className={styles.title}>
                         {isActiveWorkout
-                            ? "Add exercises"
+                            ? t("ExerciseSelectPage.addExercises")
                             : isEditingExistingDraft
-                                ? "Edit exercises"
-                                : "Select exercises"}
+                                ? t("ExerciseSelectPage.editExercises")
+                                : t("common.selectExercises")}
                     </h1>
 
                     <p className={styles.subtitle}>
                         {isActiveWorkout
-                            ? "Select exercises to add to your workout."
-                            : isCardioOnly ? "Choose your cardio activities." : includeCardio ? "Choose exercises for your workout." : "Choose exercises for your selected muscles."}
+                            ? t("ExerciseSelectPage.selectExercisesToAddToYourWorkout")
+                            : isCardioOnly ? t("ExerciseSelectPage.chooseYourCardioActivities") : includeCardio ? t("ExerciseSelectPage.chooseExercisesForYourWorkout") : t("ExerciseSelectPage.chooseExercisesForYourSelectedMuscles")}
                     </p>
 
 
@@ -456,9 +450,9 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
 
             </div>
 
-            <Modal title="Sort exercises" isOpen={sortOpen} onClose={() => setSortOpen(false)}>
+            <Modal title={t("ExerciseSelectPage.sortExercises")} isOpen={sortOpen} onClose={() => setSortOpen(false)}>
                 <fieldset className={styles.sortOptions}>
-                    <legend>Order exercises by</legend>
+                    <legend>{t("ExerciseSelectPage.orderExercisesBy")}</legend>
                     {sortOptions.map(option => <label className={styles.sortOption} key={option.value}>
                         <input type="radio" name="exercise-sort" value={option.value} checked={effectiveSort === option.value}
                             onChange={() => { setSort(option.value); setPage(1); setSortOpen(false); }} />
@@ -467,13 +461,11 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                 </fieldset>
             </Modal>
             <div className={styles.searchWrapper}>
-                <label className={styles.searchLabel}>
-                    Search exercises
-                <motion.input {...fieldMotion("search", searchRest, searchFocus)}
+                <label className={styles.searchLabel}> {t("common.searchExercises")} <motion.input {...fieldMotion("search", searchRest, searchFocus)}
                     className={styles.searchInput}
-                    aria-label="Search exercises"
+                    aria-label={t("common.searchExercises")}
                     type="search"
-                    placeholder="Search exercises, muscles, or equipment..."
+                    placeholder={t("ExerciseSelectPage.searchExercisesMusclesOrEquipment")}
                     value={searchTerm}
                     onChange={(event) =>
                         setSearchTerm(event.target.value)
@@ -482,19 +474,19 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                 </label>
                 <Button type="button" variant="ghost" className={styles.sortButton} icon={ArrowDownUp}
                     aria-haspopup="dialog" aria-expanded={sortOpen}
-                    aria-label={`Sort exercises: ${sortOptions.find(option => option.value === effectiveSort)?.label}`}
-                    onClick={() => setSortOpen(true)}>Sort</Button>
+                    aria-label={t("ExerciseSelectPage.sortExercisesValue", { value0: sortOptions.find(option => option.value === effectiveSort)?.label })}
+                    onClick={() => setSortOpen(true)}>{t("ExerciseSelectPage.sort")}</Button>
             </div>
 
             {isLoadingExercises && hasLoadedOnce && (
-                <LoadingAnnouncement message="Updating exercises..." />
+                <LoadingAnnouncement message={t("common.updatingExercises")} />
             )}
 
-            {exerciseError && <p className={styles.errorText} role="alert">{exerciseError}</p>}
+            {exerciseError && <p className={styles.errorText} role="alert">{translateMessage(exerciseError)}</p>}
 
             {actionError && (
                 <p className={styles.errorText}>
-                    {actionError}
+                    {translateMessage(actionError)}
                 </p>
             )}
 
@@ -510,10 +502,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                             </h2>
 
                             <p className={styles.groupCount}>
-                                {group.count}{" "}
-                                {group.count === 1
-                                    ? "exercise"
-                                    : "exercises"}
+                                {t("common.exerciseCount", { count: group.count })}
                             </p>
                         </div>
 
@@ -528,8 +517,8 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                             ) : (
                                 <p className={styles.emptyText}>
                                     {exercises.length > 0
-                                        ? "Your chosen exercises are listed below. Browse another page for more."
-                                        : "No matching exercises found."}
+                                        ? t("ExerciseSelectPage.yourChosenExercisesAreListedBelowBrowseAnotherPage")
+                                        : t("ExerciseSelectPage.noMatchingExercisesFound")}
                                 </p>
                             )}
                         </Box>
@@ -548,12 +537,9 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                         onClick={() =>
                             handlePageChange(page - 1)
                         }
-                    >
-                        Previous
-                    </motion.button>
+                    > {t("common.previous")} </motion.button>
 
-                    <span className={styles.pageInfo}>
-                        Page {page} of {totalPages}
+                    <span className={styles.pageInfo}> {t("common.page")} {page} {t("common.of")} {totalPages}
                     </span>
 
                     <motion.button initial={false} transition={transition}
@@ -565,18 +551,16 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                         onClick={() =>
                             handlePageChange(page + 1)
                         }
-                    >
-                        Next
-                    </motion.button>
+                    > {t("common.next")} </motion.button>
                 </div>
             )}
             {currentWorkoutExerciseCards.length > 0 && (
                 <section className={`${styles.groupList} ${styles.exerciseGroup}`} aria-labelledby="chosen-exercises-heading">
                     <div className={styles.groupHeader}>
                         <h2 id="chosen-exercises-heading" className={styles.groupTitle}>
-                            {isActiveWorkout ? "Workout exercises" : "Chosen exercises"}
+                            {isActiveWorkout ? t("ExerciseSelectPage.workoutExercises") : t("ExerciseSelectPage.chosenExercises")}
                         </h2>
-                        <p className={styles.groupCount}>{currentWorkoutExerciseCards.length} {currentWorkoutExerciseCards.length === 1 ? "exercise" : "exercises"}</p>
+                        <p className={styles.groupCount}>{t("common.exerciseCount", { count: currentWorkoutExerciseCards.length })}</p>
                     </div>
                     <div className={styles.exerciseGrid}>
                         {currentWorkoutExerciseCards.map(renderExerciseCard)}
@@ -588,12 +572,9 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                 <p className={styles.footerText}>
                     {selectedExercises.length === 0
                         ? isActiveWorkout
-                            ? "Select at least one new exercise."
-                            : "Select at least one exercise to continue."
-                        : `${selectedExercises.length} exercise${selectedExercises.length === 1
-                            ? ""
-                            : "s"
-                        } ready.`}
+                            ? t("ExerciseSelectPage.selectAtLeastOneNewExercise")
+                            : t("ExerciseSelectPage.selectAtLeastOneExerciseToContinue")
+                        : t("common.exercisesReady", { count: selectedExercises.length })}
                 </p>
 
                 <Button
@@ -611,15 +592,15 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                             color="currentColor"
                             label={
                                 isActiveWorkout
-                                    ? "Adding exercises..."
-                                    : isTemplateDraft ? "Saving..." : "Starting..."
+                                    ? t("ExerciseSelectPage.addingExercises")
+                                    : isTemplateDraft ? t("common.saving") : t("common.starting")
                             }
                             showLabel
                         />
                     ) : isActiveWorkout ? (
-                        "Add to workout"
+                        t("ExerciseSelectPage.addToWorkout")
                     ) : (
-                        isTemplateDraft ? "Review template" : "Start workout"
+                        isTemplateDraft ? t("ExerciseSelectPage.reviewTemplate") : t("common.startWorkout")
                     )}
                 </Button>
             </div>

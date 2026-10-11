@@ -1,16 +1,19 @@
+import { useTranslation } from "react-i18next";
+import { t } from "../../i18n";
 import { UserRound, History, Dumbbell, Settings } from "lucide-react";
 import Icon from "../ui/icon/Icon";
 import { NavLink, Outlet } from "../../routes/navigation";
 import styles from "./AccountLayout.module.css";
 
 export default function AccountLayout() {
+    useTranslation();
 
     return (
         <section className={styles.page}>
             <div className={styles.accountLayout}>
                 <aside className={styles.sideNav}>
 
-                    <nav className={styles.links} aria-label="Profile navigation">
+                    <nav className={styles.links} aria-label={t("AccountLayout.profileNavigation")}>
                         <NavLink animated
                             to="/profile"
                             end
@@ -20,8 +23,7 @@ export default function AccountLayout() {
                                     : styles.link
                             }
                         >
-                            <Icon icon={UserRound} /> Profile
-                        </NavLink>
+                            <Icon icon={UserRound} /> {t("common.profile")} </NavLink>
 
                         <NavLink animated
                             to="/profile/workouts"
@@ -31,8 +33,7 @@ export default function AccountLayout() {
                                     : styles.link
                             }
                         >
-                            <Icon icon={History} /> Workout history
-                        </NavLink>
+                            <Icon icon={History} /> {t("common.workoutHistory")} </NavLink>
 
                         <NavLink animated
                             to="/profile/exercises"
@@ -42,8 +43,7 @@ export default function AccountLayout() {
                                     : styles.link
                             }
                         >
-                            <Icon icon={Dumbbell} /> My exercises
-                        </NavLink>
+                            <Icon icon={Dumbbell} /> {t("common.myExercises")} </NavLink>
 
                         <NavLink animated
                             to="/profile/settings"
@@ -53,8 +53,7 @@ export default function AccountLayout() {
                                     : styles.link
                             }
                         >
-                            <Icon icon={Settings} /> Settings
-                        </NavLink>
+                            <Icon icon={Settings} /> {t("AccountLayout.settings")} </NavLink>
                     </nav>
                 </aside>
 

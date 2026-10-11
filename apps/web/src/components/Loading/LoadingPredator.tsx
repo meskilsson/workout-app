@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { t } from "../../i18n";
 import { useReducedMotion } from "../motion/useReducedMotion";
 import { motion } from "motion/react";
 import type { CSSProperties } from "react";
@@ -22,9 +24,10 @@ export default function LoadingPredator({
     className = "",
     color = "currentColor",
     size = "medium",
-    label = "Loading",
+    label = t("LoadingPredator.loading"),
     showLabel = false,
 }: LoadingPredatorProps) {
+    useTranslation();
     const reduced = useReducedMotion();
     const predatorStyle = {
         "--predator-color": color,

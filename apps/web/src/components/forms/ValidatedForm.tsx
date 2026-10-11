@@ -1,9 +1,12 @@
+import { useTranslation } from "react-i18next";
+import { translateMessage } from "../../i18n";
 import { useEffect, useRef, type ComponentPropsWithRef } from "react";
 import { focusInvalidField } from "../../utils/focusInvalidField";
 import { validationMessage, type FormControl } from "../../utils/formValidation";
 
 /** Enhances existing native controls without changing their layout or controlled values. */
 export default function ValidatedForm({ ref, children, embedded = false, onSubmit, ...props }: ComponentPropsWithRef<"form"> & { embedded?: boolean }) {
+    useTranslation();
     const localRef = useRef<HTMLFormElement | HTMLDivElement>(null);
     const pending = useRef(false);
     const refresh = useRef<() => void>(() => {});
@@ -31,7 +34,7 @@ export default function ValidatedForm({ ref, children, embedded = false, onSubmi
             message.id = `inline-validation-${++nextMessageId}`;
             message.className = "inline-field-error";
             message.setAttribute("role", "alert");
-            message.textContent = text;
+            message.textContent = translateMessage(text);
             control.insertAdjacentElement("afterend", message);
             control.setAttribute("aria-invalid", "true");
             control.setAttribute("aria-describedby", [control.getAttribute("aria-describedby"), message.id].filter(Boolean).join(" "));
@@ -78,6 +81,10 @@ export default function ValidatedForm({ ref, children, embedded = false, onSubmi
                 else if (clientErrors.has(control)) {
                     const text = validationMessage(control);
                     if (text !== messages.get(control)?.textContent) show(control, text);
+                }
+                else {
+                    const message = messages.get(control);
+                    if (message) message.textContent = translateMessage(message.textContent ?? "");
                 }
             }
         };

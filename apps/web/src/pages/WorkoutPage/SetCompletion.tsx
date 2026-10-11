@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { t } from "../../i18n";
 import { useReducedMotion } from "../../components/motion/useReducedMotion";
 import { useEffect, useRef, type ReactNode } from "react";
 import { motion, useAnimate, useIsPresent } from "motion/react";
@@ -6,6 +8,7 @@ import styles from "./WorkoutPage.module.css";
 
 const duration = 0.45;
 export function CompletedSetRow({ completed, children }: { completed: boolean; children: ReactNode }) {
+    useTranslation();
     const reduced = useReducedMotion();
     const present = useIsPresent();
     return <motion.div layout="position" initial={{ opacity: 0, height: reduced ? "auto" : 0, y: reduced ? 0 : -4 }} animate={{ opacity: 1, height: "auto", y: 0 }} exit={{ opacity: 0, height: reduced ? "auto" : 0, y: reduced ? 0 : -4, marginBottom: reduced ? 0 : "calc(-1 * var(--space-3))" }} transition={{ duration: reduced ? 0 : 0.2 }} inert={!present} style={{ overflow: "hidden" }}>
@@ -16,6 +19,7 @@ export function CompletedSetRow({ completed, children }: { completed: boolean; c
 }
 
 export function SetCompletionControl({ completed, onComplete }: { completed: boolean; onComplete: () => void }) {
+    useTranslation();
     const reduced = useReducedMotion();
     const requested = useRef(false);
     const [scope, animate] = useAnimate<HTMLSpanElement>();
@@ -41,7 +45,7 @@ export function SetCompletionControl({ completed, onComplete }: { completed: boo
             backgroundColor: completed ? "var(--set-completion-hover)" : "rgba(0, 0, 0, 0)",
             borderColor: completed ? "var(--color-set-completion-border, var(--set-completion-hover))" : "var(--color-success-text)", y: -1 }}
         onClick={() => { if (!completed) requested.current = true; onComplete(); }}
-        aria-label={completed ? "Completed set; restart rest timer" : "Complete set and start rest timer"} aria-pressed={completed}>
+        aria-label={completed ? t("SetCompletion.completedSetRestartRestTimer") : t("SetCompletion.completeSetAndStartRestTimer")} aria-pressed={completed}>
         <span ref={scope} className={styles.completionSymbol} aria-hidden="true">
             <motion.span data-completion-ring className={styles.completionRing} initial={{ opacity: 0 }} />
             <motion.svg key={String(reduced)} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" focusable="false">

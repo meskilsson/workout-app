@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { t } from "../../i18n";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useNavigate } from "../../routes/navigationHooks";
@@ -8,6 +10,7 @@ import Button from "../../components/ui/button/Button";
 import styles from "./CreateTemplatePage.module.css";
 
 export default function CreateTemplatePage() {
+    useTranslation();
     const navigate = useNavigate();
 
     return (
@@ -19,15 +22,15 @@ export default function CreateTemplatePage() {
                     style={{ minWidth: "3.25rem", marginBottom: "1rem" }}
                     iconOnly
                         className={styles.backButton}
-                    aria-label="Go back"
+                    aria-label={t("common.goBack")}
                     onClick={() => navigate(-1)}
 
                 >
                     <Icon icon={ArrowLeft} />
                 </Button>
-                <p className={styles.kicker}>Workout template</p>
+                <p className={styles.kicker}>{t("common.workoutTemplate")}</p>
 
-                <h1 className={styles.title}>Create a template</h1>
+                <h1 className={styles.title}>{t("CreateTemplatePage.createATemplate")}</h1>
 
 
 
@@ -35,24 +38,24 @@ export default function CreateTemplatePage() {
                     <div className={styles.step}>
                         <span>1</span>
                         <div>
-                            <h2>Choose muscles</h2>
-                            <p>Select what this workout should train.</p>
+                            <h2>{t("common.chooseMuscles")}</h2>
+                            <p>{t("CreateTemplatePage.selectWhatThisWorkoutShouldTrain")}</p>
                         </div>
                     </div>
 
                     <div className={styles.step}>
                         <span>2</span>
                         <div>
-                            <h2>Pick exercises</h2>
-                            <p>Choose your exercises and their order.</p>
+                            <h2>{t("CreateTemplatePage.pickExercises")}</h2>
+                            <p>{t("CreateTemplatePage.chooseYourExercisesAndTheirOrder")}</p>
                         </div>
                     </div>
 
                     <div className={styles.step}>
                         <span>3</span>
                         <div>
-                            <h2>Save your template</h2>
-                            <p>Name it, choose a category, and save it for later.</p>
+                            <h2>{t("CreateTemplatePage.saveYourTemplate")}</h2>
+                            <p>{t("CreateTemplatePage.nameItChooseACategoryAndSaveItFor")}</p>
                         </div>
                     </div>
                 </div>
@@ -62,16 +65,12 @@ export default function CreateTemplatePage() {
                         type="button"
                         variant="secondary"
                         onClick={() => navigate("/templates/my")}
-                    >
-                        Cancel
-                    </Button>
+                    > {t("common.cancel")} </Button>
 
                     <Button icon={ArrowRight}
                         type="button"
                         onClick={() => navigate("/workout-select?purpose=template")}
-                    >
-                        Choose muscles
-                    </Button>
+                    > {t("common.chooseMuscles")} </Button>
                 </div>
             </Card>
         </section>

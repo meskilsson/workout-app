@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { activateWorkoutDraftRequest } from "./workoutDraftApi";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -33,7 +34,7 @@ export async function createWorkoutSessionRequest(
         body: JSON.stringify(sessionData),
     });
 
-    return parseJsonResponse<WorkoutSession>(response, "Failed to save workout session");
+    return parseJsonResponse<WorkoutSession>(response, t("workoutSessionApi.failedToSaveWorkoutSession"));
 }
 
 export async function getMyWorkoutSessionsRequest(signal?: AbortSignal): Promise<WorkoutSession[]> {
@@ -42,7 +43,7 @@ export async function getMyWorkoutSessionsRequest(signal?: AbortSignal): Promise
         credentials: "include",
     });
 
-    return parseJsonResponse<WorkoutSession[]>(response, "Failed to fetch workout history");
+    return parseJsonResponse<WorkoutSession[]>(response, t("workoutSessionApi.failedToFetchWorkoutHistory"));
 }
 
 export async function getWorkoutSessionByIdRequest(sessionId: string, signal?: AbortSignal): Promise<WorkoutSession> {
@@ -51,7 +52,7 @@ export async function getWorkoutSessionByIdRequest(sessionId: string, signal?: A
         credentials: "include",
     });
 
-    return parseJsonResponse<WorkoutSession>(response, "Failed to fetch workout session");
+    return parseJsonResponse<WorkoutSession>(response, t("workoutSessionApi.failedToFetchWorkoutSession"));
 }
 
 export async function repeatWorkoutSessionRequest(
@@ -66,7 +67,7 @@ export async function repeatWorkoutSessionRequest(
 
     const draft = await parseJsonResponse<RepeatWorkoutDraftResponse>(
         response,
-        "Failed to prepare workout",
+        t("workoutSessionApi.failedToPrepareWorkout"),
     );
     return activateWorkoutDraftRequest(draft._id);
 }
@@ -84,6 +85,6 @@ export async function deleteWorkoutSessionRequest(
 
     return parseJsonResponse<WorkoutSession>(
         response,
-        "Failed to delete workout session",
+        t("workoutSessionApi.failedToDeleteWorkoutSession"),
     );
 }

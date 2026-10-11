@@ -1,9 +1,12 @@
+import { translateMessage } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "../../routes/navigationHooks";
 import LoadingState from "./LoadingState";
 import type { SkeletonLayout } from "./Skeleton";
 import styles from "./LoadingState.module.css";
 
 export default function AppLoadingSkeleton({ message }: { message: string }) {
+    useTranslation();
     const { pathname } = useLocation();
     let layout: SkeletonLayout = "cards";
     if (pathname === "/") layout = "home";
@@ -25,6 +28,6 @@ export default function AppLoadingSkeleton({ message }: { message: string }) {
     else if (/profile/.test(pathname)) layout = "list";
     return <div>
         <div aria-hidden="true" className={styles.appHeader} />
-        <LoadingState message={message} layout={layout} />
+        <LoadingState message={translateMessage(message)} layout={layout} />
     </div>;
 }

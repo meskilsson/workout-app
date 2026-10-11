@@ -1,3 +1,5 @@
+import { translateMessage, t } from "../../i18n";
+import { useTranslation } from "react-i18next";
 import { friendlyError } from "../../utils/formValidation";
 import { Home, Dumbbell, BookOpen, Plus, UserRound, LogOut, Timer, Menu, X, History } from "lucide-react";
 import Icon from "../ui/icon/Icon";
@@ -8,12 +10,14 @@ import Button from "../ui/button/Button";
 import { useAuth } from "../../context/AuthContext";
 import ThemeSelect from "../theme/ThemeSelect";
 import styles from "./Navbar.module.css";
+import LanguageSelect from "./LanguageSelect";
 
 import { useCurrentWorkout } from "@workout-app/shared/currentWorkoutContext";
 import { useWorkoutTimer } from "@workout-app/shared/timer";
 import { formatElapsedDuration } from "@workout-app/shared/utils/formatElapsedTime";
 
 export default function Navbar() {
+    useTranslation();
   const navigate = useNavigate();
   const { pathname, key: locationKey } = useLocation();
   const isWorkoutPage = /^\/workout\/[^/]+$/.test(pathname);
@@ -72,7 +76,7 @@ export default function Navbar() {
       closeMenu();
       navigate("/login");
     } catch (error) {
-      setLogoutError(friendlyError(error, "Could not log out. Please try again."));
+      setLogoutError(friendlyError(error, t("Navbar.couldNotLogOutPleaseTryAgain")));
     } finally { setIsLoggingOut(false); }
   }
 
@@ -91,23 +95,19 @@ export default function Navbar() {
   const navLinks = (
     <>
       <NavLink to="/" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}>
-        <Icon icon={Home} /> Home
-      </NavLink>
+        <Icon icon={Home} /> {t("common.home")} </NavLink>
 
       <NavLink to="/templates" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}>
-        <Icon icon={Dumbbell} /> Workouts
-      </NavLink>
+        <Icon icon={Dumbbell} /> {t("common.workouts")} </NavLink>
 
       <NavLink to="/library" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}>
-        <Icon icon={BookOpen} /> Library
-      </NavLink>
-      {user?.role === "admin" && <NavLink to="/admin" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={UserRound} /> Admin</NavLink>}
+        <Icon icon={BookOpen} /> {t("common.library")} </NavLink>
+      {user?.role === "admin" && <NavLink to="/admin" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={UserRound} /> {t("Navbar.admin")}</NavLink>}
 
       {isAuthenticated && (
         <>
           <NavLink to="/profile/workouts" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}>
-            <Icon icon={History} /> History
-          </NavLink>
+            <Icon icon={History} /> {t("common.history")} </NavLink>
 
           <NavLink
             to="/profile"
@@ -115,8 +115,7 @@ export default function Navbar() {
             className={({ isActive }) => navLinkClass(isActive)}
             onClick={closeMenu}
           >
-            <Icon icon={UserRound} /> Profile
-          </NavLink>
+            <Icon icon={UserRound} /> {t("common.profile")} </NavLink>
         </>
       )}
     </>
@@ -129,28 +128,25 @@ export default function Navbar() {
       {isAuthenticated ? (
         <>
           <span className={styles.userText}>
-            {user?.username ? `@${user.username}` : "Logged in"}
+            {user?.username ? `@${user.username}` : t("Navbar.loggedIn")}
           </span>
 
-          <Button variant="ghost" iconOnly aria-label="Log out" disabled={isLoggingOut} onClick={handleLogout}>
+          <Button variant="ghost" iconOnly aria-label={t("common.logOut")} disabled={isLoggingOut} onClick={handleLogout}>
             <Icon icon={LogOut} />
           </Button>
         </>
       ) : (
         <>
-          <Button variant="ghost" onClick={() => handleNavigate("/login")}>
-            Log in
-          </Button>
+          <Button variant="ghost" onClick={() => handleNavigate("/login")}> {t("common.logIn")} </Button>
 
-          <Button onClick={() => handleNavigate("/signup")}>Sign up</Button>
+          <Button onClick={() => handleNavigate("/signup")}>{t("Navbar.signUp")}</Button>
         </>
       )}
 
       {shouldShowCurrentWorkout && (
         <div className={styles.currentWorkout}>
           <Button variant="ghost" onClick={handleCurrentWorkout}>
-            <Icon icon={Dumbbell} /> Resume workout
-          </Button>
+            <Icon icon={Dumbbell} /> {t("common.resumeWorkout")} </Button>
 
           <span className={styles.timerText}>
             <Icon icon={Timer} /> {formatElapsedDuration(timerState.elapsedTime)}
@@ -162,21 +158,21 @@ export default function Navbar() {
 
   return (
     <>
-    <nav ref={navRef} className={styles.navbar} aria-label="Header navigation">
+    <nav ref={navRef} className={styles.navbar} aria-label={t("Navbar.headerNavigation")}>
       <div className={styles.inner}>
         <div className={styles.leftSide}>
           <button
             className={styles.brand}
-            aria-label="Workout home"
+            aria-label={t("Navbar.workoutHome")}
             type="button"
             onClick={() => handleNavigate("/")}
           >
             <img
               src="/moose_charging_kettlebell_clean_transparent.png"
-              alt="Moose logo"
+              alt={t("Navbar.mooseLogo")}
               className={styles.logo}
             />
-            <span>Workout</span>
+            <span>{t("common.workout")}</span>
           </button>
 
           <div className={styles.links}>{navLinks}</div>
@@ -184,37 +180,38 @@ export default function Navbar() {
 
         <div className={styles.actions}>{authActions}</div>
 
+        <div className={styles.headerControls}><LanguageSelect />
         <button
           type="button"
           className={styles.menuButton}
           ref={menuButtonRef}
           onClick={() => setMenuLocation(isMenuOpen ? null : locationKey)}
-          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+          aria-label={isMenuOpen ? t("Navbar.closeMenu") : t("Navbar.openMenu")}
           aria-expanded={isMenuOpen}
           aria-controls="mobile-menu"
         >
           <Icon icon={isMenuOpen ? X : Menu} />
-        </button>
+        </button></div>
       </div>
 
-      {logoutError && <p className={styles.logoutError} role="alert">{logoutError}</p>}
+      {logoutError && <p className={styles.logoutError} role="alert">{translateMessage(logoutError)}</p>}
       <div
         id="mobile-menu"
         className={`${styles.mobileMenu} ${isMenuOpen ? styles.mobileMenuOpen : ""
           }`.trim()}
       >
         <div className={styles.mobileLinks}>{navLinks}
-          {isAuthenticated && <NavLink to="/create-exercise" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={Plus} /> Create exercise</NavLink>}
+          {isAuthenticated && <NavLink to="/create-exercise" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={Plus} /> {t("common.createExercise")}</NavLink>}
         </div>
 
         <div className={styles.mobileActions}>{authActions}</div>
       </div>
     </nav>
-    {!isWorkoutPage && !isMenuOpen && <nav className={styles.bottomNav} aria-label="Main navigation">
-      <NavLink to="/" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={Home} /><span>Home</span></NavLink>
-      <NavLink to="/templates" className={({ isActive }) => navLinkClass(isActive || /^\/(workout-select|exercise-select|workout-summary|workout-result)(\/|$)/.test(pathname))} onClick={closeMenu}><Icon icon={Dumbbell} /><span>Workouts</span></NavLink>
-      {isAuthenticated ? <NavLink to="/profile/workouts" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={History} /><span>History</span></NavLink> : <NavLink to="/library" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={BookOpen} /><span>Library</span></NavLink>}
-      <NavLink to={isAuthenticated ? "/profile" : "/login"} className={({ isActive }) => navLinkClass(isActive || (isAuthenticated && pathname.startsWith("/profile/") && !pathname.startsWith("/profile/workouts")))} onClick={closeMenu} end><Icon icon={UserRound} /><span>{isAuthenticated ? "Profile" : "Log in"}</span></NavLink>
+    {!isWorkoutPage && !isMenuOpen && <nav className={styles.bottomNav} aria-label={t("Navbar.mainNavigation")}>
+      <NavLink to="/" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={Home} /><span>{t("common.home")}</span></NavLink>
+      <NavLink to="/templates" className={({ isActive }) => navLinkClass(isActive || /^\/(workout-select|exercise-select|workout-summary|workout-result)(\/|$)/.test(pathname))} onClick={closeMenu}><Icon icon={Dumbbell} /><span>{t("common.workouts")}</span></NavLink>
+      {isAuthenticated ? <NavLink to="/profile/workouts" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={History} /><span>{t("common.history")}</span></NavLink> : <NavLink to="/library" className={({ isActive }) => navLinkClass(isActive)} onClick={closeMenu}><Icon icon={BookOpen} /><span>{t("common.library")}</span></NavLink>}
+      <NavLink to={isAuthenticated ? "/profile" : "/login"} className={({ isActive }) => navLinkClass(isActive || (isAuthenticated && pathname.startsWith("/profile/") && !pathname.startsWith("/profile/workouts")))} onClick={closeMenu} end><Icon icon={UserRound} /><span>{isAuthenticated ? t("common.profile") : t("common.logIn")}</span></NavLink>
     </nav>}
     </>
   );

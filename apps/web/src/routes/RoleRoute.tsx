@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { t } from "../i18n";
 import { Navigate } from "./navigation";
 
 import { useAuth } from "../context/AuthContext";
@@ -13,6 +15,7 @@ export default function RoleRoute({
     children: React.ReactNode;
     allowedRoles: AllowedRole[];
 }) {
+    useTranslation();
     const {
         user,
         isAuthenticated,
@@ -21,7 +24,7 @@ export default function RoleRoute({
 
     if (loading) {
         return (
-            <AppLoadingSkeleton message="Checking permissions..." />
+            <AppLoadingSkeleton message={t("RoleRoute.checkingPermissions")} />
         );
     }
 
