@@ -2,6 +2,7 @@
 import { motion } from "motion/react";
 import type { CSSProperties } from "react";
 import styles from "./LoadingState.module.css";
+import authStyles from "../forms/AuthPage.module.css";
 
 export type SkeletonLayout = "result" | "sessionDetails" | "login" | "signup" | "selection" | "templateIntro" | "profile" | "settings" | "exerciseDetails" | "templateDetails" | "home" | "cards" | "library" | "exercises" | "list" | "details" | "workout" | "summary" | "form" | "muscles";
 
@@ -17,8 +18,14 @@ export function LoadingAnnouncement({ message }: { message: string }) {
 }
 export function SkeletonContent({ layout }: { layout: SkeletonLayout }) {
     if (layout === "login" || layout === "signup") return <div className={`${styles.content} ${styles.auth}`}>
-        <div className={styles.heading}><Skeleton width="10rem" height="2rem" /><Skeleton width="90%" /></div>
-        <div className={styles.card}>{Array.from({ length: layout === "login" ? 2 : 4 }, (_, i) => <div className={styles.stack} key={i}><Skeleton width="6rem" /><Skeleton height="3rem" /></div>)}<Skeleton height="2.875rem" /></div>
+        <div className={authStyles.authWrap}>
+            <div className={styles.authHeading}><Skeleton width="10rem" height="2rem" /></div>
+            <div className={authStyles.form}>
+                {Array.from({ length: layout === "login" ? 2 : 4 }, (_, i) => <div className={authStyles.field} key={i}><Skeleton width="4.5rem" height="0.75rem" /><Skeleton height="2.75rem" /></div>)}
+                <Skeleton height="3.25rem" />
+            </div>
+            <div className={styles.authSwitch}><Skeleton width="12rem" /></div>
+        </div>
     </div>;
     if (layout === "selection" || layout === "templateIntro") return <div className={styles.content}>
         <div className={styles.heading}><Skeleton width="min(80%, 22rem)" height="2rem" /><Skeleton width="75%" /></div>
@@ -50,6 +57,7 @@ export function SkeletonContent({ layout }: { layout: SkeletonLayout }) {
     return <div className={`${styles.content} ${workout || form ? styles.narrow : ""}`}>
         {workout ? <div className={styles.timer}><Skeleton width="8rem" /><Skeleton width="5rem" height="2rem" /></div>
             : <div className={styles.heading}><Skeleton width="7rem" height="0.8rem" /><Skeleton width="min(75%, 26rem)" height="2rem" /><Skeleton width="min(90%, 36rem)" /></div>}
+        {workout && <div className={styles.workoutActions}><Skeleton width="9rem" height="2.75rem" /></div>}
         {grid && <div className={styles.search}><Skeleton height="3rem" /></div>}
         {detail && <div className={`${styles.stats} ${layout === "summary" ? styles.summaryStats : ""}`}>{Array.from({ length: layout === "result" ? 4 : layout === "sessionDetails" ? 5 : 3 }, (_, i) => i).map(i => <div className={styles.card} key={i}><Skeleton width="60%" /><Skeleton height="2rem" /></div>)}</div>}
         <div className={grid ? styles.grid : styles.stack}>

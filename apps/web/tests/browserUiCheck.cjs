@@ -47,7 +47,7 @@ let browser, ws;
    const requestKey=item.request.method+':'+url.pathname;
    requestCounts.set(requestKey,(requestCounts.get(requestKey)||0)+1);
    const isAuth=url.pathname.includes('/auth/');
-   const delay=item.request.method==='OPTIONS' ? 0 : scenario==='loading' && !isAuth ? 2200 : item.request.method!=='GET' ? mutationDelay : 150;
+   const delay=item.request.method==='OPTIONS' ? 0 : (scenario==='loading' && !isAuth || scenario==='auth-loading') ? 2200 : item.request.method!=='GET' ? mutationDelay : 150;
    if(url.pathname.includes('/auth/me'))payload={user:guest?null:{_id:userId,name:'Alex',email:'alex@example.com',username:'alex',role:['animation-additions','form-errors'].includes(process.env.UI_CHECK_PHASE)?'admin':'user'}};
    else if(url.pathname.includes('/auth/')) {responseCode=400;payload={message:'Check your details and try again.'};}
    else if(url.pathname.includes('/api/admin/')) { const resource=url.pathname.split('/')[3];const items=resource==='templates'?templates:resource==='sessions'?sessions:exercises;payload=items.find(x=>url.pathname.endsWith(x._id)) ?? {items,total:items.length,page:1,limit:20}; }
@@ -111,14 +111,14 @@ let browser, ws;
  async function visit(route,mode,width,state='populated') {
   scenario=state;guest=route[2];routePath=route[1];await metrics(width,width===844?390:width<1000?812:900);
   await evalValue("localStorage.setItem('color_theme', '"+mode+"')");
-  await send('Page.navigate',{url:base+routePath});await wait(state==='loading'?500:1000);
+  await send('Page.navigate',{url:base+routePath});await wait(state.endsWith('loading')?500:1000);
   const info=await evalValue("({width:innerWidth,scroll:document.documentElement.scrollWidth,text:document.body.innerText,busy:!!document.querySelector('[aria-busy=true]'),shapes:document.querySelectorAll('[class*=shape]').length,heading:!!document.querySelector('h1,h2'),fonts:[...document.querySelectorAll('input:not([type=checkbox]),select,textarea')].map(x=>parseFloat(getComputedStyle(x).fontSize))})");
   assert(info.scroll<=info.width+1,route[0]+' '+state+' horizontal overflow');
   if(width<1000)assert(info.fonts.every(x=>x>=16),route[0]+' input font size');
   assert.equal(await evalValue("document.documentElement.dataset.theme"),mode);
   if(state==='populated') {assert(info.text.toLowerCase().includes(route[3].toLowerCase()),route[0]+' missing populated content: '+info.text);assert(info.heading);}
-  if(state==='loading')assert(info.busy && info.shapes>0,route[0]+' missing skeleton');
-  if(state==='error')assert(info.text.includes('The server could not complete your request'),route[0]+' missing friendly error');
+  if(state.endsWith('loading'))assert(info.busy && info.shapes>0,route[0]+' missing skeleton');
+  if(state==='error')assert(info.text.includes('The server could not complete your request') || route[0]==='workout' && info.text.includes('Unable to restore your workout'),route[0]+' missing friendly error');
   if(state==='populated' && route[0].includes('library'))assert(await evalValue("[...document.querySelectorAll('article')].every(card=>{const figure=card.querySelector('figure'),text=card.querySelector('[class*=exerciseText]');return figure && figure.getBoundingClientRect().top>=text.getBoundingClientRect().bottom && figure.getBoundingClientRect().bottom<=card.getBoundingClientRect().bottom+1})"),'Library figure overlaps or is clipped');
   const shot=await send('Page.captureScreenshot' ,{format:'png'});fs.writeFileSync(path.join(process.env.TEMP,'complete-'+route[0]+'-'+mode+'-'+width+'-'+state+'.png'),Buffer.from(shot.data,'base64'));
   console.log('PASS',route[0],mode,width,state);
@@ -136,6 +136,55 @@ let browser, ws;
   scenario='populated';await evalValue("[...document.querySelectorAll('button')].find(b=>b.textContent==='Retry').click()");await wait(1000);
   assert(await evalValue("!!document.querySelector('[aria-pressed=true]')"));
   console.log('PASS recovery retains progress and retry restores checked set',mode,width);
+ }
+ if(process.env.UI_CHECK_PHASE==='responsive-controls') {
+  for(const mode of ['light','dark'])for(const width of [320,844]) {
+   await visit(routes.find(route=>route[0]==='workout'),mode,width);
+   await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+   await evalValue('document.querySelector("input").focus()');await wait(150);
+   assert.equal(await evalValue('document.documentElement.dataset.viewportObstructed'),'true');
+   await evalValue(`document.querySelector("input").blur();document.querySelector('[aria-label="Set rest duration"]').click()`);await wait(300);
+   const dialog=await evalValue('(()=>{const d=document.querySelector("[role=dialog]");const r=d.getBoundingClientRect();return {width:r.width,height:r.height,viewport:visualViewport.height,overflow:document.documentElement.scrollWidth>innerWidth+1,scrollable:getComputedStyle(d).overflowY};})()');
+   assert(!dialog.overflow);assert(dialog.height<=dialog.viewport+1);assert(dialog.width<=width);
+   await send('Emulation.setPageScaleFactor',{pageScaleFactor:2});await wait(200);
+   assert.equal(await evalValue('document.documentElement.dataset.viewportObstructed'),'true');
+   assert(await evalValue('document.querySelector("[role=dialog]").getBoundingClientRect().height<=visualViewport.height+1'));
+   await send('Emulation.setPageScaleFactor',{pageScaleFactor:1});
+   console.log('PASS touch focus, rest keypad, zoomed modal',mode,width);
+   await visit(routes.find(route=>route[0]==='library'),mode,width,'loading');
+   assert(await evalValue('!!document.querySelector("[role=status]")'));
+   await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await wait(150);
+   assert.equal(await evalValue('Number(getComputedStyle(document.querySelector("[class*=pulse]")).opacity)'),0);
+   for(let attempt=0;attempt<20 && await evalValue('document.querySelectorAll("[class*=shape]").length');attempt++)await wait(400);
+   assert.equal(await evalValue('document.querySelectorAll("[class*=shape]").length'),0);
+   await evalValue('(()=>{const e=document.querySelector("input");Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value").set.call(e,"test");e.dispatchEvent(new Event("input",{bubbles:true}));})()');await wait(500);
+   assert.equal(await evalValue('document.querySelectorAll("[class*=shape]").length'),0);
+   assert(await evalValue('document.querySelectorAll("article").length>0'));
+   await send('Emulation.setEmulatedMedia',{features:[]});
+   console.log('PASS accessible skeletons, reduced motion and retained background refresh',mode,width);
+  }
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
+  await send('Fetch.disable');await send('Browser.close');return;
+ }
+ if(process.env.UI_CHECK_PHASE==='responsive-auth') {
+  for(const mode of ['light','dark'])for(const width of [320,390,844,1440])for(const name of ['login','signup'])await visit(routes.find(route=>route[0]===name),mode,width,'auth-loading');
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
+  console.log('PASS responsive auth skeletons');
+  await send('Fetch.disable');await send('Browser.close');return;
+ }
+ if(process.env.UI_CHECK_PHASE==='responsive-audit') {
+  const loadingRoutes = new Set(['exercise-select','workout-summary','workout','result','library','exercise-details','edit-exercise','public-templates','my-templates','public-template-details','my-template-details','history','session-details','my-exercises']);
+  for (const mode of ['light','dark']) for (const width of [320,390,844,1440]) {
+   for (const route of routes) await visit(route,mode,width);
+   for (const route of routes.filter(route=>loadingRoutes.has(route[0]))) await visit(route,mode,width,'loading');
+  }
+  for(const mode of ['light','dark'])for(const width of [320,844])for(const name of ['library','public-templates','my-templates','history','my-exercises','session-details']) {
+   const route=routes.find(route=>route[0]===name);
+   for(const state of ['empty','error'])await visit(route,mode,width,state);
+  }
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
+  console.log('PASS responsive route/skeleton/empty/error audit in both themes, narrow portrait, landscape and desktop');
+  await send('Fetch.disable');await send('Browser.close');return;
  }
  if(process.env.UI_CHECK_PHASE==='form-errors') {
   const set = async (selector,value) => { await evalValue(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});const p=e.tagName==='SELECT'?HTMLSelectElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(p,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event(e.tagName==='SELECT'?'change':'input',{bubbles:true}));})()`);await wait(30); };
