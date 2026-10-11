@@ -1,7 +1,8 @@
 import { motion } from "motion/react";
 import { useFieldMotion } from "../../components/motion/useFieldMotion";
-import { authRest, authFocus } from "../../components/motion/presets";
-import { LogIn } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
+
+import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import type { FormEvent } from "react";
@@ -12,9 +13,11 @@ import { loginRequest } from "../../services/authApi";
 
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
-import Card from "../../components/ui/cards/Card";
 import LoadingPredator from "../../components/Loading/LoadingPredator";
-import styles from "./LoginPage.module.css";
+import styles from "../../components/forms/AuthPage.module.css";
+
+const authRest = { backgroundColor: "var(--auth-input)", borderColor: "transparent", borderBottomColor: "var(--color-input-border)", boxShadow: "none" };
+const authFocus = { ...authRest, borderBottomColor: "var(--color-focus)" };
 
 export default function LoginPage() {
     const fieldMotion = useFieldMotion(0.18);
@@ -53,14 +56,10 @@ export default function LoginPage() {
         <Box className={styles.page}>
             <div className={styles.authWrap}>
                 <div className={styles.topText}>
-                    <p className={styles.brand}>Workout App</p>
 
                     <h1>Log in</h1>
-
-                    <p>Log in to plan and track your training.</p>
                 </div>
 
-                <Card className={styles.card}>
                     <form className={styles.form} onSubmit={handleSubmit}>
                         <div className={styles.field}>
                             <label htmlFor="email">Email</label>
@@ -71,7 +70,7 @@ export default function LoginPage() {
                                 placeholder="you@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                autoComplete="email"
+                                autoComplete="email" autoCapitalize="none" spellCheck={false}
                                 required
                             />
                         </div>
@@ -82,7 +81,7 @@ export default function LoginPage() {
                             <motion.input {...fieldMotion("password", authRest, authFocus)}
                                 id="password"
                                 type="password"
-                                placeholder="••••••••"
+                                placeholder="Your password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 autoComplete="current-password"
@@ -96,7 +95,8 @@ export default function LoginPage() {
                             </p>
                         )}
 
-                        <Button icon={LogIn} type="submit" disabled={isLoading}>
+                        <Button className={styles.submit} type="submit" disabled={isLoading}>
+                            <span className={styles.submitLabel}>
                             {isLoading ? (
                                 <LoadingPredator
                                     size="small"
@@ -107,14 +107,14 @@ export default function LoginPage() {
                             ) : (
                                 "Log in"
                             )}
+                            </span><span className={styles.submitArrow}><Icon icon={ArrowRight} /></span>
                         </Button>
                     </form>
-                </Card>
 
                 <p className={styles.bottomText}>
-                    Don&apos;t have an account?{" "}
+                    No account?{" "}
                     <button type="button" onClick={() => navigate("/signup")}>
-                        Create account
+                        Register
                     </button>
                 </p>
             </div>

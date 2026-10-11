@@ -1,13 +1,13 @@
 import { motion } from "motion/react";
 import { useFieldMotion } from "../../components/motion/useFieldMotion";
-import { authRest, authFocus } from "../../components/motion/presets";
-import { UserPlus } from "lucide-react";
+import Icon from "../../components/ui/icon/Icon";
+
+import { ArrowRight } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "../../routes/navigationHooks";
 
-import Card from "../../components/ui/cards/Card";
 import Box from "../../components/ui/box/Box";
 import Button from "../../components/ui/button/Button";
 import LoadingPredator from "../../components/Loading/LoadingPredator";
@@ -16,7 +16,10 @@ import { signupRequest } from "../../services/authApi";
 import { ApiRequestError } from "../../utils/parseJsonResponse";
 import { focusInvalidField } from "../../utils/focusInvalidField";
 
-import styles from "./SignupPage.module.css";
+import styles from "../../components/forms/AuthPage.module.css";
+
+const authRest = { backgroundColor: "var(--auth-input)", borderColor: "transparent", borderBottomColor: "var(--color-input-border)", boxShadow: "none" };
+const authFocus = { ...authRest, borderBottomColor: "var(--color-focus)" };
 
 type SignupFieldErrors = {
     name?: string;
@@ -123,12 +126,9 @@ export default function SignupPage() {
         <Box className={styles.page}>
             <div className={styles.authWrap}>
                 <div className={styles.topText}>
-                    <p className={styles.brand}>Workout App</p>
-                    <h1>Create account</h1>
-                    <p>Save your routines and track each session.</p>
+                    <h1>Register</h1>
                 </div>
 
-                <Card className={styles.card}>
                     <form ref={formRef} className={styles.form} onSubmit={handleSubmit}>
                         <div className={styles.field}>
                             <label htmlFor="name">Name</label>
@@ -167,7 +167,7 @@ export default function SignupPage() {
                                 aria-invalid={Boolean(fieldErrors.email)}
                                 aria-describedby={fieldErrors.email ? "email-error" : undefined}
                                 type="email"
-                                placeholder="example@example.com"
+                                placeholder="you@example.com"
                                 value={email}
                                 onChange={(e) => {
                                     setEmail(e.target.value);
@@ -177,7 +177,7 @@ export default function SignupPage() {
                                     }));
                                 }}
                                 className={fieldErrors.email ? styles.inputError : ""}
-                                autoComplete="email"
+                                autoComplete="email" autoCapitalize="none" spellCheck={false}
                                 required
                             />
 
@@ -196,7 +196,7 @@ export default function SignupPage() {
                                 aria-invalid={Boolean(fieldErrors.username)}
                                 aria-describedby={fieldErrors.username ? "username-error" : undefined}
                                 type="text"
-                                placeholder="JaneDoe"
+                                placeholder="Choose a username"
                                 value={username}
                                 onChange={(e) => {
                                     setUsername(e.target.value);
@@ -208,7 +208,7 @@ export default function SignupPage() {
                                 className={
                                     fieldErrors.username ? styles.inputError : ""
                                 }
-                                autoComplete="username"
+                                autoComplete="username" autoCapitalize="none" spellCheck={false}
                                 required
                             />
 
@@ -227,7 +227,7 @@ export default function SignupPage() {
                                 aria-invalid={Boolean(fieldErrors.password)}
                                 aria-describedby={fieldErrors.password ? "password-error" : undefined}
                                 type="password"
-                                placeholder="••••••••"
+                                placeholder="Choose a password"
                                 value={password}
                                 onChange={(e) => {
                                     setPassword(e.target.value);
@@ -256,7 +256,8 @@ export default function SignupPage() {
                             </p>
                         )}
 
-                        <Button icon={UserPlus} type="submit" disabled={isLoading}>
+                        <Button className={styles.submit} type="submit" disabled={isLoading}>
+                            <span className={styles.submitLabel}>
                             {isLoading ? (
                                 <LoadingPredator
                                     size="small"
@@ -265,14 +266,14 @@ export default function SignupPage() {
                                     showLabel
                                 />
                             ) : (
-                                "Create account"
+                                "Register"
                             )}
+                            </span><span className={styles.submitArrow}><Icon icon={ArrowRight} /></span>
                         </Button>
                     </form>
-                </Card>
 
                 <p className={styles.bottomText}>
-                    Already have an account?{" "}
+                    Already registered?{" "}
                     <button type="button" onClick={() => navigate("/login")}>
                         Log in
                     </button>

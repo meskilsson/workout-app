@@ -91,7 +91,7 @@ let browser, ws;
  const routes=[
  ['home','/',false,'Ready for your next session?'],['home-alias','/homepage',true,'Ready for your next session?'],
  ['guest-library','/library',true,'Exercise library'],['guest-exercise','/exercises/'+exerciseId,true,'Barbell bench press'],['guest-templates','/templates/pre-made',true,'Browse templates'],['guest-template-details','/templates/pre-made/templates-details/'+templates[0]._id,true,'Upper body essentials'],
- ['login','/login',true,'Log in'],['signup','/signup',true,'Create account'],
+ ['login','/login',true,'Log in'],['signup','/signup',true,'Register'],
  ['workout-select','/workout-select',false,'Choose muscle groups'],['template-select','/workout-select?purpose=template',false,'Choose workout muscles'],
  ['exercise-select','/exercise-select/'+draftId,false,'Edit exercises'],['workout-summary','/workout-summary/'+draftId,false,'Workout summary'],
  ['template-summary','/workout-summary/'+draftId+'?template',false,'Workout summary'],['workout','/workout/'+draftId,false,'Barbell bench press'],
@@ -131,6 +131,25 @@ let browser, ws;
   scenario='populated';await evalValue("[...document.querySelectorAll('button')].find(b=>b.textContent==='Retry').click()");await wait(1000);
   assert(await evalValue("!!document.querySelector('[aria-pressed=true]')"));
   console.log('PASS recovery retains progress and retry restores checked set',mode,width);
+ }
+ if(process.env.UI_CHECK_PHASE==='auth-design') {
+  for(const mode of ['light','dark'])for(const width of [320,375,1440])for(const name of ['login','signup']) {
+   await visit(routes.find(r=>r[0]===name),mode,width);
+   await evalValue('document.querySelector("form input").focus()');
+   assert.equal(await evalValue('getComputedStyle(document.querySelector("form input")).borderBottomWidth'),'2px');
+   assert.equal(await evalValue('getComputedStyle(document.querySelector("form input").parentElement).outlineStyle'),'none');
+   mutationDelay=700;
+   await evalValue('(()=>{for(const input of document.querySelectorAll("form input")){const value=input.type==="email"?"alex@example.com":input.type==="password"?"secret123":"Alex";Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value").set.call(input,value);input.dispatchEvent(new Event("input",{bubbles:true}));}document.querySelector("form").requestSubmit();})()');
+   await wait(150);assert(await evalValue('document.querySelector("button[type=submit]").disabled'));
+   await wait(900);assert(await evalValue('!!document.querySelector("form [role=alert]")'));
+   assert.equal(await evalValue('document.querySelector("button[type=submit]").disabled'),false);
+   assert(await evalValue('document.documentElement.scrollWidth<=innerWidth+1'));
+   mutationDelay=0;
+   await evalValue('document.querySelector("[class*=bottomText] button").click()');await wait(700);
+   assert.equal(await evalValue('location.pathname'),name==='login'?'/signup':'/login');
+   console.log('PASS sliced auth focus, pending, errors and switching',name,mode,width);
+  }
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));await send('Fetch.disable');await send('Browser.close');return;
  }
  if(process.env.UI_CHECK_PHASE==='animation-additions') {
   const click = async text => { await evalValue('[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==='+JSON.stringify(text)+').click()'); await wait(300); };
