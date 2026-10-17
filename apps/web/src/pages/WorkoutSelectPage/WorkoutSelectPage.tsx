@@ -34,14 +34,14 @@ const backendMuscleGroupMap: Record<string, string[]> = {
 export default function WorkoutSelectPage() {
     useTranslation();
     const muscleGroupCards = [
-  { id: "cardio", title: t("common.cardio") },
+  { id: "legs", title: displayValue("legs") },
   { id: "back", title: displayValue("Back") },
+  { id: "chest", title: displayValue("chest") },
   { id: "shoulders", title: displayValue("shoulders") },
   { id: "biceps", title: displayValue("biceps") },
-  { id: "legs", title: displayValue("legs") },
-  { id: "chest", title: displayValue("chest") },
   { id: "triceps", title: displayValue("triceps") },
   { id: "core", title: t("common.abs") },
+  { id: "cardio", title: t("common.cardio") },
 ];
 
 
