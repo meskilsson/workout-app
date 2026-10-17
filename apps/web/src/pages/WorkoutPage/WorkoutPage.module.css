@@ -667,7 +667,6 @@
 .setRow { position: relative; isolation: isolate; }
 .completionSymbol { position: relative; display: inline-flex; width: 18px; height: 18px; }
 .completionRing { position: absolute; inset: -5px; border: 1px solid currentColor; border-radius: 50%; pointer-events: none; }
-.setCaption { grid-column: 1 / -1; font-size: var(--text-xs); font-weight: var(--weight-semibold); color: var(--color-text-soft); }
 .inputLabel { font-size: var(--text-xs); font-weight: var(--weight-semibold); }
 
 .underlineInput:focus { border-color: var(--color-focus); }
@@ -711,3 +710,23 @@
 .exerciseCompletedFill { position: absolute; inset: 0; border-radius: inherit; background: var(--color-completed-exercise); pointer-events: none; z-index: -1; }
 
 .exerciseCard { isolation: isolate; }
+
+.supersetCard { border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); overflow: visible; }
+.supersetCard .exerciseCard { border: 0; border-radius: 0; box-shadow: none; }
+.supersetCard .exerciseCard + .exerciseCard { border-top: 1px solid var(--color-border-soft); }
+.supersetHeading { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-accent-text); border-bottom: 1px solid var(--color-border-soft); }
+.partnerChoices { display: grid; gap: 0.75rem; }
+
+.supersetCard .exerciseCard:last-child { border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+
+/* The leading control identifies and completes a working or warm-up set. */
+.setRow { grid-template-columns: 46px minmax(0, 1fr) minmax(0, 1fr) 46px; column-gap: var(--space-3); row-gap: var(--space-2); padding: var(--space-2) 0; }
+.setRow .completeSetButton { align-self: end; }
+.setNumber { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.875rem; font-weight: var(--weight-semibold); line-height: 1; }
+@media (max-width: 320px) {
+    .setRow { grid-template-columns: 46px minmax(0, 1fr) minmax(0, 1fr); }
+    .setRow .deleteButton { grid-column: 3; }
+}
+
+.exerciseActions { gap: var(--space-2); }
+@media (max-width: 640px) { .setRow { column-gap: var(--space-2); } }

@@ -10,6 +10,7 @@ export type WorkoutDraftStatus =
 
 export interface WorkoutDraftSet {
     id?: string;
+    isWarmup?: boolean;
     weight: number | null;
     reps: number | null;
 }
@@ -17,6 +18,7 @@ export interface WorkoutDraftSet {
 export interface WorkoutDraftExercise extends TrainingFields {
     exerciseId: Types.ObjectId;
     exerciseName: string;
+    supersetId?: string;
     sets: WorkoutDraftSet[];
 }
 
@@ -38,6 +40,7 @@ export type WorkoutDraftPurpose = "workout" | "template";
 const workoutDraftSetSchema = new Schema<WorkoutDraftSet>(
     {
         id: { type: String },
+        isWarmup: { type: Boolean, default: undefined },
         weight: {
             type: Number,
             min: 0,
@@ -61,6 +64,7 @@ const workoutDraftExerciseSchema = new Schema<WorkoutDraftExercise>(
         },
         training: trainingField,
         cardioCompletion: cardioCompletionField,
+        supersetId: { type: String, default: undefined },
         exerciseName: {
             type: String,
             required: [true, "Exercise name is required"],

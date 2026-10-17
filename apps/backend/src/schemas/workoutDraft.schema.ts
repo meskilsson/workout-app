@@ -52,6 +52,7 @@ const draftSetValueSchema = z.union([
 ]).optional();
 
 const draftSetSchema = z.strictObject({
+    isWarmup: z.boolean().optional(),
     id: z.uuid().optional(),
     weight: draftSetValueSchema,
     reps: draftSetValueSchema,
@@ -112,3 +113,5 @@ export type WorkoutDraftExerciseParams = z.infer<
     typeof workoutDraftExerciseParamsSchema
 >;
 export const updateWorkoutDraftTrainingSchema = z.strictObject({ exerciseId: objectIdSchema, training: trainingSchema, cardioCompletion: cardioCompletionSchema.optional() });
+
+export const updateSupersetsSchema = z.strictObject({ pairs: z.array(z.tuple([objectIdSchema, objectIdSchema])).max(100) });

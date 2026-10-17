@@ -2,6 +2,7 @@ import { trainingField, cardioCompletionField, type TrainingFields } from "./tra
 import { Schema, model, Types } from "mongoose";
 
 interface WorkoutSet {
+    isWarmup?: boolean;
     weight: number;
     reps: number;
 };
@@ -9,6 +10,7 @@ interface WorkoutSet {
 interface WorkoutSessionExercise extends TrainingFields {
     exerciseId: Types.ObjectId | null;
     exerciseName: string;
+    supersetId?: string;
     sets: WorkoutSet[];
 };
 
@@ -24,6 +26,7 @@ export interface IWorkoutSession {
 
 const workoutSetSchema = new Schema<WorkoutSet>(
     {
+        isWarmup: { type: Boolean, default: undefined },
         weight: {
             type: Number,
             required: true,
@@ -47,6 +50,7 @@ const workoutSessionExerciseSchema = new Schema<WorkoutSessionExercise>(
         },
         training: trainingField,
         cardioCompletion: cardioCompletionField,
+        supersetId: { type: String, default: undefined },
         exerciseName: {
             type: String,
             required: [true, "Exercise name is required"],

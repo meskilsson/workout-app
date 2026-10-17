@@ -17,6 +17,7 @@ const dateStringSchema = z
     });
 
 const workoutSetSchema = z.strictObject({
+    isWarmup: z.boolean().optional(),
     weight: z.coerce
         .number()
         .min(0, "Weight must be 0 or greater"),
@@ -28,6 +29,7 @@ const workoutSetSchema = z.strictObject({
 });
 
 const workoutSessionExerciseSchema = z.strictObject({
+    supersetId: z.string().uuid().optional(),
     exerciseId: objectIdSchema.nullable().optional(),
 
     exerciseName: z

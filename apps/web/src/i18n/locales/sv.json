@@ -727,5 +727,22 @@
   "exercises.muscle": "Muskel",
   "exercises.all": "Alla",
   "exercises.clearFilters": "Rensa filter",
-  "exercises.done": "Klart"
+  "exercises.done": "Klart",
+  "workout.superset": "Superset",
+  "workout.createSuperset": "Skapa superset",
+  "workout.splitSuperset": "Separera övningar",
+  "workout.choosePartner": "Välj övning för superset",
+  "workout.supersetHelp": "Kombinera två styrkeövningar i samma kort. Varje övning behåller sina set och kontroller.",
+  "workout.noPartner": "Lägg till en styrkeövning som inte ingår i ett superset.",
+  "workout.supersetSaveFailed": "Det gick inte att spara supersetet. Försök igen.",
+  "workout.warmup": "Uppvärmning",
+  "workout.addWarmup": "Lägg till uppvärmningsset",
+  "workout.completeSet": "Slutför set {{number}} för {{exercise}}",
+  "workout.completeWarmup": "Slutför uppvärmningsset {{number}} för {{exercise}}",
+  "workout.restartSetRest": "Slutfört set {{number}} för {{exercise}}. Starta om vilotimern",
+  "workout.restartWarmupRest": "Slutfört uppvärmningsset {{number}} för {{exercise}}. Starta om vilotimern",
+  "workout.warmupWeight": "Vikt för {{exercise}}, uppvärmningsset {{number}}",
+  "workout.warmupReps": "Repetitioner för {{exercise}}, uppvärmningsset {{number}}",
+  "workout.deleteSet": "Ta bort set",
+  "workout.setOptions": "Alternativ för set {{number}} i {{exercise}}"
 }

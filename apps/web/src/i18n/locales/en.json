@@ -727,5 +727,22 @@
   "exercises.muscle": "Muscle",
   "exercises.all": "All",
   "exercises.clearFilters": "Clear filters",
-  "exercises.done": "Done"
+  "exercises.done": "Done",
+  "workout.superset": "Superset",
+  "workout.createSuperset": "Create superset",
+  "workout.splitSuperset": "Separate exercises",
+  "workout.choosePartner": "Choose a superset partner",
+  "workout.supersetHelp": "Pair two strength exercises in one card. Each keeps its own sets and completion controls.",
+  "workout.noPartner": "Add another unpaired strength exercise to create a superset.",
+  "workout.supersetSaveFailed": "Unable to save the superset. Please try again.",
+  "workout.warmup": "Warm-up",
+  "workout.addWarmup": "Add warm-up set",
+  "workout.completeSet": "Complete set {{number}} for {{exercise}}",
+  "workout.completeWarmup": "Complete warm-up set {{number}} for {{exercise}}",
+  "workout.restartSetRest": "Completed set {{number}} for {{exercise}}. Restart rest timer",
+  "workout.restartWarmupRest": "Completed warm-up set {{number}} for {{exercise}}. Restart rest timer",
+  "workout.warmupWeight": "Weight for {{exercise}}, warm-up set {{number}}",
+  "workout.warmupReps": "Reps for {{exercise}}, warm-up set {{number}}",
+  "workout.deleteSet": "Delete set",
+  "workout.setOptions": "Options for set {{number}} of {{exercise}}"
 }

@@ -2,6 +2,7 @@ import { createWorkoutTimerInitialState, isFreshWorkoutTimer, type WorkoutTimerS
 import { createRestTimerInitialState, type RestTimerState, type RestTimerStorage } from "@workout-app/shared/timer/rest";
 
 export type PersistedWorkoutSet = {
+    isWarmup?: boolean;
     id: string;
     weight: string;
     reps: string;
@@ -40,12 +41,12 @@ export function restoreWorkoutSets(scope: string, current: SetsByExercise): Sets
             for (const entry of entries) {
                 if (entry && typeof entry.id === "string" && typeof entry.weight === "string"
                     && typeof entry.reps === "string" && typeof entry.isCompleted === "boolean") {
-                    byId.set(entry.id, entry);
+                    byId.set(entry.id, { id: entry.id, weight: entry.weight, reps: entry.reps, isCompleted: entry.isCompleted, ...(typeof entry.isWarmup === "boolean" ? { isWarmup: entry.isWarmup } : {}) });
                 }
             }
         }
         // The draft determines membership and order; removed sets cannot return.
-        result[exerciseId] = sets.map(set => byId.get(set.id) ?? set);
+        result[exerciseId] = sets.map(set => ({ ...set, ...byId.get(set.id) }));
     }
     return result;
 }

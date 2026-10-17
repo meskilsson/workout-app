@@ -294,3 +294,10 @@ export async function updateWorkoutDraftTraining(req: Request<{ draftId: string 
         res.json(await workoutDraftService.updateWorkoutDraftTraining(req.params.draftId, req.body, req.user.id));
     } catch (error) { next(error); }
 }
+
+export async function updateWorkoutSupersets(req: Request<{ draftId: string }>, res: Response, next: NextFunction): Promise<void> {
+    try {
+        if (!req.user?.id) throw new UnauthorizedError("Unauthorized");
+        res.json(await workoutDraftService.updateWorkoutSupersets(req.params.draftId, req.body.pairs, req.user.id));
+    } catch (error) { next(error); }
+}

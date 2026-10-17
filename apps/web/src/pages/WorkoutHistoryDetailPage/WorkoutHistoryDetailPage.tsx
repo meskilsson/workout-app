@@ -1,3 +1,4 @@
+import WorkoutMarker from "../../components/training/WorkoutMarker";
 import ExerciseName from "../../components/exercises/ExerciseName";
 import { formatNumber, translateMessage, t } from "../../i18n";
 import { useTranslation } from "react-i18next";
@@ -293,7 +294,7 @@ export default function WorkoutHistoryDetailPage() {
                                     </p>
 
                                     <h3 className={styles.exerciseTitle}>
-                                        <ExerciseName id={exercise.exerciseId} name={exercise.exerciseName} />
+                                        <ExerciseName id={exercise.exerciseId} name={exercise.exerciseName} /> {exercise.supersetId && <WorkoutMarker kind="superset" />}
                                     </h3>
                                 </div>
 
@@ -306,7 +307,7 @@ export default function WorkoutHistoryDetailPage() {
                                 {exercise.training && exercise.training.format !== "strength" && <p>{t("common.planned")} {formatTrainingSeconds(trainingTotalSeconds(exercise.training))} {t("common.actual")} {formatTrainingSeconds(exercise.cardioCompletion?.elapsedSeconds ?? 0)}{exercise.training.format === "intervals" ? t("common.valueOfValueRounds", { value0: exercise.cardioCompletion?.completedRounds ?? 0, value1: exercise.training.rounds }) : ""}{exercise.cardioCompletion?.manual ? t("common.completedManually") : ""}</p>}
                                 {exercise.sets.map((set, setIndex) => (
                                     <div key={setIndex} className={styles.setRow}>
-                                        <span className={styles.setIndex}> {t("common.set")} {setIndex + 1}
+                                        <span className={styles.setIndex}> {t("common.set")} {setIndex + 1} {set.isWarmup && <WorkoutMarker kind="warmup" />}
                                         </span>
 
                                         <span className={styles.setValue}>

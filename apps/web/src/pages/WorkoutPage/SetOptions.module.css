@@ -1,0 +1,8 @@
+.trigger { display: inline-flex; align-items: center; justify-content: center; align-self: end; width: 46px; height: 46px; padding: 0; border: 0; border-radius: var(--radius-md); background: var(--color-surface-soft); color: var(--color-text-muted); cursor: pointer; }
+.trigger:hover { color: var(--color-text); }
+.trigger:disabled { opacity: 0.5; cursor: default; }
+.menu { position: fixed; z-index: 120; width: 176px; padding: 4px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); box-shadow: var(--shadow-md); }
+.menu button { display: flex; align-items: center; gap: 0.5rem; width: 100%; min-height: 44px; padding: 0.5rem 0.75rem; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--color-danger-text); font: inherit; font-size: var(--text-sm); cursor: pointer; }
+.menu button:hover:not(:disabled) { background: var(--color-danger-soft); }
+.menu button:disabled { opacity: 0.5; cursor: default; }
+@media (max-width: 320px) { .trigger { grid-column: 3; justify-self: end; } }

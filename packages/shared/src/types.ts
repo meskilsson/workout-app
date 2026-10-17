@@ -7,11 +7,13 @@ import type { Difficulty } from "./constants/difficulty";
 export type UserRole = "user" | "admin";
 
 export type WorkoutSet = {
+    isWarmup?: boolean;
     weight: number;
     reps: number;
 }
 
 export type WorkoutSessionExercise = {
+    supersetId?: string;
     exerciseId: string | null;
     exerciseName: string;
     training?: TrainingConfig;

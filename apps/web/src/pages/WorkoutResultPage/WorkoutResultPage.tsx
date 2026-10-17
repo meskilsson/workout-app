@@ -1,3 +1,4 @@
+import WorkoutMarker from "../../components/training/WorkoutMarker";
 import ExerciseName from "../../components/exercises/ExerciseName";
 import { formatNumber, translateMessage, t } from "../../i18n";
 import { useTranslation } from "react-i18next";
@@ -217,7 +218,7 @@ export default function WorkoutResultPage() {
                                     </p>
 
                                     <h3 className={styles.exerciseTitle}>
-                                        <ExerciseName id={exercise.exerciseId} name={exercise.exerciseName} />
+                                        <ExerciseName id={exercise.exerciseId} name={exercise.exerciseName} /> {exercise.supersetId && <WorkoutMarker kind="superset" />}
                                     </h3>
                                 </div>
 

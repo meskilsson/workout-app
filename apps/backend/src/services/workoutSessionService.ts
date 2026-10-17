@@ -12,9 +12,11 @@ interface CreateWorkoutSessionInput {
     exercises: {
         exerciseId?: string | null;
         exerciseName: string;
+        supersetId?: string;
         training?: TrainingConfig;
         cardioCompletion?: CardioCompletion;
         sets: {
+            isWarmup?: boolean;
             weight: string | number;
             reps: string | number;
         }[];
@@ -61,6 +63,7 @@ export async function createWorkoutSession(
         if (exercise.training) validateTraining(exercise.training);
         const normalizedSets = (exercise.sets ?? [])
             .map((set) => ({
+                ...(set.isWarmup !== undefined ? { isWarmup: set.isWarmup } : {}),
                 weight: Number(set.weight),
                 reps: Number(set.reps),
             }))
@@ -80,6 +83,7 @@ export async function createWorkoutSession(
             exerciseId: normalizedExerciseId,
             exerciseName,
             sets: normalizedSets,
+            ...(exercise.supersetId ? { supersetId: exercise.supersetId } : {}),
         };
     });
 
@@ -239,7 +243,9 @@ export async function repeatWorkoutSession(
             exerciseId: new Types.ObjectId(exercise.id),
             exerciseName: sessionExercise.exerciseName || exercise.name,
             training: sessionExercise.training,
+            supersetId: sessionExercise.supersetId,
             sets: sessionExercise.sets.map((set) => ({
+                ...(set.isWarmup !== undefined ? { isWarmup: set.isWarmup } : {}),
                 weight: set.weight ?? null,
                 reps: set.reps ?? null,
             })),

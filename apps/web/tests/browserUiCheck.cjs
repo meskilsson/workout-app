@@ -106,6 +106,20 @@ let browser, ws;
     payload=formFailure==='server'?{message:'MongoServerError: internal details'}:formFailure==='mixed'?{errors:[{field:'name',message:'Choose another name.'},{field:'unknown',message:'This record is unavailable.'}]}:formFailure==='field'?{errors:[{path:['email'],message:'Use another email address.'},{field:'name',message:'Choose another name.'}]}:{message:'Unable to save. Please try again.'};
     if(formFailure==='network') {await send('Fetch.failRequest',{requestId:item.requestId,errorReason:'ConnectionClosed'});return;}
    }
+   if(process.env.UI_CHECK_PHASE==='workout-markers' && url.pathname.includes('/workout-drafts')) {
+    if(item.request.method==='PATCH' && url.pathname.endsWith('/supersets')) {
+     const {pairs}=JSON.parse(item.request.postData);
+     for(const exercise of draft.exercises) delete exercise.supersetId;
+     pairs.forEach((pair,index)=>pair.forEach(id=>{draft.exercises.find(exercise=>exercise.exerciseId===id).supersetId=`f8f6de5c-e305-4bba-b62b-a5375d3b79${String(index).padStart(2,'0')}`;}));
+    }
+    if(item.request.method==='PATCH' && url.pathname.endsWith('/sets')) {
+     const body=JSON.parse(item.request.postData);draft.exercises.find(exercise=>exercise.exerciseId===body.exerciseId).sets=body.sets;
+    }
+    if(item.request.method==='PATCH' && url.pathname.endsWith('/order')) {
+     const {exerciseIds}=JSON.parse(item.request.postData);draft.exercises=exerciseIds.map(id=>draft.exercises.find(exercise=>exercise.exerciseId===id));
+    }
+    payload={...draft,purpose:'workout',status:'active'};
+   }
    if(item.request.method==='OPTIONS'){responseCode=200;payload={};}
    await wait(delay);
    await send('Fetch.fulfillRequest',{requestId:item.requestId,responseCode,responseHeaders:[{name:'Content-Type',value:'application/json'},{name:'Access-Control-Allow-Origin',value:base},{name:'Access-Control-Allow-Credentials',value:'true'},{name:'Access-Control-Allow-Methods',value:'GET, POST, PATCH, PUT, DELETE, OPTIONS'},{name:'Access-Control-Allow-Headers',value:'Content-Type'}],body:Buffer.from(JSON.stringify(payload)).toString('base64')}).catch(()=>{});
@@ -162,6 +176,46 @@ let browser, ws;
 
 
 
+ if(process.env.UI_CHECK_PHASE==='workout-markers') {
+  const originalExercises=structuredClone(draft.exercises);
+  for(const mode of ['light','dark']) for(const width of [375,1440]) {
+   draft.exercises=structuredClone(originalExercises);
+   await evalValue('localStorage.clear();sessionStorage.clear()');
+   await visit(routes.find(route=>route[0]==='workout'),mode,width);
+   await evalValue("document.querySelector('summary[aria-label]').click();[...document.querySelectorAll('button')].find(button=>button.textContent==='Add warm-up set').click()");await wait(1000);
+   assert(await evalValue("!!document.querySelector('button[aria-label^=\"Complete warm-up set\"]')"));
+   assert.equal(draft.exercises[0].sets[0].isWarmup,true);
+   assert(await evalValue("(()=>{const marker=document.querySelector('button[aria-label^=\"Complete warm-up set\"]'),input=marker.parentElement.querySelector('input'),a=marker.getBoundingClientRect(),b=input.getBoundingClientRect();return a.right<=b.left && Math.abs((a.top+a.height/2)-(b.top+b.height/2))<2;})()"));
+   assert.deepEqual(await evalValue("[...document.querySelectorAll('[class*=exerciseCard]')][0] && [...document.querySelectorAll('[class*=exerciseCard]')[0].querySelectorAll('button[aria-label^=\"Complete set\"]')].map(button=>button.textContent.trim())"),['1','2','3']);
+   await evalValue("(()=>{const warmup=document.querySelector('button[aria-label^=\"Complete warm-up set\"]');for(const input of warmup.parentElement.querySelectorAll('input')){Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'10');input.dispatchEvent(new Event('input',{bubbles:true}));}})()");await wait(100);
+   await evalValue("document.querySelector('button[aria-label^=\"Complete warm-up set\"]').click()");await wait(600);
+   assert(await evalValue("document.querySelector('button[aria-label^=\"Completed warm-up set\"]').getAttribute('aria-pressed')==='true'"));
+   await evalValue("(()=>{const button=document.querySelector('button[aria-label^=\"Complete set\"]').parentElement.querySelector('button[aria-haspopup=menu]');button.focus();button.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));})()");await wait(100);
+   assert(await evalValue("document.activeElement.getAttribute('role')==='menuitem' && document.activeElement.textContent.includes('Delete set')"));
+   await evalValue("document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))");await wait(50);
+   assert(await evalValue("!document.querySelector('[role=menu]') && document.activeElement.getAttribute('aria-haspopup')==='menu'"));
+   await evalValue("document.activeElement.click()");await wait(50);
+   await evalValue("document.querySelector('[role=menuitem]').click()");await wait(1000);
+   assert.deepEqual(await evalValue("[...document.querySelectorAll('[class*=exerciseCard]')[0].querySelectorAll('button[aria-label^=\"Complete set\"]')].map(button=>button.textContent.trim())"),['1','2']);
+
+
+   await evalValue("document.querySelector('summary[aria-label]').click();[...document.querySelectorAll('button')].find(button=>button.textContent==='Create superset').click()");await wait(150);
+   assert(await evalValue("!!document.querySelector('[role=dialog]')"));
+   await evalValue("[...document.querySelectorAll('[role=dialog] button')].find(button=>button.textContent.includes('"+draft.exercises[1].exerciseName+"')).click()");await wait(600);
+   assert.equal(await evalValue("document.querySelectorAll('[class*=supersetCard]').length"),1);
+   assert.equal(await evalValue("document.querySelector('[class*=supersetCard]').querySelectorAll('h2').length"),2);
+   assert(await evalValue("document.documentElement.scrollWidth<=innerWidth+1"));
+   const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(process.env.TEMP,`workout-markers-${mode}-${width}.png`),Buffer.from(shot.data,'base64'));
+   await send('Page.navigate',{url:base+'/workout/'+draftId});await wait(1000);
+   assert.equal(await evalValue("document.querySelectorAll('[class*=supersetCard]').length"),1);
+   assert(await evalValue("!!document.querySelector('button[aria-label^=\"Completed warm-up set\"]')"));
+   await evalValue("document.querySelector('summary[aria-label]').click();[...document.querySelectorAll('button')].find(button=>button.textContent==='Separate exercises').click()");await wait(500);
+   assert.equal(await evalValue("document.querySelectorAll('[class*=supersetCard]').length"),0);
+   console.log('PASS superset pairing, headers, warm-up autosave, reload and separation',mode,width);
+  }
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
+  await send('Fetch.disable');await send('Browser.close');return;
+ }
  if(process.env.UI_CHECK_PHASE==='language-controls') {
   for(const mode of ['light','dark'])for(const width of [375,1225,1440]) {
    await evalValue('localStorage.setItem("workout-language","en")');

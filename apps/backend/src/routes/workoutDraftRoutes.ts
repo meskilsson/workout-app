@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../middleware/requireAuth";
 import { validateRequest } from '../middleware/validate'
 import {
+    updateWorkoutSupersets,
     abandonWorkoutDraft,
     completeWorkoutDraft,
     createWorkoutDraft,
@@ -17,6 +18,7 @@ import {
     removeWorkoutDraftExercise,
 } from "../controllers/workoutDraftController";
 import {
+    updateSupersetsSchema,
     createWorkoutDraftSchema,
     updateWorkoutDraftExercisesSchema,
     updateWorkoutDraftMuscleGroupsSchema,
@@ -126,4 +128,5 @@ workoutDraftRouter.patch(
 );
 
 workoutDraftRouter.patch("/:draftId/training", validateRequest({ params: workoutDraftIdParamsSchema, body: updateWorkoutDraftTrainingSchema }), updateWorkoutDraftTraining);
+workoutDraftRouter.patch("/:draftId/supersets", validateRequest({ params: workoutDraftIdParamsSchema, body: updateSupersetsSchema }), updateWorkoutSupersets);
 export default workoutDraftRouter;

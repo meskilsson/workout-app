@@ -17,6 +17,7 @@ type UpdateWorkoutDraftSetsInput = {
     exerciseId: string;
     sets: {
         id?: string;
+        isWarmup?: boolean;
         weight: string | number | null;
         reps: string | number | null;
     }[];
@@ -202,4 +203,11 @@ export async function reorderWorkoutDraftExercisesRequest(
 export async function updateWorkoutDraftTrainingRequest(draftId: string, input: { exerciseId: string; training: import("@workout-app/shared").TrainingConfig; cardioCompletion?: import("@workout-app/shared").CardioCompletion }) {
     const response = await workoutRequest(`${API_URL}/api/workout-drafts/${draftId}/training`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
     return handleResponse(response, t("workoutDraftApi.failedToSaveTrainingConfiguration"));
+}
+
+export async function updateWorkoutSupersetsRequest(draftId: string, pairs: [string, string][]) {
+    const response = await workoutRequest(`${API_URL}/api/workout-drafts/${draftId}/supersets`, {
+        method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pairs }),
+    });
+    return handleResponse(response, t("workout.supersetSaveFailed"));
 }

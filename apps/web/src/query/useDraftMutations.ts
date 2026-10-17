@@ -41,5 +41,6 @@ export function useDraftMutations(draftId: string) {
     const abandon = useMutation({ mutationFn: () => api.abandonWorkoutDraftRequest(draftId), onSuccess: ended });
     // The caller supplies the existing final-save/status-recovery transaction as one mutation.
     const complete = useMutation({ mutationFn: (finish: () => Promise<string>) => finish(), onSuccess: ended });
-    return { sets, training, reorder, remove, select, selectAndStart, start, abandon, complete };
+    const supersets = useMutation({ mutationFn: (pairs: [string, string][]) => api.updateWorkoutSupersetsRequest(draftId, pairs), onSuccess: draft => cacheSavedDraft(client, userId, draftId, draft) });
+    return { supersets, sets, training, reorder, remove, select, selectAndStart, start, abandon, complete };
 }

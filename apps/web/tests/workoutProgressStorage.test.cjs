@@ -22,6 +22,16 @@ class MemoryStorage {
 beforeEach(() => { globalThis.localStorage = new MemoryStorage(); });
 const set = (id, weight = "10", reps = "5", isCompleted = false) => ({ id, weight, reps, isCompleted });
 
+test("warm-up markers restore by stable set ID and older snapshots preserve backend markers", () => {
+    const scope = workoutScope("user-a", "warmup");
+    saveWorkoutSets(scope, { exercise: [{ ...set("one"), isWarmup: true }, set("two")] });
+    const restored = restoreWorkoutSets(scope, { exercise: [{ ...set("two"), isWarmup: true }, set("one")] });
+    assert.equal(restored.exercise[0].isWarmup, true);
+    assert.equal(restored.exercise[1].isWarmup, true);
+    saveWorkoutSets(scope, { exercise: [{ ...set("one"), isWarmup: false }] });
+    assert.equal(restoreWorkoutSets(scope, { exercise: [{ ...set("one"), isWarmup: true }] }).exercise[0].isWarmup, false);
+});
+
 test("restores checked sets by identity after reorder, preserving saved input values", () => {
     const scope = workoutScope("user-a", "reordered");
     saveWorkoutSets(scope, { exercise: [set("one", "12.5", "8", true), set("two", "20", "6")] });

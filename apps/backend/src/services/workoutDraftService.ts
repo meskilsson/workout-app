@@ -23,6 +23,7 @@ interface UpdateExercisesInput {
 }
 
 interface WorkoutDraftSetInput {
+    isWarmup?: boolean;
     id?: string;
     weight?: string | number | null;
     reps?: string | number | null;
@@ -153,6 +154,7 @@ function normalizeDraftSets(value: unknown) {
 
         return {
             id: draftSet.id ?? randomUUID(),
+            ...(draftSet.isWarmup !== undefined ? { isWarmup: draftSet.isWarmup } : {}),
             weight: normalizeNullableNumber(draftSet.weight, "weight"),
             reps: normalizeNullableNumber(draftSet.reps, "reps"),
         };
@@ -328,6 +330,7 @@ export async function updateWorkoutDraftExercises(
         );
     }
 
+    const existingSupersets = new Map(draft.exercises.map(e => [e.exerciseId.toString(), e.supersetId]));
     const existingTraining = new Map(draft.exercises.map(e => [e.exerciseId.toString(), e.training]));
     const existingSetsByExerciseId = new Map(
         draft.exercises.map((exercise) => [
@@ -362,6 +365,7 @@ export async function updateWorkoutDraftExercises(
             exerciseId: exercise._id as Types.ObjectId,
             exerciseName: exercise.name,
             sets: existingSetsByExerciseId.get(exerciseId) ?? [],
+            supersetId: existingSupersets.get(exerciseId),
             training: existingTraining.has(exerciseId) ? existingTraining.get(exerciseId) : (exercise.exerciseType === "cardio" ? { format: "cardio", durationSeconds: 600 } : undefined),
         };
     });
@@ -461,7 +465,9 @@ export async function removeWorkoutDraftExercise(
         );
     }
 
+    const removedGroup = draft.exercises[exerciseIndex].supersetId;
     draft.exercises.splice(exerciseIndex, 1);
+    if (removedGroup) draft.exercises.forEach(exercise => { if (exercise.supersetId === removedGroup) exercise.supersetId = undefined; });
 
     await draft.save();
 
@@ -576,6 +582,7 @@ export async function completeWorkoutDraft(draftId: string, userId: string) {
             exerciseId: exercise.exerciseId.toString(),
             exerciseName: exercise.exerciseName,
             sets: validSets,
+            ...(exercise.supersetId ? { supersetId: exercise.supersetId } : {}),
         };
     });
 
@@ -689,4 +696,35 @@ export async function updateWorkoutDraftTraining(draftId: string, input: { exerc
             ...(!completion ? { $unset: { "exercises.$.cardioCompletion": 1 } } : {}) }, { returnDocument: "after", runValidators: true });
     if (!updated) throw new ConflictError("Workout changed; reload before saving");
     return updated;
+}
+
+export async function updateWorkoutSupersets(draftId: string, pairs: [string, string][], userId: string) {
+    const draft = await getOwnedDraft(draftId, userId);
+    ensureDraftIsActive(draft.status);
+    const used = new Set<string>();
+    const groups = new Map<string, string>();
+    for (const pair of pairs) {
+        const groupId = randomUUID();
+        for (const id of pair) {
+            const exercise = draft.exercises.find(item => item.exerciseId.toString() === id);
+            if (used.has(id) || !exercise || (exercise.training && exercise.training.format !== "strength")) {
+                throw new ValidationError("Supersets must contain two distinct strength exercises from this workout");
+            }
+            used.add(id);
+            groups.set(id, groupId);
+        }
+    }
+    const updates: Record<string, unknown> = {};
+    const unset: Record<string, 1> = {};
+    draft.exercises.forEach((exercise, index) => {
+        const group = groups.get(exercise.exerciseId.toString());
+        if (group) updates[`exercises.${index}.supersetId`] = group;
+        else unset[`exercises.${index}.supersetId`] = 1;
+    });
+    // Compare the exercise order to avoid applying index updates after a concurrent reorder/removal.
+    const result = await WorkoutDraft.findOneAndUpdate({ _id: draft._id, userId, status: "active",
+        $expr: { $eq: [{ $map: { input: "$exercises", as: "exercise", in: "$$exercise.exerciseId" } }, draft.exercises.map(exercise => exercise.exerciseId)] },
+    }, { ...(Object.keys(updates).length ? { $set: updates } : {}), ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { new: true });
+    if (!result) throw new ValidationError("The workout changed. Please try again");
+    return result;
 }

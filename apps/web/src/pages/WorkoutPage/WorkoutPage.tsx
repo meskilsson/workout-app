@@ -1,3 +1,6 @@
+import SetOptions from "./SetOptions";
+import ExerciseName from "../../components/exercises/ExerciseName";
+import { workoutGroups, supersetPairs, restAfterSupersetSet } from "../../utils/workoutGroups";
 import useExerciseName from "../../hooks/useExerciseName";
 import { translateMessage, t } from "../../i18n";
 import { dragAccessibility } from "../../i18n/dragAccessibility";
@@ -15,7 +18,7 @@ import { useDraftMutations } from "../../query/useDraftMutations";
 import { finishWorkout } from "../../utils/finishWorkout";
 import CardioSession, { CARDIO_START } from "../../components/training/CardioSession";
 import type { TrainingConfig, CardioCompletion } from "@workout-app/shared";
-import { Plus, Trash2, Flag, GripVertical, MoreHorizontal, ArrowUp, ArrowDown } from "lucide-react";
+import { Link2, Unlink, PersonStanding, Plus, Trash2, Flag, GripVertical, MoreHorizontal, ArrowUp, ArrowDown } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import {
     useEffect,
@@ -66,6 +69,7 @@ import { clearWorkoutSnapshot, restoreWorkoutSets, saveWorkoutSets, workoutScope
 import styles from "./WorkoutPage.module.css";
 
 type SelectedExercise = {
+    supersetId?: string;
     _id: string;
     name: string;
     training?: TrainingConfig;
@@ -73,6 +77,7 @@ type SelectedExercise = {
 };
 
 type WorkoutSet = {
+    isWarmup?: boolean;
     id: string;
     weight: string;
     reps: string;
@@ -80,12 +85,14 @@ type WorkoutSet = {
 };
 
 type DraftSet = {
+    isWarmup?: boolean;
     id: string;
     weight: number | null;
     reps: number | null;
 };
 
 type DraftExercise = {
+    supersetId?: string;
     exerciseId: string;
     exerciseName: string;
     training?: TrainingConfig;
@@ -106,6 +113,7 @@ type WorkoutDraft = {
 function draftSetToInputSet(set: DraftSet): WorkoutSet {
     return {
         id: set.id,
+        isWarmup: set.isWarmup,
         weight: set.weight === null ? "" : String(set.weight),
         reps: set.reps === null ? "" : String(set.reps),
         isCompleted: false,
@@ -119,6 +127,7 @@ function hasCompletedSet(sets: WorkoutSet[]) {
 }
 
 type SortableWorkoutExerciseCardProps = {
+    onSuperset: () => void;
     exercise: SelectedExercise;
     scope: string;
     onTrainingChange: (config: TrainingConfig) => Promise<void>;
@@ -126,7 +135,7 @@ type SortableWorkoutExerciseCardProps = {
     onCardioCompletion: (result: CardioCompletion | undefined) => void;
     exerciseSets: WorkoutSet[];
 
-    onAddSet: (exerciseId: string) => void;
+    onAddSet: (exerciseId: string, isWarmup?: boolean) => void;
 
     onSetChange: (
         exerciseId: string,
@@ -157,6 +166,7 @@ type SortableWorkoutExerciseCardProps = {
 
 function SortableWorkoutExerciseCard({
     exercise,
+    onSuperset,
     scope, onCardioCompletion, onTrainingChange, actionsDisabled,
     exerciseSets,
     onAddSet,
@@ -261,6 +271,17 @@ function SortableWorkoutExerciseCard({
                                 styles.exerciseMenuDropdown
                             }
                         >
+                            {(!exercise.training || exercise.training.format === "strength") && <Button type="button" variant="ghost" icon={PersonStanding} disabled={actionsDisabled} onClick={event => {
+                                event.currentTarget.closest("details")?.removeAttribute("open");
+                                setExpanded(true);
+                                onAddSet(exercise._id, true);
+                            }}>{t("workout.addWarmup")}</Button>}
+                            {(!exercise.training || exercise.training.format === "strength") && <Button type="button" variant="ghost" icon={exercise.supersetId ? Unlink : Link2} disabled={actionsDisabled} onClick={event => {
+                                const menu = event.currentTarget.closest("details");
+                                menu?.removeAttribute("open");
+                                menu?.querySelector("summary")?.focus();
+                                onSuperset();
+                            }}>{t(exercise.supersetId ? "workout.splitSuperset" : "workout.createSuperset")}</Button>}
                             <Button type="button" variant="ghost" disabled={!canMoveUp} icon={ArrowUp} onClick={() => onMove(-1)}>{t("WorkoutPage.moveUp")}</Button>
                             <Button type="button" variant="ghost" disabled={!canMoveDown} icon={ArrowDown} onClick={() => onMove(1)}>{t("WorkoutPage.moveDown")}</Button>
                             <motion.button initial={false} transition={timing}
@@ -291,9 +312,13 @@ function SortableWorkoutExerciseCard({
             <motion.div id={`sets-${exercise._id}`} initial={false} animate={{ height: expanded ? "auto" : 0, opacity: expanded ? 1 : 0 }} transition={{ duration: reduced ? 0 : 0.2 }} style={{ overflow: "hidden" }} inert={!expanded}>
             {exercise.training && exercise.training.format !== "strength" ?  <CardioSession key={JSON.stringify(exercise.training)} scope={scope} exerciseId={exercise._id} config={exercise.training} completion={exercise.cardioCompletion} onCompletion={onCardioCompletion} onConfig={onTrainingChange} disabled={actionsDisabled} /> : <div className={styles.setsList}>
                 <AnimatePresence initial={false}>
-                {exerciseSets.map((set, setIndex) => (
-                    <CompletedSetRow key={set.id} completed={set.isCompleted}>
-                        <span className={styles.setCaption}>{t("common.set")} {setIndex + 1}{set.isCompleted ? t("WorkoutPage.completed") : ""}</span>
+                {exerciseSets.map((set, setIndex) => {
+                    const setNumber = exerciseSets.slice(0, setIndex + 1).filter(item => !!item.isWarmup === !!set.isWarmup).length;
+                    return <CompletedSetRow key={set.id} completed={set.isCompleted}>
+                        <SetCompletionControl completed={set.isCompleted} isWarmup={!!set.isWarmup}
+                            number={setNumber}
+                            exerciseName={displayName} disabled={actionsDisabled}
+                            onComplete={() => onCompleteSet(exercise._id, setIndex)} />
                         <div className={styles.inputGroup}>
                             {(
                                 <label
@@ -306,7 +331,7 @@ function SortableWorkoutExerciseCard({
                             <motion.input {...fieldMotion(set.id + "-weight", { borderBottomColor: "var(--color-input-border)" }, { borderBottomColor: "var(--color-focus)" })}
                                 type="number"
                                 min={0}
-                                aria-label={t("WorkoutPage.weightForValueSetValue", { value0: displayName, value1: setIndex + 1 })}
+                                aria-label={set.isWarmup ? t("workout.warmupWeight", { exercise: displayName, number: setNumber }) : t("WorkoutPage.weightForValueSetValue", { value0: displayName, value1: setNumber })}
                                 value={set.weight}
                                 className={
                                     styles.underlineInput
@@ -334,7 +359,7 @@ function SortableWorkoutExerciseCard({
                             <motion.input {...fieldMotion(set.id + "-reps", { borderBottomColor: "var(--color-input-border)" }, { borderBottomColor: "var(--color-focus)" })}
                                 type="number"
                                 min={0}
-                                aria-label={t("WorkoutPage.repsForValueSetValue", { value0: displayName, value1: setIndex + 1 })}
+                                aria-label={set.isWarmup ? t("workout.warmupReps", { exercise: displayName, number: setNumber }) : t("WorkoutPage.repsForValueSetValue", { value0: displayName, value1: setNumber })}
                                 value={set.reps}
                                 className={
                                     styles.underlineInput
@@ -350,27 +375,12 @@ function SortableWorkoutExerciseCard({
                             />
                         </div>
 
-                        <SetCompletionControl completed={set.isCompleted} onComplete={() => onCompleteSet(exercise._id, setIndex)} />
 
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="small"
-                            animate={{ backgroundColor: "var(--color-danger-soft)", color: "var(--color-danger-text)", borderColor: "var(--color-danger)" }}
-                            whileHover={{ backgroundColor: "var(--color-danger)", color: "var(--color-on-danger)", y: -1 }}
-                            className={styles.deleteButton}
-                            onClick={() =>
-                                onRemoveSet(
-                                    exercise._id,
-                                    setIndex,
-                                )
-                            }
-                            aria-label={t("common.removeSet")}
-                        >
-                            <Icon icon={Trash2} />
-                        </Button>
-                    </CompletedSetRow>
-                ))}
+                        <SetOptions disabled={actionsDisabled} canDelete={exerciseSets.length > 1}
+                            label={t("workout.setOptions", { number: setNumber, exercise: displayName })}
+                            onDelete={() => onRemoveSet(exercise._id, setIndex)} />
+                    </CompletedSetRow>;
+                })}
                 </AnimatePresence>
             </div>}
             </motion.div>
@@ -391,7 +401,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
     const { draftId } = useParams();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    const { sets: setsMutation, training: trainingMutation, reorder: reorderMutation,
+    const { supersets: supersetsMutation, sets: setsMutation, training: trainingMutation, reorder: reorderMutation,
         remove: removeMutation, abandon: abandonMutation, complete: completionMutation } = useDraftMutations(draftId ?? "");
     const saveSets = setsMutation.mutateAsync;
     const saveTraining = trainingMutation.mutateAsync;
@@ -423,6 +433,8 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         setSelectedExercises,
     ] = useState<SelectedExercise[]>([]);
 
+    const exerciseGroups = workoutGroups(selectedExercises);
+
     const [
         setsByExercise,
         setSetsByExercise,
@@ -450,6 +462,9 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
     const removalName = useExerciseName(exerciseToRemove?._id, exerciseToRemove?.name ?? t("common.exercise"));
 
     const [error, setError] = useState("");
+    const [pairingExercise, setPairingExercise] = useState<SelectedExercise | null>(null);
+    const supersetBusy = useRef(false);
+    const recentlyCompleted = useRef(new Set<string>());
 
     const [isAbandoning, setIsAbandoning] = useState(false);
     const [isAbandonModalOpen, setIsAbandonModalOpen] = useState(false);
@@ -458,7 +473,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
 
     const [isSaving, setIsSaving] =
         useState(false);
-    const isActionPending = isSaving || isAbandoning || trainingMutation.isPending;
+    const isActionPending = isSaving || isAbandoning || trainingMutation.isPending || supersetsMutation.isPending;
 
     const [
         isRemovingExercise,
@@ -491,28 +506,41 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
     function toDraftSets(sets: WorkoutSet[]) {
         return sets.map((set) => ({
             id: set.id,
+        isWarmup: set.isWarmup,
             weight: set.weight,
             reps: set.reps,
         }));
     }
 
-    function handleAddSet(exerciseId: string) {
+    async function saveSuperset(exercise: SelectedExercise, partner?: SelectedExercise) {
+        if (supersetBusy.current || isReorderingExercises || isRemovingExercise || actionRequestPending.current || hasEnded.current) return;
+        supersetBusy.current = true;
+        try {
+            setError("");
+            const pairs = supersetPairs(selectedExercises).filter(pair => !pair.includes(exercise._id));
+            if (partner) pairs.push([exercise._id, partner._id]);
+            const saved: WorkoutDraft = await supersetsMutation.mutateAsync(pairs);
+            if (hasEnded.current) return;
+            setSelectedExercises(current => current.map(item => ({ ...item, supersetId: saved.exercises.find(savedItem => savedItem.exerciseId === item._id)?.supersetId })));
+            setPairingExercise(null);
+        } catch (error) { setError(friendlyError(error, t("workout.supersetSaveFailed"))); }
+        finally { supersetBusy.current = false; }
+    }
+    function handleAddSet(exerciseId: string, isWarmup = false) {
         setHasUserEditedSets(true);
 
-        setSetsByExercise((previousSets) => ({
-            ...previousSets,
-
-            [exerciseId]: [
-                ...(previousSets[exerciseId] ?? []),
-
-                {
-                    id: crypto.randomUUID(),
-                    weight: "",
-                    reps: "",
-                    isCompleted: false,
-                },
-            ],
-        }));
+        const newSet: WorkoutSet = {
+            id: crypto.randomUUID(), weight: "", reps: "", isCompleted: false, isWarmup,
+        };
+        setSetsByExercise(previousSets => {
+            const existing = previousSets[exerciseId] ?? [];
+            return {
+                ...previousSets,
+                [exerciseId]: isWarmup
+                    ? [...existing.filter(set => set.isWarmup), newSet, ...existing.filter(set => !set.isWarmup)]
+                    : [...existing, newSet],
+            };
+        });
     }
 
     useEffect(() => {
@@ -587,6 +615,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                         (exercise) => ({
                             _id: exercise.exerciseId,
                             name: exercise.exerciseName,
+                            supersetId: exercise.supersetId,
                             training: exercise.training,
                             cardioCompletion: exercise.cardioCompletion,
                         }),
@@ -860,11 +889,12 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         const previousOrder =
             selectedExercises;
 
-        const nextOrder = arrayMove(
-            selectedExercises,
-            oldIndex,
-            newIndex,
-        );
+        const groups = workoutGroups(selectedExercises);
+        const from = groups.findIndex(group => group.some(exercise => exercise._id === selectedExercises[oldIndex]._id));
+        const to = groups.findIndex(group => group.some(exercise => exercise._id === selectedExercises[newIndex]._id));
+        if (from === to) return;
+        if (to < 0 || to >= groups.length) return;
+        const nextOrder = arrayMove(groups, from, to).flat();
 
         setSelectedExercises(nextOrder);
 
@@ -880,6 +910,8 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         field: "weight" | "reps",
         value: string,
     ) {
+        const changedSet = setsByExercise[exerciseId]?.[index];
+        if (changedSet) recentlyCompleted.current.delete(changedSet.id);
         setHasUserEditedSets(true);
 
         setSetsByExercise((previousSets) => ({
@@ -971,8 +1003,11 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             );
 
             window.dispatchEvent(new CustomEvent(CARDIO_START, { detail: "strength" }));
-            resetRestTimer();
-            startRestTimer();
+            recentlyCompleted.current.add(set.id);
+            if (set.isCompleted || restAfterSupersetSet(selectedExercises, setsByExercise, exerciseId, index, recentlyCompleted.current)) {
+                resetRestTimer();
+                startRestTimer();
+            }
         } catch (err) {
             setError(
                 friendlyError(err, t("WorkoutPage.failedToSaveCompletedSet")),
@@ -1044,7 +1079,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                         (exercise) =>
                             exercise._id !==
                             exerciseToRemove._id,
-                    ),
+                    ).map(exercise => exercise.supersetId === exerciseToRemove.supersetId && exerciseToRemove.supersetId ? { ...exercise, supersetId: undefined } : exercise),
             );
 
             setSetsByExercise(
@@ -1223,6 +1258,17 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                     </Button>
                 </div>
 
+                <Modal title={t("workout.choosePartner")} isOpen={!!pairingExercise} onClose={() => { if (!supersetsMutation.isPending) setPairingExercise(null); }}>
+                    <p>{t("workout.supersetHelp")}</p>
+                    {error && <p role="alert">{error}</p>}
+                    <div className={styles.partnerChoices}>
+                        {selectedExercises.filter(exercise => exercise._id !== pairingExercise?._id && !exercise.supersetId && (!exercise.training || exercise.training.format === "strength")).map(exercise =>
+                            <Button type="button" variant="secondary" icon={Link2} key={exercise._id} disabled={supersetsMutation.isPending} onClick={() => { if (pairingExercise) void saveSuperset(pairingExercise, exercise); }}>
+                                <ExerciseName id={exercise._id} name={exercise.name} />
+                            </Button>)}
+                        {!selectedExercises.some(exercise => exercise._id !== pairingExercise?._id && !exercise.supersetId && (!exercise.training || exercise.training.format === "strength")) && <p>{t("workout.noPartner")}</p>}
+                    </div>
+                </Modal>
                 <DndContext accessibility={dragAccessibility(selectedExercises.map(exercise => ({ id: exercise._id, name: exercise.name })))}
                     sensors={sensors}
                     collisionDetection={
@@ -1244,11 +1290,14 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                                 styles.exerciseList
                             }
                         >
-                            {selectedExercises.map(
-                                (exercise, index) => (
-                                    <SortableWorkoutExerciseCard
+                            {exerciseGroups.map((group, groupIndex) => <div key={group[0]._id} className={group.length === 2 ? styles.supersetCard : undefined}>
+                                {group.length === 2 && <div className={styles.supersetHeading}><Icon icon={Link2} />{t("workout.superset")}</div>}
+                                {group.map(exercise => {
+                                    const index = selectedExercises.findIndex(item => item._id === exercise._id);
+                                    return <SortableWorkoutExerciseCard
+                                        onSuperset={() => { if (exercise.supersetId) void saveSuperset(exercise); else setPairingExercise(exercise); }}
                                         scope={scope}
-                                        actionsDisabled={isActionPending}
+                                        actionsDisabled={isActionPending || isReorderingExercises || isRemovingExercise}
                                         onTrainingChange={async training => {
                                             if (actionRequestPending.current || hasEnded.current) throw new Error(t("WorkoutPage.theWorkoutIsEndingPleaseWait"));
                                             await saveTraining({ exerciseId: exercise._id, training });
@@ -1257,9 +1306,12 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                                             setSelectedExercises(current => current.map(item => item._id === exercise._id ? { ...item, training, cardioCompletion: undefined } : item));
                                         }}
                                         onCardioCompletion={result => { cardioResults.current[exercise._id] = result; }}
-                                        canMoveUp={index > 0 && !isReorderingExercises && !isRemovingExercise}
-                                        canMoveDown={index < selectedExercises.length - 1 && !isReorderingExercises && !isRemovingExercise}
-                                        onMove={(direction) => moveExercise(index, index + direction)}
+                                        canMoveUp={groupIndex > 0 && !isActionPending && !isReorderingExercises && !isRemovingExercise}
+                                        canMoveDown={groupIndex < exerciseGroups.length - 1 && !isActionPending && !isReorderingExercises && !isRemovingExercise}
+                                        onMove={(direction) => {
+                                            const target = exerciseGroups[groupIndex + direction]?.[0];
+                                            if (target) moveExercise(index, selectedExercises.findIndex(item => item._id === target._id));
+                                        }}
                                         key={
                                             exercise._id
                                         }
@@ -1292,9 +1344,9 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                                             1 &&
                                             !isRemovingExercise
                                         }
-                                    />
-                                ),
-                            )}
+                                    />;
+                                })}
+                            </div>)}
                         </div>
                     </SortableContext>
                 </DndContext>
