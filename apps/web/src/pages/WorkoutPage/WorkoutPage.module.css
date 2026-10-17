@@ -629,9 +629,6 @@
 }
 
 @media (max-width: 640px) {
-    .exerciseHeader { flex-wrap: wrap; }
-    .exerciseTitleRow { flex-basis: 12rem; }
-    .exerciseActions { margin-left: auto; flex-wrap: wrap; }
     .exerciseMenuDropdown { min-width: 0; width: min(11rem, 75vw); }
     .setRow { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px 44px; }
     .completeSetButton.completeSetButton, .deleteButton.deleteButton {
@@ -730,3 +727,20 @@
 
 .exerciseActions { gap: var(--space-2); }
 @media (max-width: 640px) { .setRow { column-gap: var(--space-2); } }
+
+@media (max-width: 640px) {
+    .exerciseHeader {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr) auto;
+        align-items: center;
+        column-gap: 0.5rem;
+        row-gap: 0.25rem;
+    }
+    .exerciseTitleRow, .exerciseTitleContent { display: contents; }
+    .dragHandle { grid-column: 1; grid-row: 1; }
+    .exerciseName { grid-column: 2; grid-row: 1; }
+    .exerciseToggle { min-width: 0; width: 100%; }
+    .exerciseToggle span { flex-shrink: 0; }
+    .exerciseProgress { grid-column: 2 / -1; grid-row: 2; margin: 0; }
+    .exerciseActions { grid-column: 3; grid-row: 1; flex-wrap: nowrap; margin-left: 0; }
+}

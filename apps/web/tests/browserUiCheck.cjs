@@ -180,6 +180,27 @@ let browser, ws;
 
 
 
+ if(process.env.UI_CHECK_PHASE==='workout-header') {
+  for(const language of ['en','sv']) for(const mode of ['light','dark']) for(const width of [320,375,430,640,844,1440]) {
+   await evalValue('localStorage.clear();localStorage.setItem("workout-language",'+JSON.stringify(language)+')');
+   await visit(routes.find(route=>route[0]==='workout'),mode,width);
+   if(width<=640) {
+    const headers=await evalValue(`Array.from(document.querySelectorAll('[class*=exerciseHeader]')).map(header=>{
+     const rect=selector=>{const r=header.querySelector(selector).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,center:r.top+r.height/2};};
+     return {drag:rect('[class*=dragHandle]'),title:rect('h2'),add:rect('[class*=addSetButton]'),menu:rect('summary'),progress:rect('[class*=exerciseProgress]')};
+    })`);
+    assert(headers.length>0);
+    for(const h of headers) {
+     for(const item of [h.title,h.add,h.menu])assert(Math.abs(item.center-h.drag.center)<1,'header controls not aligned: '+JSON.stringify(h));
+     assert(h.drag.right<=h.title.left && h.title.right<=h.add.left && h.add.right<=h.menu.left,'overlapping header elements');
+     assert(h.progress.top>=Math.max(h.drag.bottom,h.title.bottom,h.add.bottom,h.menu.bottom),'progress overlaps main row');
+    }
+   }
+   console.log('PASS workout header alignment',language,mode,width);
+  }
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
+  await send('Fetch.disable');await send('Browser.close');return;
+ }
  if(process.env.UI_CHECK_PHASE==='web-timers') {
   await send('Page.addScriptToEvaluateOnNewDocument',{source:`
    window.__timerFrequencies=[];

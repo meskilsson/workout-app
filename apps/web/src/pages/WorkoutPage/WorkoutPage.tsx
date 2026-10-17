@@ -234,7 +234,7 @@ function SortableWorkoutExerciseCard({
                         <Icon icon={GripVertical} />
                     </button>
 
-                    <div>
+                    <div className={styles.exerciseTitleContent}>
                         <h2 className={styles.exerciseName}><button type="button" className={styles.exerciseToggle} aria-expanded={expanded} aria-controls={`sets-${exercise._id}`} onClick={() => setExpanded(value => !value)}>{displayName}<span aria-hidden="true">{expanded ? "\u2212" : "+"}</span></button></h2>
                         {(!exercise.training || exercise.training.format === "strength") && <p className={styles.exerciseProgress}>{exerciseSets.filter(set => set.isCompleted).length} {t("common.of")} {exerciseSets.length} {t("WorkoutPage.setsCompleted")}</p>}
                     </div>
