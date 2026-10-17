@@ -192,7 +192,6 @@
 
 .existingCard {
     cursor: default;
-    opacity: 0.68;
 }
 
 .existingCard:hover {

@@ -260,19 +260,21 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
             isActiveWorkout &&
             existingExerciseIds.includes(exercise._id);
 
+        const showSelected = isSelected || isAlreadyInWorkout;
+
         return (
             <Card
-                animate={{ ...(isSelected ? { ...selectedCard, borderColor: "var(--color-border)", boxShadow: "none" } : { ...cardRest, borderColor: "var(--color-border-soft)" }), opacity: isAlreadyInWorkout ? 0.68 : 1 }}
+                animate={{ ...(showSelected ? { ...selectedCard, borderColor: "var(--color-border)", boxShadow: "none" } : { ...cardRest, borderColor: "var(--color-border-soft)" }), opacity: 1 }}
                 whileHover={{ borderColor: isAlreadyInWorkout ? "var(--color-border-soft)" : "var(--color-border)", boxShadow: "none" }}
                 key={exercise._id}
-                className={`${styles.exerciseCard} ${isSelected ? styles.selectedCard : ""
+                className={`${styles.exerciseCard} ${showSelected ? styles.selectedCard : ""
                     } ${isAlreadyInWorkout
                         ? styles.existingCard
                         : ""
                     }`}
                 onClick={() => handleToggleExercise(exercise)}
                 aria-disabled={isAlreadyInWorkout || isSavingExercises}
-                aria-pressed={isSelected || isAlreadyInWorkout}
+                aria-pressed={showSelected}
             >
                 <div className={styles.exerciseCardContent}>
                     <div className={styles.exerciseCardTop}>
