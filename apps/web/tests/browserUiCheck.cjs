@@ -37,6 +37,10 @@ let browser, ws;
   exercise.translations={sv:{name:'Bänkpress',description:'Bröstpress med skivstång på en plan bänk.',instructions:'Sänk stången kontrollerat mot bröstet och pressa upp.'}};
  }
  const draft={_id:draftId,userId,status:'active',selectedMuscleGroups:['chest','back'],exercises:exercises.map((e,j)=>({exerciseId:e._id,exerciseName:e.name,sets:Array.from({length:3},(_,i)=>({id:`f8f6de5c-e305-4bba-b62b-a5375d3b79b${j*3+i}`,weight:j?25:40,reps:8+i}))}))};
+ if(process.env.UI_CHECK_PHASE==='web-timers') {
+  draft.exercises[1].training={format:'intervals',rounds:3,workSeconds:2,restSeconds:1};
+  draft.exercises[1].sets=[];
+ }
  if(process.env.UI_CHECK_PHASE==='direct-start') {
   exercises[1].exerciseType='cardio';exercises[1].name='Cycling';
   draft.exercises[1]={...draft.exercises[1],exerciseName:'Cycling',training:{format:'cardio',durationSeconds:600},sets:[]};
@@ -176,6 +180,69 @@ let browser, ws;
 
 
 
+ if(process.env.UI_CHECK_PHASE==='web-timers') {
+  await send('Page.addScriptToEvaluateOnNewDocument',{source:`
+   window.__timerFrequencies=[];
+   window.__permissionPrompts=0;
+   if ('Notification' in window) {
+    let permission='default';
+    Object.defineProperty(Notification,'permission',{get:()=>permission});
+    Notification.requestPermission=()=>{window.__permissionPrompts++;permission='denied';return Promise.resolve(permission);};
+   }
+   window.AudioContext=class {
+    state='running';currentTime=0;destination={};
+    resume(){this.state='running';return Promise.resolve();}
+    createOscillator(){return {frequency:{setValueAtTime:n=>window.__timerFrequencies.push(n)},connect(){},disconnect(){},start(){},stop(){}};}
+    createGain(){return {gain:{setValueAtTime(){},linearRampToValueAtTime(){}},connect(){},disconnect(){}};}
+   };
+  `});
+  for(const mode of ['light','dark']) for(const width of [375,1440]) {
+   await evalValue('localStorage.clear();localStorage.setItem("rest-duration:'+userId+'","2000")');
+   await visit(routes.find(route=>route[0]==='workout'),mode,width);
+   assert.equal(await evalValue('window.__permissionPrompts'),0,'automatic notification permission prompt');
+   mutationDelay=1800;
+   await evalValue("document.querySelector('button[aria-label^=\"Complete set\"]').click()"); await wait(150);
+   assert(await evalValue("!!document.querySelector('button[aria-label=\"Pause rest timer\"]')"),'rest waited for save');
+   assert(await evalValue("!!document.querySelector('[aria-pressed=true]')"));
+   await wait(2300);mutationDelay=0;
+   assert.equal(await evalValue('window.__timerFrequencies.filter(n=>n===880).length'),2);
+   await evalValue("[...document.querySelectorAll('button')].find(button=>button.textContent==='Start cardio').click()");await wait(100);
+   routePath='/library';await evalValue("document.querySelector('a[href=\"/library\"]').click()");await wait(3300);
+   const active=await evalValue('JSON.parse(localStorage.getItem("workout-progress:'+userId+':'+draftId+':web-timers")).cardio["'+draft.exercises[1].exerciseId+'"]');
+   assert.equal(active.state.status,'running','route change stopped cardio');
+   routePath='/workout/'+draftId;
+   await evalValue("[...document.querySelectorAll('button')].find(button=>button.textContent.includes('Resume workout')).click()");await wait(700);
+   assert(await evalValue("[...document.querySelectorAll('button')].some(button=>button.textContent==='Pause')"));
+   await evalValue("[...document.querySelectorAll('button')].find(button=>button.textContent==='Pause').click()");await wait(150);
+   await send('Page.navigate',{url:base+routePath});await wait(900);
+   assert(await evalValue("[...document.querySelectorAll('button')].some(button=>button.textContent==='Resume')"),'paused cardio did not restore');
+   assert.equal(await evalValue('window.__timerFrequencies.length'),0,'restoration replayed cues');
+   await evalValue("[...document.querySelectorAll('button')].find(button=>button.textContent==='Resume').click()");await wait(5000);
+   const done=await evalValue('JSON.parse(localStorage.getItem("workout-progress:'+userId+':'+draftId+':web-timers")).cardio["'+draft.exercises[1].exerciseId+'"]');
+   assert.equal(done.state.status,'completed');
+   assert.equal(await evalValue('window.__timerFrequencies.filter(n=>n===1100).length'),2,'final activity cue');
+   await evalValue("document.querySelector('button[aria-label=\"Set rest duration\"]').click()");await wait(100);
+   assert(await evalValue("document.body.innerText.includes('Enable background alerts')"));
+   assert(await evalValue("document.documentElement.scrollWidth<=innerWidth+1"));
+   const shot=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(process.env.TEMP,`web-timers-${mode}-${width}.png`),Buffer.from(shot.data,'base64'));
+   await evalValue("[...document.querySelectorAll('button')].find(button=>button.textContent==='Enable background alerts').click()");await wait(100);
+   assert(await evalValue("document.body.innerText.includes('Notifications are blocked')"));
+   await evalValue("[...document.querySelectorAll('button')].find(button=>button.textContent==='Enable background alerts').click()");await wait(50);
+   assert.equal(await evalValue('window.__permissionPrompts'),1,'denied permission prompted repeatedly');
+   console.log('PASS immediate rest, single cue, route-owned cardio, paused reload and timer settings',mode,width);
+  }
+  const compiledClaims=require('typescript').transpileModule(fs.readFileSync(path.join(__dirname,'../src/utils/timerClaims.ts'),'utf8'),{compilerOptions:{target:99,module:1}}).outputText;
+  const target=await send('Target.createTarget',{url:base+'/timer-sw.js'});await wait(300);
+  const secondTab=(await(await fetch('http://127.0.0.1:9227/json/list')).json()).find(tab=>tab.id===target.targetId);
+  const secondSocket=new WebSocket(secondTab.webSocketDebuggerUrl);await new Promise(resolve=>secondSocket.addEventListener('open',resolve,{once:true}));
+  const claimExpression='(async()=>{const exports={};'+compiledClaims+';return exports.claimTimerEvent("browser-multi-tab-claim");})()';
+  const secondResult=new Promise((resolve,reject)=>{secondSocket.addEventListener('message',event=>{const message=JSON.parse(event.data);if(message.id===1){if(message.result?.exceptionDetails)reject(Error(JSON.stringify(message.result.exceptionDetails)));else resolve(message.result.result.value);}});secondSocket.send(JSON.stringify({id:1,method:'Runtime.evaluate',params:{expression:claimExpression,returnByValue:true,awaitPromise:true}}));});
+  const winners=await Promise.all([evalValue(claimExpression),secondResult]);assert.equal(winners.filter(Boolean).length,1);
+  secondSocket.close();await send('Target.closeTarget',{targetId:target.targetId});
+  console.log('PASS atomic event claim across two real same-origin browser tabs');
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
+  await send('Fetch.disable');await send('Browser.close');return;
+ }
  if(process.env.UI_CHECK_PHASE==='workout-markers') {
   const originalExercises=structuredClone(draft.exercises);
   for(const mode of ['light','dark']) for(const width of [375,1440]) {

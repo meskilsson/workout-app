@@ -29,6 +29,16 @@ function write(scope: string, kind: string, value: unknown): void {
     try { localStorage.setItem(`${scope}:${kind}`, JSON.stringify(value)); } catch { /* Storage may be unavailable. */ }
 }
 
+export function readWebTimerSnapshot(scope: string): unknown {
+    return read(scope, "cleared") === true ? null : read(scope, "web-timers");
+}
+export function writeWebTimerSnapshot(scope: string, value: unknown): void { write(scope, "web-timers", value); }
+export function isWorkoutSnapshotCleared(scope: string): boolean { return clearedScopes.has(scope) || read(scope, "cleared") === true; }
+export function readAllCardioSnapshots(scope: string): Record<string, unknown> {
+    const saved = read(scope, "cardio");
+    return saved && typeof saved === "object" && !isWorkoutSnapshotCleared(scope) ? saved as Record<string, unknown> : {};
+}
+
 export function restoreWorkoutSets(scope: string, current: SetsByExercise): SetsByExercise {
     if (read(scope, "cleared") === true) return current;
     const saved = read(scope, "sets");
@@ -93,6 +103,7 @@ export function clearWorkoutSnapshot(scope: string): void {
         localStorage.removeItem(`${scope}:rest`);
         localStorage.removeItem(`${scope}:duration`);
         localStorage.removeItem(`${scope}:cardio`);
+        localStorage.removeItem(`${scope}:web-timers`);
         localStorage.setItem(`${scope}:cleared`, "true");
     } catch { /* Storage may be unavailable. */ }
     if (typeof window !== "undefined") {
@@ -112,13 +123,14 @@ export function clearDraftSnapshots(draftId: string): void {
                 } catch { /* Ignore malformed reference keys. */ }
             }
             if (!key?.startsWith(PREFIX)) continue;
-            const scope = key.replace(/:(sets|rest|duration|cardio|cleared)$/, "");
+            const scope = key.replace(/:(sets|rest|duration|cardio|web-timers|cleared)$/, "");
             if (scope.endsWith(suffix)) scopes.add(scope);
         }
         for (const scope of scopes) clearWorkoutSnapshot(scope);
     } catch { /* Storage may be unavailable. */ }
 }
 export function clearUserSnapshots(userId: string): void {
+    if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("workout-user-cleared", { detail: userId }));
     try {
         const prefix = `${PREFIX}${encodeURIComponent(userId)}:`;
         const keys: string[] = [];

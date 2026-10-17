@@ -1,3 +1,4 @@
+import { useWebTimers } from "../../components/timer/WebTimerContext";
 import SetOptions from "./SetOptions";
 import ExerciseName from "../../components/exercises/ExerciseName";
 import { workoutGroups, supersetPairs, restAfterSupersetSet } from "../../utils/workoutGroups";
@@ -16,7 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { draftDetailOptions } from "../../query/resourceQueries";
 import { useDraftMutations } from "../../query/useDraftMutations";
 import { finishWorkout } from "../../utils/finishWorkout";
-import CardioSession, { CARDIO_START } from "../../components/training/CardioSession";
+import CardioSession from "../../components/training/CardioSession";
 import type { TrainingConfig, CardioCompletion } from "@workout-app/shared";
 import { Link2, Unlink, PersonStanding, Plus, Trash2, Flag, GripVertical, MoreHorizontal, ArrowUp, ArrowDown } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
@@ -132,7 +133,6 @@ type SortableWorkoutExerciseCardProps = {
     scope: string;
     onTrainingChange: (config: TrainingConfig) => Promise<void>;
     actionsDisabled: boolean;
-    onCardioCompletion: (result: CardioCompletion | undefined) => void;
     exerciseSets: WorkoutSet[];
 
     onAddSet: (exerciseId: string, isWarmup?: boolean) => void;
@@ -167,7 +167,7 @@ type SortableWorkoutExerciseCardProps = {
 function SortableWorkoutExerciseCard({
     exercise,
     onSuperset,
-    scope, onCardioCompletion, onTrainingChange, actionsDisabled,
+    scope, onTrainingChange, actionsDisabled,
     exerciseSets,
     onAddSet,
     onSetChange,
@@ -310,7 +310,7 @@ function SortableWorkoutExerciseCard({
             </div>
 
             <motion.div id={`sets-${exercise._id}`} initial={false} animate={{ height: expanded ? "auto" : 0, opacity: expanded ? 1 : 0 }} transition={{ duration: reduced ? 0 : 0.2 }} style={{ overflow: "hidden" }} inert={!expanded}>
-            {exercise.training && exercise.training.format !== "strength" ?  <CardioSession key={JSON.stringify(exercise.training)} scope={scope} exerciseId={exercise._id} config={exercise.training} completion={exercise.cardioCompletion} onCompletion={onCardioCompletion} onConfig={onTrainingChange} disabled={actionsDisabled} /> : <div className={styles.setsList}>
+            {exercise.training && exercise.training.format !== "strength" ?  <CardioSession key={JSON.stringify(exercise.training)} scope={scope} exerciseId={exercise._id} config={exercise.training} completion={exercise.cardioCompletion} onConfig={onTrainingChange} disabled={actionsDisabled} /> : <div className={styles.setsList}>
                 <AnimatePresence initial={false}>
                 {exerciseSets.map((set, setIndex) => {
                     const setNumber = exerciseSets.slice(0, setIndex + 1).filter(item => !!item.isWarmup === !!set.isWarmup).length;
@@ -407,7 +407,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
     const saveTraining = trainingMutation.mutateAsync;
 
     const scope = workoutScope(userId, draftId ?? "");
-    const cardioResults = useRef<Record<string, CardioCompletion | undefined>>({});
+    const webTimers = useWebTimers();
     const hasLoadedDraft = useRef(false);
     const hasEnded = useRef(false);
 
@@ -646,6 +646,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                     }, {});
 
                 setSelectedExercises(exercises);
+                void webTimers.retainActivities(exercises.filter(exercise => exercise.training && exercise.training.format !== "strength").map(exercise => exercise._id));
 
                 setSetsByExercise(
                     restoreWorkoutSets(scope, initialSetsByExercise),
@@ -677,6 +678,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         userId,
         resetRestTimer,
         queryClient,
+        webTimers,
     ]);
 
     useEffect(() => {
@@ -773,22 +775,19 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             return;
         }
 
-        setIsSavingDraft(true);
-
-        try {
-            await saveSets(
-                {
-                    exerciseId,
-
-                    sets: toDraftSets(
-                        setsByExercise[exerciseId] ??
-                        [],
-                    ),
-                },
-            );
-        } finally {
-            setIsSavingDraft(false);
-        }
+        const previous = autosaveRequest.current;
+        const payload = toDraftSets(setsByExercise[exerciseId] ?? []);
+        const save = (async () => {
+            await previous;
+            if (hasEnded.current) return;
+            setIsSavingDraft(true);
+            try { await saveSets({ exerciseId, sets: payload }); }
+            finally { setIsSavingDraft(false); }
+        })();
+        // Serialize with autosave and final submission. A rejected write must
+        // reach its caller without poisoning subsequent retry attempts.
+        autosaveRequest.current = save.catch(() => {});
+        await save;
     }
 
     async function saveAllExerciseSets() {
@@ -801,7 +800,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         try {
             for (const exercise of selectedExercises) {
                 if (exercise.training && exercise.training.format !== "strength") {
-                    await saveTraining({ exerciseId: exercise._id, training: exercise.training, cardioCompletion: cardioResults.current[exercise._id] });
+                    await saveTraining({ exerciseId: exercise._id, training: exercise.training, cardioCompletion: webTimers.completion(exercise._id) });
                     continue;
                 }
                 await saveSets(
@@ -976,8 +975,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         try {
             setError("");
 
-            await saveExerciseSets(exerciseId);
-
+            setHasUserEditedSets(true);
             setSetsByExercise(
                 (previousSets) => ({
                     ...previousSets,
@@ -1002,12 +1000,15 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                 }),
             );
 
-            window.dispatchEvent(new CustomEvent(CARDIO_START, { detail: "strength" }));
+            void webTimers.pauseActivities();
             recentlyCompleted.current.add(set.id);
             if (set.isCompleted || restAfterSupersetSet(selectedExercises, setsByExercise, exerciseId, index, recentlyCompleted.current)) {
                 resetRestTimer();
                 startRestTimer();
             }
+            // Rest starts at the completed set, independently of request latency.
+            // Keep local completion on failure; the existing save flow can retry.
+            await saveExerciseSets(exerciseId);
         } catch (err) {
             setError(
                 friendlyError(err, t("WorkoutPage.failedToSaveCompletedSet")),
@@ -1072,6 +1073,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             await removeMutation.mutateAsync(
                 exerciseToRemove._id,
             );
+            await webTimers.retainActivities(selectedExercises.filter(exercise => exercise._id !== exerciseToRemove._id).map(exercise => exercise._id));
 
             setSelectedExercises(
                 (previousExercises) =>
@@ -1166,7 +1168,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
             const incompleteExercise =
                 selectedExercises.find(
                     (exercise) =>
-                        exercise.training && exercise.training.format !== "strength" ? !cardioResults.current[exercise._id] : !hasCompletedSet(
+                        exercise.training && exercise.training.format !== "strength" ? !webTimers.completion(exercise._id) : !hasCompletedSet(
                             setsByExercise[
                             exercise._id
                             ] ?? [],
@@ -1302,10 +1304,8 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                                             if (actionRequestPending.current || hasEnded.current) throw new Error(t("WorkoutPage.theWorkoutIsEndingPleaseWait"));
                                             await saveTraining({ exerciseId: exercise._id, training });
                                             if (hasEnded.current) return;
-                                            cardioResults.current[exercise._id] = undefined;
                                             setSelectedExercises(current => current.map(item => item._id === exercise._id ? { ...item, training, cardioCompletion: undefined } : item));
                                         }}
-                                        onCardioCompletion={result => { cardioResults.current[exercise._id] = result; }}
                                         canMoveUp={groupIndex > 0 && !isActionPending && !isReorderingExercises && !isRemovingExercise}
                                         canMoveDown={groupIndex < exerciseGroups.length - 1 && !isActionPending && !isReorderingExercises && !isRemovingExercise}
                                         onMove={(direction) => {

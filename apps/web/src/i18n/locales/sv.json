@@ -744,5 +744,20 @@
   "workout.warmupWeight": "Vikt för {{exercise}}, uppvärmningsset {{number}}",
   "workout.warmupReps": "Repetitioner för {{exercise}}, uppvärmningsset {{number}}",
   "workout.deleteSet": "Ta bort set",
-  "workout.setOptions": "Alternativ för set {{number}} i {{exercise}}"
+  "workout.setOptions": "Alternativ för set {{number}} i {{exercise}}",
+  "timerAlerts.restFinished": "Vilan är slut",
+  "timerAlerts.enablePush": "Aktivera bakgrundsaviseringar",
+  "timerAlerts.disablePush": "Stäng av bakgrundsaviseringar",
+  "timerAlerts.keepAwake": "Håll skärmen vaken",
+  "timerAlerts.audioReady": "Ljudet är redo.",
+  "timerAlerts.vibrationAvailable": "Vibration stöds; enhetens inställningar gäller.",
+  "timerAlerts.vibrationUnavailable": "Vibration är inte tillgänglig i denna webbläsare.",
+  "timerAlerts.pushUnavailable": "Bakgrundsaviseringar är inte tillgängliga.",
+  "timerAlerts.audioGesture": "Tryck på en timerkontroll för att aktivera ljud.",
+  "timerAlerts.install": "På iPhone: lägg till appen på hemskärmen och öppna den där. Push kräver en säker webbläsare med stöd.",
+  "timerAlerts.denied": "Aviseringar är blockerade. Ändra behörigheten i webbläsarens inställningar.",
+  "timerAlerts.setup": "Bakgrundsaviseringar kräver serverinställningar. Timern fungerar fortfarande i appen.",
+  "timerAlerts.syncFailed": "Bakgrundsaviseringarna kunde inte synkroniseras. Håll appen öppen och anslut igen för att försöka på nytt.",
+  "timerAlerts.bestEffort": "Leverans och ljud i bakgrunden beror på anslutningen och enhetens inställningar.",
+  "timerAlerts.wakeUnavailable": "Skärmen kan inte hållas vaken just nu."
 }

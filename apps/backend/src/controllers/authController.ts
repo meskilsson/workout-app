@@ -4,6 +4,9 @@ import { signAccessToken } from "../utils/jwt";
 import User from "../models/User";
 import { createRefreshSession, rotateRefreshSession, revokeRefreshSession, refreshLifetime } from "../services/refreshSessionService";
 import { UnauthorizedError } from "../errors/AppError";
+import RefreshSession from "../models/RefreshSession";
+import { hashRefreshToken } from "../services/refreshSessionService";
+import { disableDevicePush } from "../services/timerPushService";
 
 
 
@@ -90,6 +93,11 @@ export async function refreshUser(req: Request, res: Response, next: NextFunctio
 
 export async function logoutUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+        const deviceId = req.get("X-Workout-Device");
+        if (deviceId && /^[a-f\d-]{36}$/i.test(deviceId) && typeof req.cookies?.refreshToken === "string") {
+            const session = await RefreshSession.findOne({ tokenHash: hashRefreshToken(req.cookies.refreshToken) });
+            if (session) await disableDevicePush(session.userId.toString(), deviceId);
+        }
         await revokeRefreshSession(req.cookies?.refreshToken);
         clearAuthCookies(res);
         res.status(200).json({ message: "Logged out" });

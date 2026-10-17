@@ -1,0 +1,11 @@
+{
+  "id": "/",
+  "name": "Workout",
+  "short_name": "Workout",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF7",
+  "theme_color": "#2E3440",
+  "icons": [{ "src": "/moose_charging_kettlebell_clean_transparent.png", "sizes": "1254x1254", "type": "image/png" }]
+}

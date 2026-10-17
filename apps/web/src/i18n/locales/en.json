@@ -744,5 +744,20 @@
   "workout.warmupWeight": "Weight for {{exercise}}, warm-up set {{number}}",
   "workout.warmupReps": "Reps for {{exercise}}, warm-up set {{number}}",
   "workout.deleteSet": "Delete set",
-  "workout.setOptions": "Options for set {{number}} of {{exercise}}"
+  "workout.setOptions": "Options for set {{number}} of {{exercise}}",
+  "timerAlerts.restFinished": "Rest complete",
+  "timerAlerts.enablePush": "Enable background alerts",
+  "timerAlerts.disablePush": "Disable background alerts",
+  "timerAlerts.keepAwake": "Keep screen awake",
+  "timerAlerts.audioReady": "Sound ready.",
+  "timerAlerts.vibrationAvailable": "Vibration supported; device settings apply.",
+  "timerAlerts.vibrationUnavailable": "Vibration unavailable in this browser.",
+  "timerAlerts.pushUnavailable": "Background alerts unavailable.",
+  "timerAlerts.audioGesture": "Tap a timer control to enable sound.",
+  "timerAlerts.install": "On iPhone, add this app to your Home Screen and open it there. Push requires a supported secure browser.",
+  "timerAlerts.denied": "Notifications are blocked. Change permission in your browser settings.",
+  "timerAlerts.setup": "Background alerts need server setup. In-app timers still work.",
+  "timerAlerts.syncFailed": "Could not sync background alerts. Keep the app open and reconnect to retry.",
+  "timerAlerts.bestEffort": "Background delivery and sound depend on your connection and device settings.",
+  "timerAlerts.wakeUnavailable": "Screen wake lock is currently unavailable."
 }

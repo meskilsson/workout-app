@@ -1,69 +1,39 @@
 import { displayValue, t } from "../../i18n";
 import { useTranslation } from "react-i18next";
-import { useEffect, useRef, useState } from "react";
-import { validateCardioCompletion, createCardioTimer, isCardioTimerState, reconcileCardioTimer, cardioTimerAction, cardioTimerView, cardioCompletion, trainingTotalSeconds, formatTrainingSeconds, type TrainingConfig, type CardioCompletion, type CardioTimerState } from "@workout-app/shared";
-import { useRestTimerControls } from "@workout-app/shared/timer/rest";
-import { readCardioSnapshot, saveCardioSnapshot } from "../../utils/workoutProgressStorage";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { createCardioTimer, reconcileCardioTimer, cardioTimerView, formatTrainingSeconds, type TrainingConfig, type CardioCompletion } from "@workout-app/shared";
+import { useWebTimers } from "../timer/WebTimerContext";
+import { cancelTimerAudio, prepareRestAlertAudio } from "../../utils/restTimerAlerts";
 import Modal from "../ui/modal/Modal";
 import TrainingConfigForm from "./TrainingConfigForm";
 import Button from "../ui/button/Button";
 import styles from "./Training.module.css";
-export const CARDIO_START = "cardio-session-start";
-export const CARDIO_ACTIVE = "cardio-session-active";
-export default function CardioSession({ scope, exerciseId, config, completion, onCompletion, onConfig, disabled = false }: { disabled?: boolean; onConfig?: (config: TrainingConfig) => Promise<void>; scope: string; exerciseId: string; config: TrainingConfig; completion?: CardioCompletion; onCompletion: (result: CardioCompletion | undefined) => void }) {
+export default function CardioSession({ scope, exerciseId, config, completion, onConfig, disabled = false }: { disabled?: boolean; onConfig?: (config: TrainingConfig) => Promise<void>; scope: string; exerciseId: string; config: TrainingConfig; completion?: CardioCompletion }) {
     useTranslation();
     const [options, setOptions] = useState<"cardio" | "intervals" | null>(null);
     const [savingOptions, setSavingOptions] = useState(false);
-    const { reset: resetRest } = useRestTimerControls();
-    const [state, setState] = useState<CardioTimerState>(() => {
-        const saved = readCardioSnapshot(scope, exerciseId) as { config?: TrainingConfig; state?: unknown } | null;
-        if (saved && JSON.stringify(saved.config) === JSON.stringify(config) && isCardioTimerState(saved.state)
-            && saved.state.elapsedMs <= trainingTotalSeconds(config) * 1000) {
-            try { if (saved.state.status === "completed") validateCardioCompletion(cardioCompletion(saved.state, config), config);
-                return reconcileCardioTimer(saved.state, config, Date.now());
-            } catch { /* An invalid snapshot must never mark cardio complete. */ }
-        }
-        return completion ? { status: "completed", elapsedMs: completion.elapsedSeconds * 1000, startedAt: null, manual: completion.manual } : createCardioTimer();
-    });
-    const current = useRef(state), callback = useRef(onCompletion);
-    useEffect(() => { callback.current = onCompletion; }, [onCompletion]);
+    const store = useWebTimers();
+    const empty = useMemo(createCardioTimer, []);
+    const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot);
+    const state = snapshot.cardio[exerciseId]?.state ?? empty;
+    useEffect(() => {
+        if (scope === store.scope) void store.register(exerciseId, config, completion);
+    }, [store, scope, exerciseId, config, completion]);
     const [now, setNow] = useState(Date.now);
     useEffect(() => {
-        current.current = state;
-        saveCardioSnapshot(scope, exerciseId, { config, state });
-        callback.current(cardioCompletion(state, config));
-    }, [state, config, scope, exerciseId]);
-    useEffect(() => {
-        function pauseOther(event: Event) {
-            if ((event as CustomEvent<string>).detail !== exerciseId) {
-                const next = cardioTimerAction(current.current, config, "pause", Date.now());
-                current.current = next; setState(next);
-            }
-        }
-        window.addEventListener(CARDIO_START, pauseOther);
-        return () => window.removeEventListener(CARDIO_START, pauseOther);
-    }, [exerciseId, config]);
-    useEffect(() => {
         if (state.status !== "running") return;
-        resetRest();
-        window.dispatchEvent(new CustomEvent(CARDIO_ACTIVE, { detail: true }));
-        function tick() {
-            const timestamp = Date.now();
-            const next = reconcileCardioTimer(current.current, config, timestamp);
-            current.current = next; setState(next); setNow(timestamp);
-        }
+        const tick = () => setNow(Date.now());
+        tick();
         const id = window.setInterval(tick, 200);
-        document.addEventListener("visibilitychange", tick);
-        window.addEventListener("focus", tick);
-        return () => { window.clearInterval(id); document.removeEventListener("visibilitychange", tick); window.removeEventListener("focus", tick); window.dispatchEvent(new CustomEvent(CARDIO_ACTIVE, { detail: false })); };
-    }, [state.status, config, resetRest]);
+        return () => window.clearInterval(id);
+    }, [state.status]);
     function action(action: "start" | "pause" | "resume" | "reset" | "complete") {
-        const timestamp = Date.now();
-        if (action === "start" || action === "resume") window.dispatchEvent(new CustomEvent(CARDIO_START, { detail: exerciseId }));
-        const next = cardioTimerAction(current.current, config, action, timestamp);
-        current.current = next; setState(next); setNow(timestamp);
+        prepareRestAlertAudio();
+        cancelTimerAudio();
+        void store.cardioAction(exerciseId, action);
+        setNow(Date.now());
     }
-    const view = cardioTimerView(state, config, now);
+    const view = cardioTimerView(reconcileCardioTimer(state, config, now), config, now);
     return <div className={styles.session}>
         <p role="status" aria-live="polite" aria-atomic="true">{displayValue(view.phase)}{config.format === "intervals" ? t("CardioSession.roundValueOfValue", { value0: view.round, value1: config.rounds }) : t("CardioSession.continuousCardio")}</p>
         <strong className={styles.countdown} aria-label={t("CardioSession.phaseCountdown")}>{formatTrainingSeconds(view.phaseRemaining)}</strong>

@@ -15,6 +15,8 @@ import logger from "./middleware/logger";
 import errorHandler from "./middleware/errorHandler";
 import adminRouter from "./routes/adminRoutes";
 import workoutTemplateRouter from "./routes/workoutTemplateRoutes";
+import timerPushRouter from "./routes/timerPushRoutes";
+import { startTimerPushScheduler } from "./services/timerPushService";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -70,12 +72,14 @@ app.use("/api/workout-sessions", workoutSessionRouter);
 app.use("/api/workout-drafts", workoutDraftRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/workout-templates", workoutTemplateRouter);
+app.use("/api/timer-push", timerPushRouter);
 
 app.use(notFound);
 app.use(errorHandler);
 
 async function startServer(): Promise<void> {
   await connectDB();
+  startTimerPushScheduler();
 
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

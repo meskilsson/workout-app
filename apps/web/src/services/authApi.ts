@@ -1,4 +1,5 @@
 import { apiFetch, rememberSession, waitForSessionRenewal } from "../utils/apiFetch";
+import { timerDeviceId } from "./timerPush";
 import { t } from "../i18n";
 import { parseJsonResponse } from "../utils/parseJsonResponse";
 
@@ -91,6 +92,7 @@ export async function logoutRequest(): Promise<MessageResponse> {
     const response = await apiFetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
+        headers: { "X-Workout-Device": timerDeviceId() },
     });
 
     return parseJsonResponse<MessageResponse>(

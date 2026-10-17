@@ -6,6 +6,12 @@ type RestTimerContextValue = ReturnType<typeof useRestTimer>;
 
 const RestTimerContext = createContext<RestTimerContextValue | null>(null);
 
+// Web can own its lifecycle above routed exercise cards. Native keeps the
+// existing hook/provider and storage contract unchanged.
+export function RestTimerStateProvider({ value, children }: { value: RestTimerContextValue; children: ReactNode }) {
+    return <RestTimerContext.Provider value={value}>{children}</RestTimerContext.Provider>;
+}
+
 type RestTimerProviderProps = {
     children: ReactNode;
     durationMs?: number;
