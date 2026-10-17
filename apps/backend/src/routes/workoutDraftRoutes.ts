@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../middleware/requireAuth";
 import { validateRequest } from '../middleware/validate'
 import {
+    replaceWorkoutDraftExercise,
     updateWorkoutSupersets,
     abandonWorkoutDraft,
     completeWorkoutDraft,
@@ -18,6 +19,7 @@ import {
     removeWorkoutDraftExercise,
 } from "../controllers/workoutDraftController";
 import {
+    replaceWorkoutDraftExerciseSchema,
     updateSupersetsSchema,
     createWorkoutDraftSchema,
     updateWorkoutDraftExercisesSchema,
@@ -33,6 +35,7 @@ import {
 const workoutDraftRouter = Router();
 
 workoutDraftRouter.use(requireAuth);
+workoutDraftRouter.patch('/:draftId/exercises/:exerciseId/replace', validateRequest({ params: workoutDraftExerciseParamsSchema, body: replaceWorkoutDraftExerciseSchema }), replaceWorkoutDraftExercise);
 
 workoutDraftRouter.post(
     "/",

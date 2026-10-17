@@ -19,7 +19,7 @@ import { useDraftMutations } from "../../query/useDraftMutations";
 import { finishWorkout } from "../../utils/finishWorkout";
 import CardioSession from "../../components/training/CardioSession";
 import type { TrainingConfig, CardioCompletion } from "@workout-app/shared";
-import { Link2, Unlink, PersonStanding, Plus, Trash2, Flag, GripVertical, MoreHorizontal, ArrowUp, ArrowDown } from "lucide-react";
+import { Link2, Unlink, PersonStanding, Plus, Trash2, Flag, GripVertical, MoreHorizontal, ArrowUp, ArrowDown, ArrowLeftRight } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import {
     useEffect,
@@ -128,6 +128,7 @@ function hasCompletedSet(sets: WorkoutSet[]) {
 }
 
 type SortableWorkoutExerciseCardProps = {
+    onChangeExercise: () => void;
     onSuperset: () => void;
     exercise: SelectedExercise;
     scope: string;
@@ -167,6 +168,7 @@ type SortableWorkoutExerciseCardProps = {
 function SortableWorkoutExerciseCard({
     exercise,
     onSuperset,
+    onChangeExercise,
     scope, onTrainingChange, actionsDisabled,
     exerciseSets,
     onAddSet,
@@ -271,6 +273,10 @@ function SortableWorkoutExerciseCard({
                                 styles.exerciseMenuDropdown
                             }
                         >
+                            <Button type="button" variant="ghost" icon={ArrowLeftRight} disabled={actionsDisabled} onClick={event => {
+                                event.currentTarget.closest("details")?.removeAttribute("open");
+                                onChangeExercise();
+                            }}>{t("workout.changeExercise")}</Button>
                             {(!exercise.training || exercise.training.format === "strength") && <Button type="button" variant="ghost" icon={PersonStanding} disabled={actionsDisabled} onClick={event => {
                                 event.currentTarget.closest("details")?.removeAttribute("open");
                                 setExpanded(true);
@@ -1016,7 +1022,8 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         }
     }
 
-    async function handleAddExercise() {
+    async function handleAddExercise(replaceExerciseId?: string) {
+        if (isOpeningExerciseSelect || actionRequestPending.current || hasEnded.current) return;
         if (!draftId) {
             navigate("/workout-select");
             return;
@@ -1026,18 +1033,16 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
         setIsOpeningExerciseSelect(true);
 
         try {
-            if (hasUserEditedSets) {
+            await autosaveRequest.current;
+            if (hasUserEditedSets || selectedExercises.some(exercise => exercise.training && exercise.training.format !== "strength")) {
                 await saveAllExerciseSets();
             }
-
+            if (hasEnded.current) return;
             setHasUserEditedSets(false);
-
-            navigate(
-                `/exercise-select/${draftId}`,
-            );
+            navigate(`/exercise-select/${draftId}${replaceExerciseId ? `?replace=${encodeURIComponent(replaceExerciseId)}` : ""}`);
         } catch (err) {
             setError(
-                friendlyError(err, t("WorkoutPage.failedToSaveTheWorkoutBeforeAddingAnExercise")),
+                friendlyError(err, t(replaceExerciseId ? "workout.saveBeforeChangeFailed" : "WorkoutPage.failedToSaveTheWorkoutBeforeAddingAnExercise")),
             );
 
             setIsOpeningExerciseSelect(false);
@@ -1240,7 +1245,7 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                         type="button"
                         variant="secondary"
                         size="medium"
-                        onClick={handleAddExercise}
+                        onClick={() => void handleAddExercise()}
                         disabled={
                             isOpeningExerciseSelect ||
                             isRemovingExercise ||
@@ -1297,9 +1302,10 @@ function ActiveWorkoutPage({ userId }: { userId: string }) {
                                 {group.map(exercise => {
                                     const index = selectedExercises.findIndex(item => item._id === exercise._id);
                                     return <SortableWorkoutExerciseCard
+                                        onChangeExercise={() => void handleAddExercise(exercise._id)}
                                         onSuperset={() => { if (exercise.supersetId) void saveSuperset(exercise); else setPairingExercise(exercise); }}
                                         scope={scope}
-                                        actionsDisabled={isActionPending || isReorderingExercises || isRemovingExercise}
+                                        actionsDisabled={isActionPending || isReorderingExercises || isRemovingExercise || isOpeningExerciseSelect}
                                         onTrainingChange={async training => {
                                             if (actionRequestPending.current || hasEnded.current) throw new Error(t("WorkoutPage.theWorkoutIsEndingPleaseWait"));
                                             await saveTraining({ exerciseId: exercise._id, training });

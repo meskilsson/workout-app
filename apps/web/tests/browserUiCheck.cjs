@@ -110,6 +110,17 @@ let browser, ws;
     payload=formFailure==='server'?{message:'MongoServerError: internal details'}:formFailure==='mixed'?{errors:[{field:'name',message:'Choose another name.'},{field:'unknown',message:'This record is unavailable.'}]}:formFailure==='field'?{errors:[{path:['email'],message:'Use another email address.'},{field:'name',message:'Choose another name.'}]}:{message:'Unable to save. Please try again.'};
     if(formFailure==='network') {await send('Fetch.failRequest',{requestId:item.requestId,errorReason:'ConnectionClosed'});return;}
    }
+   if(process.env.UI_CHECK_PHASE==='exercise-history' && url.pathname.includes('/workout-drafts')) {
+    if(item.request.method==='PATCH' && url.pathname.endsWith('/sets')) {
+     const body=JSON.parse(item.request.postData);draft.exercises.find(exercise=>exercise.exerciseId===body.exerciseId).sets=body.sets;
+    }
+    if(item.request.method==='PATCH' && url.pathname.endsWith('/replace')) {
+     const oldId=url.pathname.split('/').at(-2),{replacementExerciseId}=JSON.parse(item.request.postData);
+     const target=exercises.find(exercise=>exercise._id===replacementExerciseId);
+     draft.exercises[draft.exercises.findIndex(exercise=>exercise.exerciseId===oldId)]={exerciseId:target._id,exerciseName:target.name,sets:Array.from({length:4},(_,i)=>({id:`f8f6de5c-e305-4bba-b62b-a5375d3b790${i}`,weight:i?30:10,reps:i?8:12,isWarmup:i===0}))};
+    }
+    payload={...draft,purpose:'workout',status:'active'};
+   }
    if(process.env.UI_CHECK_PHASE==='workout-markers' && url.pathname.includes('/workout-drafts')) {
     if(item.request.method==='PATCH' && url.pathname.endsWith('/supersets')) {
      const {pairs}=JSON.parse(item.request.postData);
@@ -180,6 +191,35 @@ let browser, ws;
 
 
 
+ if(process.env.UI_CHECK_PHASE==='exercise-history') {
+  const original=structuredClone(draft.exercises);
+  for(const mode of ['light','dark']) for(const width of [375,1440]) {
+   draft.exercises=[structuredClone(original[0]),structuredClone(original[2])];
+   await evalValue('localStorage.clear()');
+   await visit(routes.find(route=>route[0]==='workout'),mode,width);
+   await evalValue("(()=>{const input=[...document.querySelectorAll('[class*=exerciseCard]')][1].querySelector('input');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'55');input.dispatchEvent(new Event('input',{bubbles:true}));})()");await wait(100);
+   await evalValue("document.querySelector('summary[aria-label]').click();[...document.querySelectorAll('button')].find(button=>button.textContent==='Change exercise').click()");await wait(1100);
+   assert(await evalValue('location.search.includes("replace='+exerciseId+'")'));
+   assert(await evalValue("document.querySelector('h1').textContent.includes('Change exercise')"));
+   assert.equal(draft.exercises[1].sets[0].weight,'55','edited partner not saved before navigation');
+   await evalValue("[...document.querySelectorAll('[role=button][aria-pressed]')].find(card=>card.textContent.includes('Seated cable row')).click()");await wait(100);
+   assert.equal(await evalValue("document.querySelectorAll('[role=button][aria-pressed=true]:not([aria-disabled=true])').length"),1);
+   await evalValue("[...document.querySelectorAll('button')].find(button=>button.textContent==='Change exercise').click()");await wait(1100);
+   assert(await evalValue("location.pathname.startsWith('/workout/')"));
+   assert.equal(draft.exercises[0].exerciseId,exercises[1]._id);
+   assert(await evalValue("document.querySelector('[class*=exerciseCard] h2').textContent.includes('Seated cable row')"));
+   assert.equal(await evalValue("document.querySelector('[class*=exerciseCard]').querySelectorAll('input').length"),8);
+   assert.equal(await evalValue("document.querySelector('[class*=exerciseCard]').querySelectorAll('button[aria-label^=\"Complete warm-up set\"]').length"),1);
+   assert.equal(await evalValue("document.querySelectorAll('button[aria-pressed=true]').length"),0,'history restored completed state');
+   assert.equal(await evalValue("[...document.querySelectorAll('[class*=exerciseCard]')][1].querySelector('input').value"),'55');
+   await send('Page.navigate',{url:base+'/workout/'+draftId});await wait(900);
+   assert(await evalValue("document.querySelector('[class*=exerciseCard] h2').textContent.includes('Seated cable row')"));
+   assert.equal(await evalValue("document.querySelector('[class*=exerciseCard]').querySelectorAll('input').length"),8);
+   console.log('PASS replace targeted exercise, prefill warm-up/working sets unchecked, preserve edited partner and reload',mode,width);
+  }
+  assert.equal(browserErrors.length,0,JSON.stringify(browserErrors));
+  await send('Fetch.disable');await send('Browser.close');return;
+ }
  if(process.env.UI_CHECK_PHASE==='workout-header') {
   for(const language of ['en','sv']) for(const mode of ['light','dark']) for(const width of [320,375,430,640,844,1440]) {
    await evalValue('localStorage.clear();localStorage.setItem("workout-language",'+JSON.stringify(language)+')');

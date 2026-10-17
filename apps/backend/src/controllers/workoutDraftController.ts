@@ -10,6 +10,14 @@ function getUserId(req: Request, res: Response): string | null {
     return req.user.id;
 }
 
+export async function replaceWorkoutDraftExercise(req: Request<{ draftId: string; exerciseId: string }>, res: Response, next: NextFunction): Promise<void> {
+    try {
+        const userId = getUserId(req, res);
+        if (!userId) return;
+        res.json(await workoutDraftService.replaceWorkoutDraftExercise(req.params.draftId, req.params.exerciseId, req.body.replacementExerciseId, userId));
+    } catch (error) { next(error); }
+}
+
 
 export async function createWorkoutDraft(
     req: Request,

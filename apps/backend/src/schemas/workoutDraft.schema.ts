@@ -45,6 +45,8 @@ export const addWorkoutDraftExercisesSchema = z.strictObject({
         .min(1, "At least one exercise is required"),
 });
 
+export const replaceWorkoutDraftExerciseSchema = z.strictObject({ replacementExerciseId: objectIdSchema });
+
 const draftSetValueSchema = z.union([
     z.string(),
     z.number(),

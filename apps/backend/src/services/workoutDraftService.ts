@@ -7,6 +7,7 @@ import WorkoutDraft from "../models/WorkoutDraft";
 import { createWorkoutSession } from "./workoutSessionService";
 import { ConflictError, NotFoundError, ValidationError } from "../errors/AppError";
 import type { WorkoutDraftStatus, WorkoutDraftPurpose } from "../models/WorkoutDraft";
+import { lastExerciseSets } from "./exerciseHistoryService";
 
 interface CreateWorkoutDraftInput {
     includeCardio?: unknown;
@@ -347,6 +348,8 @@ export async function updateWorkoutDraftExercises(
     );
 
     const selectedMuscleGroups = draft.selectedMuscleGroups;
+    const previousSets = draft.purpose === "template" ? new Map() : await lastExerciseSets(userId,
+        exercises.filter(exercise => exercise.exerciseType !== "cardio" && !existingSetsByExerciseId.has(exercise._id.toString())).map(exercise => exercise._id.toString()));
 
     draft.exercises = exerciseIds.map((exerciseId) => {
         const exercise = exercisesById.get(exerciseId);
@@ -364,7 +367,7 @@ export async function updateWorkoutDraftExercises(
         return {
             exerciseId: exercise._id as Types.ObjectId,
             exerciseName: exercise.name,
-            sets: existingSetsByExerciseId.get(exerciseId) ?? [],
+            sets: existingSetsByExerciseId.get(exerciseId) ?? previousSets.get(exerciseId) ?? [],
             supersetId: existingSupersets.get(exerciseId),
             training: existingTraining.has(exerciseId) ? existingTraining.get(exerciseId) : (exercise.exerciseType === "cardio" ? { format: "cardio", durationSeconds: 600 } : undefined),
         };
@@ -416,6 +419,7 @@ export async function addWorkoutDraftExercises(
         ]),
     );
 
+    const previousSets = await lastExerciseSets(userId, exercises.filter(exercise => exercise.exerciseType !== "cardio").map(exercise => exercise._id.toString()));
     const exercisesToAdd = newExerciseIds.map((exerciseId) => {
         const exercise = exerciseById.get(exerciseId);
 
@@ -426,7 +430,7 @@ export async function addWorkoutDraftExercises(
         return {
             exerciseId: exercise._id as Types.ObjectId,
             exerciseName: exercise.name,
-            sets: [],
+            sets: previousSets.get(exerciseId) ?? [],
             training: exercise.exerciseType === "cardio" ? { format: "cardio" as const, durationSeconds: 600 } : undefined,
         };
     });
@@ -437,6 +441,30 @@ export async function addWorkoutDraftExercises(
 
     return draft;
 
+}
+
+export async function replaceWorkoutDraftExercise(draftId: string, exerciseId: string, replacementId: string, userId: string) {
+    const draft = await getOwnedDraft(draftId, userId);
+    ensureDraftIsActive(draft.status);
+    const oldId = normalizeObjectId(exerciseId, "exercise id").toString();
+    const nextId = normalizeObjectId(replacementId, "replacement exercise id").toString();
+    const index = draft.exercises.findIndex(exercise => exercise.exerciseId.toString() === oldId);
+    if (index < 0) throw new NotFoundError("Exercise is not part of this draft");
+    if (draft.exercises.some(exercise => exercise.exerciseId.toString() === nextId)) throw new ValidationError("Exercise is already in this workout");
+    const exercise = await Exercise.findOne({ _id: nextId, $or: [{ isCustom: false, createdBy: null }, { createdBy: userId }] });
+    if (!exercise) throw new NotFoundError("Exercise is not available to you");
+    const cardio = exercise.exerciseType === "cardio";
+    const sets = cardio ? [] : (await lastExerciseSets(userId, [nextId])).get(nextId) ?? [];
+    const group = draft.exercises[index]!.supersetId;
+    const replacement = { exerciseId: exercise._id, exerciseName: exercise.name, sets,
+        ...(cardio ? { training: { format: "cardio", durationSeconds: 600 } } : group ? { supersetId: group } : {}) };
+    const unset: Record<string, 1> = {};
+    if (cardio && group) draft.exercises.forEach((entry, i) => { if (i !== index && entry.supersetId === group) unset[`exercises.${i}.supersetId`] = 1; });
+    const result = await WorkoutDraft.findOneAndUpdate({ _id: draft._id, userId, status: "active",
+        $expr: { $eq: [{ $map: { input: "$exercises", as: "exercise", in: "$$exercise.exerciseId" } }, draft.exercises.map(entry => entry.exerciseId)] } },
+    { $set: { [`exercises.${index}`]: replacement }, ...(Object.keys(unset).length ? { $unset: unset } : {}) }, { returnDocument: "after", runValidators: true });
+    if (!result) throw new ConflictError("Workout changed; reload before saving");
+    return result;
 }
 
 export async function removeWorkoutDraftExercise(

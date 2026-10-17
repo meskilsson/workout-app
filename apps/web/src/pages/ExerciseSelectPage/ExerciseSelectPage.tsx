@@ -1,3 +1,5 @@
+import { useWebTimers } from "../../components/timer/WebTimerContext";
+import useExerciseName from "../../hooks/useExerciseName";
 import { useExerciseBrowseState } from "../../hooks/useExerciseBrowseState";
 import { exerciseText } from "../../i18n/exercises";
 import ExerciseSortControl from "../../components/exercises/ExerciseSortControl";
@@ -11,7 +13,7 @@ import { searchRest, searchFocus, pageButtonRest, pageButtonHover, cardRest, sel
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import Icon from "../../components/ui/icon/Icon";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "../../routes/navigationHooks";
+import { useNavigate, useParams, useSearchParams } from "../../routes/navigationHooks";
 
 import { useAuth } from "../../context/AuthContext";
 
@@ -74,13 +76,16 @@ export default function ExerciseSelectPage() {
     useTranslation();
     const { user } = useAuth();
     const { draftId } = useParams();
+    const [searchParams] = useSearchParams();
+    const replaceExerciseId = searchParams.get("replace") ?? undefined;
     const draft = useQuery(draftDetailOptions(user?._id ?? "", draftId ?? ""));
     if (draft.isPending && draftId) return <LoadingState layout="exercises" className={styles.page} title={t("common.exerciseLibrary")} message={t("common.loadingWorkoutDraftAndExercises")} />;
     if (!draft.data) return <Box className={styles.page}><div className={styles.stateCard}><h1>{t("common.selectExercises")}</h1><p role="alert">{(draft.error ? friendlyError(draft.error, t("common.unableToLoadYourWorkoutPleaseTryAgain")) : t("common.missingWorkoutDraft"))}</p></div></Box>;
-    return <ExerciseSelectionForm key={(user?._id ?? "") + ":" + draftId} initialDraft={draft.data} />;
+    if (replaceExerciseId && draft.data.status !== "active") return <Box className={styles.page}><p role="alert">{t("workout.replaceUnavailable")}</p></Box>;
+    return <ExerciseSelectionForm key={(user?._id ?? "") + ":" + draftId + ":" + (replaceExerciseId ?? "")} initialDraft={draft.data} replaceExerciseId={replaceExerciseId} />;
 }
 
-function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft }) {
+function ExerciseSelectionForm({ initialDraft, replaceExerciseId }: { initialDraft: WorkoutDraft; replaceExerciseId?: string }) {
     useTranslation();
     const transition = useMotionTransition();
     const fieldMotion = useFieldMotion();
@@ -88,8 +93,11 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
     const draftId = initialDraft._id;
     const navigate = useNavigate();
     const mutations = useDraftMutations(draftId);
+    const webTimers = useWebTimers();
+    const replacementTarget = initialDraft.exercises.find(exercise => exercise.exerciseId === replaceExerciseId);
+    const replacementName = useExerciseName(replaceExerciseId, replacementTarget?.exerciseName ?? t("common.exercise"));
     const submitting = useRef(false);
-    const isSavingExercises = mutations.select.isPending || mutations.selectAndStart.isPending;
+    const isSavingExercises = mutations.select.isPending || mutations.selectAndStart.isPending || mutations.replace.isPending;
     const isTemplateDraft = initialDraft.purpose === "template";
     const selectedMuscleGroups: SelectedMuscleGroup[] = initialDraft.selectedMuscleGroups.map(id => ({ id, title: formatMuscleTitle(id) }));
     const includeCardio = initialDraft.includeCardio ?? true;
@@ -144,6 +152,12 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
             existingExerciseIds.includes(exercise._id);
 
         if (isAlreadyInWorkout) {
+            return;
+        }
+
+        if (replaceExerciseId) {
+            setSelectedExercises(selectedExercises.includes(exercise._id) ? [] : [exercise._id]);
+            setSelectedExerciseDetails([exercise]);
             return;
         }
 
@@ -239,6 +253,13 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
         setActionError("");
 
         try {
+            if (replaceExerciseId) {
+                if (selectedExercises.length !== 1) return;
+                const saved: WorkoutDraft = await mutations.replace.mutateAsync({ exerciseId: replaceExerciseId, replacementExerciseId: selectedExercises[0]! });
+                void webTimers.retainActivities(saved.exercises.map(exercise => exercise.exerciseId));
+                navigate("/workout/" + draftId);
+                return;
+            }
             if (!isActiveWorkout && !isTemplateDraft) {
                 await mutations.selectAndStart.mutateAsync(selectedExercises);
                 navigate("/workout/" + draftId);
@@ -434,7 +455,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
 
 
                     <h1 className={styles.title}>
-                        {isActiveWorkout
+                        {replaceExerciseId ? t("workout.changeExercise") : isActiveWorkout
                             ? t("ExerciseSelectPage.addExercises")
                             : isEditingExistingDraft
                                 ? t("ExerciseSelectPage.editExercises")
@@ -442,7 +463,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                     </h1>
 
                     {(isActiveWorkout || isCardioOnly || includeCardio) && <p className={styles.subtitle}>
-                        {isActiveWorkout
+                        {replaceExerciseId ? t("workout.chooseReplacement", { exercise: replacementName }) : isActiveWorkout
                             ? t("ExerciseSelectPage.selectExercisesToAddToYourWorkout")
                             : isCardioOnly ? t("ExerciseSelectPage.chooseYourCardioActivities") : includeCardio ? t("ExerciseSelectPage.chooseExercisesForYourWorkout") : null}
                     </p>}
@@ -563,7 +584,7 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
             <div className={styles.footer} hidden={mobileFiltersOpen}>
                 <p className={styles.footerText}>
                     {selectedExercises.length === 0
-                        ? isActiveWorkout
+                        ? replaceExerciseId ? t("workout.selectReplacement") : isActiveWorkout
                             ? t("ExerciseSelectPage.selectAtLeastOneNewExercise")
                             : t("ExerciseSelectPage.selectAtLeastOneExerciseToContinue")
                         : t("common.exercisesReady", { count: selectedExercises.length })}
@@ -584,13 +605,13 @@ function ExerciseSelectionForm({ initialDraft }: { initialDraft: WorkoutDraft })
                             color="currentColor"
                             label={
                                 isActiveWorkout
-                                    ? t("ExerciseSelectPage.addingExercises")
+                                    ? t(replaceExerciseId ? "common.saving" : "ExerciseSelectPage.addingExercises")
                                     : isTemplateDraft ? t("common.saving") : t("common.starting")
                             }
                             showLabel
                         />
                     ) : isActiveWorkout ? (
-                        t("ExerciseSelectPage.addToWorkout")
+                        t(replaceExerciseId ? "workout.changeExercise" : "ExerciseSelectPage.addToWorkout")
                     ) : (
                         isTemplateDraft ? t("ExerciseSelectPage.reviewTemplate") : t("common.startWorkout")
                     )}

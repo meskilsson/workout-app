@@ -139,6 +139,13 @@ export async function addWorkoutDraftExercisesRequest(
     return handleResponse(response, t("workoutDraftApi.failedToAddExercisesToWorkout"));
 }
 
+export async function replaceWorkoutDraftExerciseRequest(draftId: string, exerciseId: string, replacementExerciseId: string) {
+    const response = await workoutRequest(`${API_URL}/api/workout-drafts/${draftId}/exercises/${exerciseId}/replace`, {
+        method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ replacementExerciseId }),
+    });
+    return handleResponse(response, t("workout.replaceFailed"));
+}
+
 export async function removeWorkoutDraftExerciseRequest(
     draftId: string,
     exerciseId: string,
