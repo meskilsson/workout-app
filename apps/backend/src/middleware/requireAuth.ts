@@ -4,6 +4,10 @@ import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import User from "../models/User";
 
 function getTokenFromRequest(req: Request): string | null {
+    // Native credentials live in SecureStore; incidental platform cookies must not override them.
+    if (req.get?.('X-Auth-Client') === 'native' && req.headers?.authorization?.startsWith('Bearer ')) {
+        return req.headers.authorization.slice(7);
+    }
     const cookieToken = req.cookies?.token;
 
     if (cookieToken) {

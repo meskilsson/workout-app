@@ -1,6 +1,6 @@
 ﻿# Workout App
 
-A full-stack workout tracker for personal training: build workouts by muscle group, choose exercises, log sets, use training timers, and save workout history. The repository contains a working web application, an Express API, shared TypeScript code, and an early Expo mobile application.
+A full-stack workout tracker for personal training: build workouts by muscle group, choose exercises, log sets, use training timers, and save workout history. The repository contains a working web application, an Express API, shared TypeScript code, and an Expo mobile application.
 
 The project is in active development. The web workout flow, personal templates, and admin dashboard are implemented; the native client has only part of the web functionality.
 
@@ -21,9 +21,9 @@ The project is in active development. The web workout flow, personal templates, 
 
 ### Native application
 
-The Expo client implements login, stored authentication with Expo SecureStore, profile display/refresh, logout, and Home/Train/Workouts navigation. The Train screen can select muscles, create a backend draft, choose exercises from the authenticated library, save the selected exercises, and start the draft. Its active-workout view currently adds empty sets only to local component state.
+The Expo client now implements registration/login and secure session renewal, protected native navigation, profile/account settings, exercise browsing and custom CRUD, workout drafts, strength/warmup/superset logging, continuous/interval cardio, timestamp-based timers and recovery, native alerts, history/results/repeat, shared/personal templates, and administration. It reuses shared training, completion, timer timeline and superset logic and the web translation catalogs.
 
-The native Workouts screen is a placeholder. Native weight/reps entry, completed-workout saving, history, templates, and admin screens are not implemented. API helpers for set updates and workout completion exist but are not connected to the current Train screen. An `ExercisesScreen` exists, but the current navigator does not register it; the Home screen's Exercises button therefore has no matching route. Create an account through the web app before using native login.
+See [the native parity and review guide](docs/native-parity.md) for the feature checklist, environment/build commands, validation evidence, platform differences and outstanding device checks. Background interval notifications have a bounded schedule; exact visual/accessibility and iOS/physical-device acceptance are not implied by successful exports or unit tests.
 
 ## Technology stack
 
@@ -31,7 +31,7 @@ The native Workouts screen is a placeholder. Native weight/reps entry, completed
 | --- | --- |
 | Web | React 19, TypeScript, Vite 8, React Router 7, CSS Modules, dnd-kit, Lucide icons, React Body Highlighter |
 | Backend | Node.js, Express 5, TypeScript, Mongoose 9, MongoDB, Zod validation, bcrypt, JSON Web Tokens, cookie-parser, CORS, dotenv |
-| Native | Expo SDK 54, React Native 0.81, React Navigation, Expo SecureStore |
+| Native | Expo SDK 57, React Native 0.86, React Navigation, SecureStore, AsyncStorage, audio, haptics, notifications and SVG |
 | Shared | TypeScript types/constants, workout and rest-timer logic, current-workout context |
 | Tooling | npm workspaces and lockfile, tsx, TypeScript compiler, ESLint for the web app, Node's test runner, headless browser checks |
 
@@ -62,7 +62,7 @@ workout-app/
 
 - Node.js and npm with workspace support. The locked Vite version requires Node `^20.19.0 || >=22.12.0`; React Native/Metro require Node `>=20.19.4`. Node **22.12 or newer** satisfies both stated engine requirements. The repository does not pin a Node version.
 - A MongoDB database. Use an initialized **replica set**, including a single-node local replica set, or an Atlas cluster for the full application. Role/status changes and account deletion use transactions and fail on standalone MongoDB.
-- For native development, a compatible Expo client/device or emulator. The repository provides Expo development scripts, not app-store build/release scripts.
+- For native development, a compatible Expo client/device or emulator. Native review/build instructions are in docs/native-parity.md; store signing and deployment are not configured.
 
 ### 1. Install dependencies
 
@@ -124,7 +124,7 @@ The web API base URL defaults to `http://localhost:5000`. For a different backen
 VITE_API_URL=http://localhost:5000
 ```
 
-For native development, create `apps/native/.env` manually; no native `.env.example` is tracked:
+For native development, copy `apps/native/.env.example` to `apps/native/.env` and set:
 
 ```env
 EXPO_PUBLIC_API_URL=http://192.0.2.10:5000
@@ -179,7 +179,7 @@ Use a transaction-capable database before testing admin account changes or norma
 
 ## Authentication, roles, and administration
 
-Passwords are hashed with bcrypt. Login issues a JWT valid for one day, sets an HTTP-only cookie for the web client, and returns the token for clients such as native. Native stores its token in Expo SecureStore and sends it as a Bearer token. Logout clears the browser cookie or native stored token; there is no refresh-token or server-side token-revocation system.
+Passwords are hashed with bcrypt. Login issues a JWT valid for one day, sets an HTTP-only cookie for the web client, and returns the token for clients such as native. Native stores access and refresh credentials together in Expo SecureStore and sends Bearer authentication. Thirty-day refresh sessions rotate their server-stored hashes; logout revokes the refresh session and clears local credentials and workout state.
 
 `requireAuth` verifies the token and reloads the user from MongoDB on each protected request. The database supplies the current role and active status; deleted/deactivated accounts are rejected. Signup defaults to `user`, and regular profile updates cannot assign roles.
 
@@ -243,7 +243,7 @@ Run these from the repository root:
 | `npm run ios --workspace=native` | Start Expo with iOS launch requested; a local iOS simulator requires macOS. |
 | `npm run web --workspace=native` | Start Expo's web target; native storage/browser compatibility has not been verified here. |
 
-There is no root `test` script, native test/lint/build script, or separate shared-package build script. Backend startup currently depends on `tsx`, which is a development dependency; a dependencies-only production install will not support the existing start command as written.
+There is no root `test` script or separate shared-package build script. Native now provides `typecheck`, `lint`, `test`, and `export` scripts; see the native guide. Backend startup currently depends on `tsx`, which is a development dependency; a dependencies-only production install will not support the existing start command as written.
 
 ## Tests and browser checks
 
@@ -287,12 +287,12 @@ There is no registered `/api/workouts` route group. Administrative resources use
 
 ## Limitations and unfinished work
 
-- Native has partial functionality and the navigation gap described above; it does not yet match the web app.
+- Native implementation and remaining platform/device acceptance limits are tracked in [docs/native-parity.md](docs/native-parity.md).
 - The template seed script does not seed templates. A fresh database needs templates created through the app/admin flow.
 - Browser recovery depends on local storage and the backend draft. It does not provide cross-device synchronization of all browser-local progress or full offline training.
 - Admin editors use resource IDs, and live transaction concurrency requires separate verification against a MongoDB replica set.
-- Training analytics beyond session summaries/muscle metadata are not implemented. Completing native workout logging/history remains future work.
-- Authentication has no refresh-token/revocation flow. The source has no dedicated login rate limiter or CSRF middleware; production security hardening remains incomplete.
+- Training analytics beyond session summaries/muscle metadata are not implemented. Native workout logging/history are implemented; device acceptance remains tracked in the native guide.
+- Authentication uses rotating refresh sessions. The source has no dedicated login rate limiter or CSRF middleware; production security hardening remains incomplete.
 - `vercel.json` specifies the web build output and SPA rewrite. It does not configure hosting for the API or MongoDB, and this repository does not provide a complete verified deployment procedure.
 - Tests cover selected behaviors; native device behavior and live database/deployment operation are not verified by those suites. Web lint currently has existing React Hooks/Fast Refresh violations identified during the preceding implementation checks.
 

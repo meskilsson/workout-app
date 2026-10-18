@@ -6,9 +6,32 @@ const RefreshSession = require('../src/models/RefreshSession.ts').default;
 const User = require('../src/models/User.ts').default;
 const { createRefreshSession, rotateRefreshSession, hashRefreshToken, revokeRefreshSession } = require('../src/services/refreshSessionService.ts');
 const { refreshUser } = require('../src/controllers/authController.ts');
+const { logoutUser } = require('../src/controllers/authController.ts');
 const { requireAuth } = require('../src/middleware/requireAuth.ts');
 const jwt = require('jsonwebtoken');
 afterEach(() => mock.restoreAll());
+
+test('native refresh rotates a body token and returns credentials only to the native client', async () => {
+    const token = 'a'.repeat(64);
+    const user = { _id: { toString: () => '507f1f77bcf86cd799439011' }, email: 'user@example.com', role: 'user', deletedAt: null };
+    mock.method(RefreshSession, 'findOne', async filter => { assert.equal(filter.tokenHash, hashRefreshToken(token)); return { _id: 'session', userId: 'user' }; });
+    mock.method(User, 'findById', async () => user);
+    mock.method(RefreshSession, 'findOneAndUpdate', async () => ({ expiresAt: new Date(Date.now() + 10000) }));
+    let body;
+    const response = { cookie() {}, clearCookie() {}, setHeader() {}, status() { return this; }, json(value) { body = value; } };
+    await refreshUser({ cookies: {}, body: { refreshToken: token }, get: key => key === 'X-Auth-Refresh' ? '1' : key === 'X-Auth-Client' ? 'native' : undefined }, response, error => { throw error; });
+    assert.equal(typeof body.token, 'string'); assert.match(body.refreshToken, /^[a-f0-9]{64}$/);
+    await refreshUser({ cookies: { refreshToken: token }, get: key => key === 'X-Auth-Refresh' ? '1' : undefined }, response, error => { throw error; });
+    assert.deepEqual(Object.keys(body), ['user']);
+});
+
+test('native logout revokes the secure body credential without requiring browser cookies', async () => {
+    let revoked;
+    mock.method(RefreshSession, 'deleteOne', async filter => { revoked = filter; });
+    const response = { clearCookie() {}, status() { return this; }, json() {} };
+    await logoutUser({ cookies: {}, body: { refreshToken: 'native-secret' }, get: key => key === 'X-Auth-Client' ? 'native' : undefined }, response, error => { throw error; });
+    assert.deepEqual(revoked, { tokenHash: hashRefreshToken('native-secret') });
+});
 test('refresh sessions store only a hash and have a thirty-day expiry', async () => {
     let saved;
     mock.method(RefreshSession, 'create', async data => { saved = data; });
@@ -60,4 +83,13 @@ test('access expiry has a stable code; database outages are not authentication f
     mock.method(User, 'findById', async () => { throw new Error('offline'); });
     await requireAuth({ cookies: { token: jwt.sign({ id: 'user' }, process.env.JWT_SECRET) } }, res, error => { forwarded = error; });
     assert.equal(forwarded.message, 'offline');
+});
+
+test('native bearer authentication takes precedence over a stale cookie without changing browser precedence', async () => {
+    const id = '507f1f77bcf86cd799439011';
+    const token = jwt.sign({ id }, process.env.JWT_SECRET);
+    mock.method(User, 'findById', async () => ({ _id: { toString: () => id }, email: 'user@example.com', role: 'user' }));
+    let accepted = false;
+    await requireAuth({ get: () => 'native', cookies: { token: 'stale-cookie' }, headers: { authorization: `Bearer ${token}` } }, { status() { assert.fail('valid native bearer rejected'); } }, error => { assert.equal(error, undefined); accepted = true; });
+    assert.equal(accepted, true);
 });

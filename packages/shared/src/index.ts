@@ -7,3 +7,6 @@ export * from './constants/bodyModel';
 export * from './types';
 export * from './training';
 export * from './cardioTimer';
+export * from './finishWorkout';
+export * from './workoutGroups';
+export * from './timerTimeline';

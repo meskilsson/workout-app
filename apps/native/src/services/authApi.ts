@@ -1,35 +1,37 @@
 import { apiFetch } from "./apiClient";
 
 export type User = {
-    _id: string;
-    name: string;
-    email: string;
-    username: string;
-    role: "user" | "admin";
+  _id: string;
+  name: string;
+  email: string;
+  username: string;
+  role: "user" | "admin";
 };
 
 type LoginResponse = {
-    user: User;
-    token: string;
+  user: User;
+  token: string;
+  refreshToken: string;
 };
 
 type MeResponse = {
-    user: User;
+  user: User;
 };
 
 export async function loginRequest(email: string, password: string) {
-    return apiFetch<LoginResponse>("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify({
-            email,
-            password,
-        }),
-    });
+  return apiFetch<LoginResponse>("/api/auth/login", {
+    method: "POST",
+    headers: { "X-Auth-Client": "native" },
+    body: JSON.stringify({
+      email,
+      password,
+    }),
+  });
 }
 
 export async function getMeRequest(token: string) {
-    return apiFetch<MeResponse>("/api/auth/me", {
-        method: "GET",
-        token,
-    });
+  return apiFetch<MeResponse>("/api/auth/me", {
+    method: "GET",
+    token,
+  });
 }

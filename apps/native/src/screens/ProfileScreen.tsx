@@ -1,89 +1,206 @@
-import { Alert, StyleSheet, Text, View } from "react-native";
-
-import Button from "../components/UI/Button/Button";
+import { useState } from "react";
+import { Linking } from "react-native";
+import {
+  Page,
+  Card,
+  Txt,
+  Form,
+  Action,
+  Row,
+  Field,
+  confirm,
+} from "../components/ui";
 import { useAuth } from "../context/AuthContext";
+import { usePreferences } from "../context/PreferencesContext";
+import { apiFetch } from "../services/apiClient";
+import { prepareNotifications } from "../services/nativeAlerts";
+import * as Notifications from "expo-notifications";
 
 export default function ProfileScreen() {
-    const { user, logout, refreshUser } = useAuth();
-
-    async function handleLogout() {
-        try {
-            await logout();
-        } catch (error) {
-            console.log(error);
-            Alert.alert("Logout failed", "Something went wrong while logging out.");
-        }
+  const { user, token, refreshUser, logout } = useAuth();
+  const prefs = usePreferences();
+  const [message, setMessage] = useState("");
+  const [rest, setRest] = useState(String(prefs.restSeconds));
+  if (!user) return null;
+  async function remove() {
+    try {
+      await apiFetch(`/api/users/${user!._id}`, { method: "DELETE", token });
+      await logout();
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Request failed");
     }
-
-    async function handleRefreshUser() {
-        try {
+  }
+  return (
+    <Page>
+      <Txt title>Your profile</Txt>
+      <Card>
+        <Form
+          fields={[
+            {
+              name: "name",
+              title: "Name",
+              value: user.name,
+              required: true,
+              min: 2,
+              max: 50,
+            },
+            {
+              name: "username",
+              title: "Username",
+              value: user.username,
+              required: true,
+              min: 3,
+              max: 20,
+              pattern: /^[a-zA-Z0-9_]+$/,
+            },
+            {
+              name: "email",
+              title: "Email",
+              value: user.email,
+              required: true,
+              email: true,
+            },
+          ]}
+          submit={async (values) => {
+            await apiFetch(`/api/users/${user._id}`, {
+              method: "PATCH",
+              token,
+              body: JSON.stringify(values),
+            });
             await refreshUser();
-        } catch (error) {
-            console.log(error);
-            Alert.alert("Refresh failed", "Could not refresh your profile.");
-        }
-    }
-
-    return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Profile</Text>
-
-            <View style={styles.card}>
-                <Text style={styles.label}>Name</Text>
-                <Text style={styles.value}>{user?.name || "Unknown"}</Text>
-
-                <Text style={styles.label}>Email</Text>
-                <Text style={styles.value}>{user?.email || "Unknown"}</Text>
-
-                <Text style={styles.label}>Username</Text>
-                <Text style={styles.value}>{user?.username || "Unknown"}</Text>
-
-                <Text style={styles.label}>Role</Text>
-                <Text style={styles.value}>{user?.role || "Unknown"}</Text>
-            </View>
-
-            <View style={styles.actions}>
-                <Button variant="secondary" onPress={handleRefreshUser}>
-                    Refresh profile
-                </Button>
-
-                <Button variant="primary" onPress={handleLogout}>
-                    Log out
-                </Button>
-            </View>
-        </View>
-    );
+            setMessage("Saved");
+          }}
+        />
+      </Card>
+      <Card>
+        <Txt title>Change password</Txt>
+        <Form
+          fields={[
+            {
+              name: "currentPassword",
+              title: "Current password",
+              required: true,
+              password: true,
+            },
+            {
+              name: "newPassword",
+              title: "New password",
+              required: true,
+              password: true,
+              min: 8,
+              max: 100,
+            },
+            {
+              name: "confirmPassword",
+              title: "Confirm password",
+              required: true,
+              password: true,
+            },
+          ]}
+          submit={async ({ currentPassword, newPassword }) => {
+            await apiFetch(`/api/users/${user._id}/password`, {
+              method: "PATCH",
+              token,
+              body: JSON.stringify({ currentPassword, newPassword }),
+            });
+            setMessage("Saved");
+          }}
+        />
+      </Card>
+      <Card>
+        <Txt title>Preferences</Txt>
+        <Row>
+          {(["en", "sv"] as const).map((language) => (
+            <Action
+              key={language}
+              selected={prefs.language === language}
+              onPress={() => prefs.update({ language })}
+            >
+              {language === "en" ? "English" : "Svenska"}
+            </Action>
+          ))}
+        </Row>
+        <Row>
+          {(["light", "dark"] as const).map((theme) => (
+            <Action
+              key={theme}
+              selected={prefs.theme === theme}
+              onPress={() => prefs.update({ theme })}
+            >
+              {theme === "light" ? "Light" : "Dark"}
+            </Action>
+          ))}
+        </Row>
+        <Row>
+          {(["male", "female"] as const).map((bodyModel) => (
+            <Action
+              key={bodyModel}
+              selected={prefs.bodyModel === bodyModel}
+              onPress={() => prefs.update({ bodyModel })}
+            >
+              {bodyModel}
+            </Action>
+          ))}
+        </Row>
+        <Action
+          selected={prefs.keepAwake}
+          onPress={() => prefs.update({ keepAwake: !prefs.keepAwake })}
+        >
+          Keep screen awake
+        </Action>
+        <Action
+          selected={prefs.sound}
+          onPress={() => prefs.update({ sound: !prefs.sound })}
+        >
+          Sound
+        </Action>
+        <Action
+          selected={prefs.vibration}
+          onPress={() => prefs.update({ vibration: !prefs.vibration })}
+        >
+          Vibration
+        </Action>
+        <Action
+          selected={prefs.notifications}
+          onPress={() => {
+            void (async () => {
+              if (prefs.notifications) {
+                prefs.update({ notifications: false });
+                return;
+              }
+              await prepareNotifications(prefs);
+              const result = await Notifications.requestPermissionsAsync();
+              prefs.update({ notifications: result.granted });
+              if (!result.granted)
+                setMessage("Notifications are disabled in system settings.");
+            })();
+          }}
+        >
+          Notifications
+        </Action>
+        <Action onPress={() => void Linking.openSettings()}>
+          Open system settings
+        </Action>
+        <Field
+          title="Rest duration (seconds)"
+          keyboardType="number-pad"
+          value={rest}
+          onChangeText={setRest}
+        />
+        <Action
+          disabled={
+            !/^\d+$/.test(rest) || Number(rest) < 1 || Number(rest) > 86400
+          }
+          onPress={() => prefs.update({ restSeconds: Number(rest) })}
+        >
+          Save rest duration
+        </Action>
+      </Card>
+      {message ? <Txt>{message}</Txt> : null}
+      <Action onPress={() => void logout()}>Log out</Action>
+      <Action onPress={() => confirm("Delete account", () => void remove())}>
+        Delete account
+      </Action>
+    </Page>
+  );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 24,
-        gap: 20,
-        backgroundColor: "#f3f4f6",
-    },
-    title: {
-        fontSize: 32,
-        fontWeight: "800",
-    },
-    card: {
-        gap: 6,
-        padding: 20,
-        borderRadius: 16,
-        backgroundColor: "#ffffff",
-    },
-    label: {
-        marginTop: 8,
-        fontSize: 13,
-        fontWeight: "700",
-        color: "#6b7280",
-        textTransform: "uppercase",
-    },
-    value: {
-        fontSize: 18,
-        fontWeight: "600",
-    },
-    actions: {
-        gap: 12,
-    },
-});

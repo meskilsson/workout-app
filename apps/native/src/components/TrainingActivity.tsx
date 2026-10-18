@@ -1,50 +1,198 @@
-import { useEffect, useRef, useState } from "react";
-import { View, Text, TextInput, AppState, StyleSheet } from "react-native";
-import { validateTraining, trainingTotalSeconds, formatTrainingSeconds, createCardioTimer, cardioTimerAction, reconcileCardioTimer, cardioTimerView, cardioCompletion, type TrainingConfig, type CardioCompletion } from "@workout-app/shared";
-import Button from "./UI/Button/Button";
-export default function TrainingActivity({ initial, building, activeId, exerciseId, onStart, onSave, onDirty }: { initial?: TrainingConfig; building: boolean; activeId: string | null; exerciseId: string; onStart: () => void; onSave: (training: TrainingConfig, completion?: CardioCompletion) => Promise<void>; onDirty: (dirty: boolean) => void }) {
-    const config = initial ?? { format: "strength" };
-    const [format, setFormat] = useState(config.format), [rounds, setRounds] = useState(String(config.format === "intervals" ? config.rounds : 8));
-    const [workMin, setWorkMin] = useState(String(Math.floor((config.format === "intervals" ? config.workSeconds : config.format === "cardio" ? config.durationSeconds : 30) / 60)));
-    const [workSec, setWorkSec] = useState(String((config.format === "intervals" ? config.workSeconds : config.format === "cardio" ? config.durationSeconds : 30) % 60));
-    const [distance, setDistance] = useState(config.format === "cardio" && config.targetDistance ? String(config.targetDistance) : "");
-    const [unit, setUnit] = useState<"km" | "mi" | "m">(config.format === "cardio" ? config.distanceUnit ?? "km" : "km");
-    const [restMin, setRestMin] = useState(String(config.format === "intervals" ? Math.floor(config.restSeconds / 60) : 1));
-    const [restSec, setRestSec] = useState(String(config.format === "intervals" ? config.restSeconds % 60 : 30));
-    const [error, setError] = useState(""), [saving, setSaving] = useState(false), [dirty, setDirty] = useState(false);
-    const [state, setState] = useState(createCardioTimer), [now, setNow] = useState(Date.now);
-    const current = useRef(state);
-    useEffect(() => { current.current = state; }, [state]);
-    useEffect(() => {
-        if (activeId !== exerciseId) { const next = cardioTimerAction(current.current, config, "pause", Date.now()); current.current = next; setState(next); }
-    }, [activeId, exerciseId, config]);
-    useEffect(() => {
-        if (state.status !== "running") return;
-        const tick = () => { const t = Date.now(); const next = reconcileCardioTimer(current.current, config, t); current.current = next; setState(next); setNow(t); };
-        const id = setInterval(tick, 200), subscription = AppState.addEventListener("change", tick);
-        return () => { clearInterval(id); subscription.remove(); };
-    }, [state.status, config]);
-    let candidate: TrainingConfig | undefined;
-    try {
-        if ([workMin, workSec, restMin, restSec].some(v => v === "" || !/^\d+$/.test(v)) || Number(workSec) > 59 || Number(restSec) > 59) throw new Error("Invalid minutes or seconds");
-        candidate = validateTraining(format === "strength" ? { format } : format === "cardio" ? { format, durationSeconds: Number(workMin) * 60 + Number(workSec), ...(distance !== "" ? { targetDistance: Number(distance), distanceUnit: unit } : {}) }
-            : { format, rounds: Number(rounds), workSeconds: Number(workMin) * 60 + Number(workSec), restSeconds: Number(restMin) * 60 + Number(restSec) });
-    } catch { /* Save remains disabled until configuration is valid. */ }
-    async function saveTraining() { if (!candidate) return; setSaving(true); setError(""); try { await onSave(candidate); setDirty(false); onDirty(false); } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); } finally { setSaving(false); } }
-    async function change(action: "start" | "pause" | "resume" | "reset" | "complete") { if (saving) return;
-        if (action === "reset") { setSaving(true); try { await onSave(config); } catch (e) { setError(e instanceof Error ? e.message : "Reset failed"); return; } finally { setSaving(false); } }
-        if (action === "start" || action === "resume") onStart(); const t = Date.now(); const next = cardioTimerAction(current.current, config, action, t); current.current = next; setState(next); setNow(t); }
-    async function saveCompletion() { const result = cardioCompletion(state, config); if (!result) return; setSaving(true); setError(""); try { await onSave(config, result); } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); } finally { setSaving(false); } }
-    function input(label: string, value: string, setter: (v: string) => void) { return <View><Text>{label}</Text><TextInput accessibilityLabel={label} keyboardType="numeric" value={value} editable={!saving} onChangeText={v => { setter(v); setDirty(true); onDirty(true); }} style={styles.input} /></View>; }
-    const view = cardioTimerView(state, config, now);
-    return <View style={styles.container}>
-        {building ? <><Text>Training format: {format}</Text><View style={styles.controls}>{(["strength", "cardio", "intervals"] as const).map(f => <Button key={f} disabled={saving} onPress={() => { setFormat(f); setDirty(true); onDirty(true); }}>{f}</Button>)}</View>
-            {format !== "strength" && <>{format === "cardio" && <>{input("Target distance (optional)", distance, setDistance)}<Text>Distance unit: {unit}</Text><View style={styles.controls}>{(["km", "mi", "m"] as const).map(u => <Button key={u} disabled={saving} onPress={() => { setUnit(u); setDirty(true); onDirty(true); }}>{u}</Button>)}</View></>}{format === "intervals" && input("Rounds (1–100)", rounds, setRounds)}{input(format === "intervals" ? "Work minutes" : "Duration minutes", workMin, setWorkMin)}{input("Work seconds (0–59)", workSec, setWorkSec)}{format === "intervals" && <>{input("Rest minutes", restMin, setRestMin)}{input("Rest seconds (0–59)", restSec, setRestSec)}</>}{candidate ? <Text>{format === "intervals" ? `${rounds} rounds · ${workMin}:${workSec.padStart(2, "0")} work · ${restMin}:${restSec.padStart(2, "0")} rest · ` : ""}Total: {formatTrainingSeconds(trainingTotalSeconds(candidate))} (minutes:seconds).{format === "intervals" ? " No final rest." : ""}</Text> : <Text>Enter whole minutes and seconds; work must be positive. Up to 6 hours per phase and 24 hours total.</Text>}</>}
-            {dirty && <Button disabled={!candidate || saving} onPress={saveTraining}>{saving ? "Saving…" : "Save configuration"}</Button>}
-        </> : config.format !== "strength" && <><Text accessibilityLiveRegion="polite">{view.phase} · Round {view.round} of {config.format === "intervals" ? config.rounds : 1}</Text><Text style={styles.countdown}>{formatTrainingSeconds(view.phaseRemaining)}</Text><Text>Session remaining: {formatTrainingSeconds(view.remaining)} · {view.completedRounds} rounds completed</Text><View style={styles.controls}>
-            {state.status === "ready" && <Button disabled={saving} onPress={() => change("start")}>Start cardio</Button>}{state.status === "running" && <Button disabled={saving} onPress={() => change("pause")}>Pause</Button>}{state.status === "paused" && <Button disabled={saving} onPress={() => change("resume")}>Resume</Button>}<Button disabled={saving} onPress={() => change("reset")}>Reset session</Button><Button disabled={saving || state.status === "completed"} onPress={() => change("complete")}>Complete manually</Button>
-            {state.status === "completed" && <Button disabled={saving} onPress={saveCompletion}>Save completion</Button>}</View></>}
-        {error !== "" && <Text accessibilityRole="alert">{error}</Text>}
-    </View>;
+import { useState } from "react";
+import {
+  validateTraining,
+  trainingTotalSeconds,
+  formatTrainingSeconds,
+  type TrainingConfig,
+  type CardioCompletion,
+} from "@workout-app/shared";
+import { Action, Form, Row, Txt, type FormField } from "./ui";
+import { t } from "../i18n";
+
+export default function TrainingActivity({
+  initial,
+  onSave,
+  onDirty,
+  cardioOnly = false,
+}: {
+  cardioOnly?: boolean;
+  initial?: TrainingConfig;
+  building: boolean;
+  activeId: string | null;
+  exerciseId: string;
+  onStart: () => void;
+  onSave: (
+    training: TrainingConfig,
+    completion?: CardioCompletion,
+  ) => Promise<void>;
+  onDirty: (dirty: boolean) => void;
+}) {
+  const config = initial ?? { format: "strength" };
+  const [format, setFormat] = useState(config.format),
+    [unit, setUnit] = useState<"km" | "mi" | "m">(
+      config.format === "cardio" ? (config.distanceUnit ?? "km") : "km",
+    );
+  const work = config.format === "intervals" ? config.workSeconds : 30,
+    rest = config.format === "intervals" ? config.restSeconds : 90,
+    duration = config.format === "cardio" ? config.durationSeconds : 600;
+  function seconds(prefix: string, title: string, value: number): FormField[] {
+    return [
+      {
+        name: `${prefix}Min`,
+        title: `${title} · minutes`,
+        value: String(Math.floor(value / 60)),
+        required: true,
+        numeric: true,
+        integer: true,
+        minValue: 0,
+        maxValue: 360,
+      },
+      {
+        name: `${prefix}Sec`,
+        title: `${title} · seconds`,
+        value: String(value % 60),
+        required: true,
+        numeric: true,
+        integer: true,
+        minValue: 0,
+        maxValue: 59,
+      },
+    ];
+  }
+  return (
+    <>
+      <Row>
+        {(cardioOnly
+          ? (["cardio", "intervals"] as const)
+          : (["strength", "cardio", "intervals"] as const)
+        ).map((value) => (
+          <Action
+            key={value}
+            selected={value === format}
+            onPress={() => {
+              setFormat(value);
+              onDirty(true);
+            }}
+          >
+            {value}
+          </Action>
+        ))}
+      </Row>
+      {format === "cardio" && (
+        <Row>
+          {(["km", "mi", "m"] as const).map((value) => (
+            <Action
+              key={value}
+              selected={unit === value}
+              onPress={() => {
+                setUnit(value);
+                onDirty(true);
+              }}
+            >
+              {value}
+            </Action>
+          ))}
+        </Row>
+      )}
+      <Form
+        key={format}
+        fields={
+          format === "strength"
+            ? []
+            : format === "cardio"
+              ? [
+                  ...seconds("duration", "Duration", duration),
+                  {
+                    name: "distance",
+                    title: "Target distance (optional)",
+                    value:
+                      config.format === "cardio"
+                        ? String(config.targetDistance ?? "")
+                        : "",
+                    numeric: true,
+                    minValue: 0.001,
+                    maxValue: 1000000,
+                  },
+                ]
+              : [
+                  {
+                    name: "rounds",
+                    title: "Rounds",
+                    value: String(
+                      config.format === "intervals" ? config.rounds : 8,
+                    ),
+                    required: true,
+                    numeric: true,
+                    integer: true,
+                    minValue: 1,
+                    maxValue: 100,
+                  },
+                  ...seconds("work", "Work", work),
+                  ...seconds("rest", "Rest", rest),
+                ]
+        }
+        button="Save configuration"
+        validate={(values) => {
+          const errors: Record<string, string> = {};
+          const phase = (prefix: string, min: number) => {
+            const value =
+              Number(values[`${prefix}Min`]) * 60 +
+              Number(values[`${prefix}Sec`]);
+            if (Number.isFinite(value) && (value < min || value > 21600))
+              errors[`${prefix}Min`] = t(
+                "TrainingConfigForm.chooseValuenoMoreThan6Hours",
+                { value0: min ? t("common.minimumDuration") : "" },
+              );
+            return value;
+          };
+          if (format === "cardio") phase("duration", 1);
+          if (format === "intervals") {
+            const work = phase("work", 1),
+              rest = phase("rest", 0);
+            if (
+              Number(values.rounds) * work +
+                (Number(values.rounds) - 1) * rest >
+              86400
+            )
+              errors.rounds = t(
+                "TrainingConfigForm.reduceTheRoundsOrPhaseDurationsToStayWithin",
+              );
+          }
+          return errors;
+        }}
+        onChange={() => onDirty(true)}
+        submit={async (values) => {
+          const n = (key: string) => Number(values[key]);
+          const candidate = validateTraining(
+            format === "strength"
+              ? { format }
+              : format === "cardio"
+                ? {
+                    format,
+                    durationSeconds: n("durationMin") * 60 + n("durationSec"),
+                    ...(values.distance
+                      ? { targetDistance: n("distance"), distanceUnit: unit }
+                      : {}),
+                  }
+                : {
+                    format,
+                    rounds: n("rounds"),
+                    workSeconds: n("workMin") * 60 + n("workSec"),
+                    restSeconds: n("restMin") * 60 + n("restSec"),
+                  },
+          );
+          await onSave(candidate);
+          onDirty(false);
+        }}
+      />
+      <Txt>
+        {format === "strength"
+          ? ""
+          : "Enter whole minutes and seconds; work must be positive. Up to 6 hours per phase and 24 hours total."}
+      </Txt>
+      {config.format !== "strength" && (
+        <Txt>{formatTrainingSeconds(trainingTotalSeconds(config))}</Txt>
+      )}
+    </>
+  );
 }
-const styles = StyleSheet.create({ container: { gap: 10, paddingVertical: 12 }, controls: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, input: { minHeight: 44, padding: 8, borderWidth: 1, borderRadius: 6 }, countdown: { fontSize: 56, fontWeight: "700", fontVariant: ["tabular-nums"] } });

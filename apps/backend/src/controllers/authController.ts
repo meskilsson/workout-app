@@ -38,11 +38,11 @@ export async function loginUser(
         }
 
         const refreshToken = await createRefreshSession(user._id.toString());
-        await revokeRefreshSession(req.cookies?.refreshToken);
+        await revokeRefreshSession(req.get('X-Auth-Client') === 'native' ? req.body?.refreshToken : req.cookies?.refreshToken);
         const token = setAccessCookie(res, user);
         res.cookie("refreshToken", refreshToken, { ...cookieOptions, path: "/api/auth", maxAge: refreshLifetime });
 
-        res.status(200).json({ user, token });
+        res.status(200).json({ user, token, ...(req.get('X-Auth-Client') === 'native' ? { refreshToken } : {}) });
     } catch (error) {
         next(error);
     }
@@ -77,7 +77,8 @@ export async function refreshUser(req: Request, res: Response, next: NextFunctio
         return;
     }
     try {
-        const token = req.cookies?.refreshToken;
+        const native = req.get('X-Auth-Client') === 'native';
+        const token = native ? req.body?.refreshToken : req.cookies?.refreshToken;
         const session = typeof token === "string" && /^[a-f0-9]{64}$/.test(token)
             ? await rotateRefreshSession(token) : null;
         if (!session) {
@@ -85,9 +86,9 @@ export async function refreshUser(req: Request, res: Response, next: NextFunctio
             res.status(401).json({ code: "SESSION_EXPIRED", message: "Unauthorized" });
             return;
         }
-        setAccessCookie(res, session.user);
+        const accessToken = setAccessCookie(res, session.user);
         res.cookie("refreshToken", session.token, { ...cookieOptions, path: "/api/auth", expires: session.expiresAt });
-        res.status(200).json({ user: session.user });
+        res.status(200).json({ user: session.user, ...(native ? { token: accessToken, refreshToken: session.token } : {}) });
     } catch (error) { next(error); }
 }
 
@@ -98,7 +99,7 @@ export async function logoutUser(req: Request, res: Response, next: NextFunction
             const session = await RefreshSession.findOne({ tokenHash: hashRefreshToken(req.cookies.refreshToken) });
             if (session) await disableDevicePush(session.userId.toString(), deviceId);
         }
-        await revokeRefreshSession(req.cookies?.refreshToken);
+        await revokeRefreshSession(req.get('X-Auth-Client') === 'native' ? req.body?.refreshToken : req.cookies?.refreshToken);
         clearAuthCookies(res);
         res.status(200).json({ message: "Logged out" });
     } catch (error) { next(error); }
